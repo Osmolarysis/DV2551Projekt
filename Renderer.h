@@ -46,7 +46,6 @@ private:
 	unsigned int m_screenHeight;
 
 	//Device stuff
-	ComPtr<IDXGIFactory7> m_factory;
 	ComPtr<ID3D12Device8> m_device;
 
 	//Commandqueue/list/allocator

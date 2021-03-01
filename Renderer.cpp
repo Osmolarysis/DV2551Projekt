@@ -71,19 +71,24 @@ Renderer::Renderer(int width, int height)
 Renderer::~Renderer()
 {
 	//Debug
-	m_debugController->Release();
+	SafeRelease(m_debugController.GetAddressOf());
+
+	//Window
+	CloseWindow(m_handle);
 
 	//Device
-	m_factory->Release();
-	m_device->Release();
+	SafeRelease(m_device.GetAddressOf());
 
 	//Commandqueue/list/allocator
-	m_commandQueue->Release();
-	for (size_t i = 0; i < 2; i++)
+	SafeRelease(m_commandQueue.GetAddressOf());
+	for (size_t i = 0; i < NUM_COMMANDLISTS; i++)
 	{
-		m_commandAllocator[i]->Release();
-		m_graphicsCommandList[i]->Release();
+		SafeRelease(m_commandAllocator[i].GetAddressOf());
+		SafeRelease(m_graphicsCommandList[i].GetAddressOf());
 	}
+
+	//Fence and event handle
+	SafeRelease(m_fence.GetAddressOf());
 }
 Renderer* Renderer::getInstance()
 {
@@ -132,9 +137,10 @@ bool Renderer::createWindow()
 
 bool Renderer::createDevice() // DXR support is assumed... todo
 {
-	ComPtr<IDXGIAdapter1> adapter; //Want to go four ���
+	ComPtr<IDXGIAdapter1> adapter; //Want to go four R£££
+	ComPtr<IDXGIFactory7> factory;
 
-	HRESULT hr = CreateDXGIFactory2(0, IID_PPV_ARGS(m_factory.GetAddressOf()));
+	HRESULT hr = CreateDXGIFactory2(0, IID_PPV_ARGS(factory.GetAddressOf()));
 	if (hr != S_OK) {
 		return false;
 	}
@@ -142,7 +148,7 @@ bool Renderer::createDevice() // DXR support is assumed... todo
 	for (size_t i = 0;; i++)
 	{
 		adapter.Reset();
-		if (DXGI_ERROR_NOT_FOUND == m_factory->EnumAdapters1(i, adapter.GetAddressOf())) {
+		if (DXGI_ERROR_NOT_FOUND == factory->EnumAdapters1((UINT)i, adapter.GetAddressOf())) {
 			break; //We ran out of adapters
 		}
 
@@ -168,6 +174,9 @@ bool Renderer::createDevice() // DXR support is assumed... todo
 		// No adapter with level 12.1
 		return false;
 	}
+
+	//adapter->Release();
+	//factory->Release();
 	return true;
 }
 
