@@ -65,6 +65,10 @@ Renderer::Renderer(int width, int height)
 	}
 }
 
+Renderer::~Renderer()
+{
+}
+
 Renderer* Renderer::getInstance()
 {
 	return &m_this;
@@ -78,4 +82,56 @@ unsigned int Renderer::getScreenWidth() const
 unsigned int Renderer::getScreenHeight() const
 {
 	return m_screenHeight;
+}
+
+bool Renderer::createWindow()
+{
+	return false;
+}
+
+bool Renderer::createDevice()
+{
+	return false;
+}
+
+bool Renderer::createDebugMode()
+{
+	return false;
+}
+
+bool Renderer::createCommandQueue()
+{
+	//One of each type of queue (3 total), but six lists (possible to go 3 lists with 6 allocators, but hard appearently)
+	//Start with grade D, 1 Direct queue and 2 lists
+	return false;
+}
+
+bool Renderer::createSwapChain()
+{
+	return false;
+}
+
+bool Renderer::createFenceAndEventHandle()
+{
+	return false;
+}
+
+bool Renderer::createDescriptorHeap()
+{
+	return false;
+}
+
+bool Renderer::createRenderTargets()
+{
+	return false;
+}
+
+bool Renderer::createViewportAndScissorRect(int, int)
+{
+	return false;
+}
+
+bool Renderer::createRootSignature()
+{
+	return false;
 }
