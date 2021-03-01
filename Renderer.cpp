@@ -39,7 +39,7 @@ Renderer::Renderer(int width, int height)
 
 	//create fence and event handler
 	if (!createFenceAndEventHandle()) {
-		printf("error creating swapchain and event handler\n");
+		printf("error creating fence and event handler\n");
 		exit(-1);
 	}
 
@@ -288,8 +288,9 @@ bool Renderer::createSwapChain()
 	);
 	if (hr == S_OK)
 	{
-		if (SUCCEEDED(swapChain1->QueryInterface(IID_PPV_ARGS(&m_swapChain)))) {
-			swapChain1->Release();
+		if (FAILED(swapChain1->QueryInterface(IID_PPV_ARGS(&m_swapChain)))) 
+		{
+			return false;
 		}
 	}
 	else {
