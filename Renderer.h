@@ -43,6 +43,11 @@ private:
 	//Device stuff
 	ComPtr<ID3D12Device8> m_device;
 
+	//Fence and event handle
+	ComPtr<ID3D12Fence1> m_fence;
+	UINT64 m_fenceValue = 0;
+	ComPtr<HANDLE> m_eventHandle;
+
 	Renderer(int, int);
 	~Renderer();
 

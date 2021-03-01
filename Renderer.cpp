@@ -113,7 +113,16 @@ bool Renderer::createSwapChain()
 
 bool Renderer::createFenceAndEventHandle()
 {
-	return false;
+	HRESULT hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence));
+	if (hr != S_OK) {
+		printf("Error creating fence");
+		exit(-1);
+	}
+	m_fenceValue = 1;
+	// Creation of an event handle to use in GPU synchronization
+	m_eventHandle = CreateEvent(0, false, false, 0);
+
+	return 1;
 }
 
 bool Renderer::createDescriptorHeap()
