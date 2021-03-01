@@ -72,6 +72,10 @@ private:
 	UINT64 m_fenceValue = 0;
 	HANDLE m_eventHandle = nullptr;
 
+	//viewport and rect
+	D3D12_VIEWPORT m_viewPort;
+	D3D12_RECT m_scissorRect;
+
 	Renderer(int, int);
 	~Renderer();
 
@@ -84,7 +88,7 @@ private:
 	bool createFenceAndEventHandle();
 	bool createDescriptorHeap();
 	bool createRenderTargets();
-	bool createViewportAndScissorRect(int, int);
+	bool createViewportAndScissorRect();
 	bool createRootSignature();
 
 public:
