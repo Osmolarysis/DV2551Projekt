@@ -220,15 +220,20 @@ bool Renderer::createCommandQueue()
 			printf("Error creating command list");
 			exit(-1);
 		}
+
+
+		//Command lists are created in the recording state. Since there is nothing to
+		//record right now and the main loop expects it to be closed, we close it.
+
+		hr = m_graphicsCommandList[i]->Close();
+
+		if (hr != S_OK) {
+			printf("Error closing command list at initialisation");
+			exit(-1);
+		}
+
 	}
 
-	//Command lists are created in the recording state. Since there is nothing to
-	//record right now and the main loop expects it to be closed, we close it.
-
-	if (hr != S_OK) {
-		printf("Error closing command list at initialisation");
-		exit(-1);
-	}
 
 	return false;
 }
