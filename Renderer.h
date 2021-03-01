@@ -34,6 +34,9 @@ private:
 	static Renderer m_this;
 	bool m_isLoaded = false;
 
+	//Debug
+	ComPtr<ID3D12Debug3> m_debugController;
+
 	//Window
 	HWND m_handle;
 	const LPCWSTR m_windowTitle = L"ovikigt";
