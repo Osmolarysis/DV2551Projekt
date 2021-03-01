@@ -252,7 +252,7 @@ bool Renderer::createSwapChain()
 
 bool Renderer::createFenceAndEventHandle()
 {
-	HRESULT hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence));
+	HRESULT hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_fence.GetAddressOf()));
 	if (hr != S_OK) {
 		printf("Error creating fence");
 		exit(-1);
