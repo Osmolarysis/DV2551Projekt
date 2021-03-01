@@ -30,6 +30,8 @@ inline void SafeRelease(
 
 const unsigned int NUM_SWAP_BUFFERS = 2; //Number of buffers
 
+const unsigned int NUM_COMMANDLISTS = 2;
+
 class Renderer {
 private:
 	//Singleton
@@ -56,10 +58,15 @@ private:
 	ComPtr<ID3D12Resource1> m_renderTargets[NUM_SWAP_BUFFERS];
 	UINT m_renderTargetDescriptorSize = 0;
 
+	//Commandqueue/list/allocator
+	ComPtr<ID3D12CommandQueue> m_commandQueue;
+	ComPtr<ID3D12CommandAllocator> m_commandAllocator[NUM_COMMANDLISTS];
+	ComPtr<ID3D12GraphicsCommandList> m_graphicsCommandList[NUM_COMMANDLISTS];
+
 	//Fence and event handle
 	ComPtr<ID3D12Fence1> m_fence;
 	UINT64 m_fenceValue = 0;
-	ComPtr<HANDLE> m_eventHandle;
+	HANDLE m_eventHandle = nullptr;
 
 	Renderer(int, int);
 	~Renderer();
