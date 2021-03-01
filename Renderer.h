@@ -28,6 +28,8 @@ inline void SafeRelease(
 #define SCREEN_HEIGHT Renderer::getInstance()->getScreenHeight()
 #define SCREEN_WIDTH Renderer::getInstance()->getScreenWidth()
 
+const unsigned int NUM_COMMANDLISTS = 2;
+
 class Renderer {
 private:
 	//Singleton
@@ -48,8 +50,8 @@ private:
 
 	//Commandqueue/list/allocator
 	ComPtr<ID3D12CommandQueue> m_commandQueue;
-	ComPtr<ID3D12CommandAllocator> m_commandAllocator[2];
-	ComPtr<ID3D12GraphicsCommandList> m_graphicsCommandList[2];
+	ComPtr<ID3D12CommandAllocator> m_commandAllocator[NUM_COMMANDLISTS];
+	ComPtr<ID3D12GraphicsCommandList> m_graphicsCommandList[NUM_COMMANDLISTS];
 
 	//Fence and event handle
 	ComPtr<ID3D12Fence1> m_fence;
