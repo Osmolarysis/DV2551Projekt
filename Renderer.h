@@ -28,6 +28,8 @@ inline void SafeRelease(
 #define SCREEN_HEIGHT Renderer::getInstance()->getScreenHeight()
 #define SCREEN_WIDTH Renderer::getInstance()->getScreenWidth()
 
+const unsigned int NUM_SWAP_BUFFERS = 2; //Number of buffers
+
 class Renderer {
 private:
 	//Singleton
@@ -48,6 +50,11 @@ private:
 
 	//Root signature
 	ComPtr<ID3D12RootSignature> m_rootSignature;
+
+	//Render Target
+	ComPtr<ID3D12DescriptorHeap> m_renderTargetHeap;
+	ComPtr<ID3D12Resource1> m_renderTargets[NUM_SWAP_BUFFERS];
+	UINT m_renderTargetDescriptorSize = 0;
 
 	//Fence and event handle
 	ComPtr<ID3D12Fence1> m_fence;

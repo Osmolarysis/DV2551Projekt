@@ -144,12 +144,37 @@ bool Renderer::createFenceAndEventHandle()
 
 bool Renderer::createDescriptorHeap()
 {
-	return false;
+	//Create descriptor heap for render target views.
+	D3D12_DESCRIPTOR_HEAP_DESC dhd = {};
+	dhd.NumDescriptors = NUM_SWAP_BUFFERS;
+	dhd.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	HRESULT hr = m_device->CreateDescriptorHeap(&dhd, IID_PPV_ARGS(&m_renderTargetHeap));
+	if (hr != S_OK) {
+		return false;
+	}
+
+	return true;
 }
 
 bool Renderer::createRenderTargets()
 {
-	return false;
+	// Create resources for the render targets.
+	m_renderTargetDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	D3D12_CPU_DESCRIPTOR_HANDLE cdh = m_renderTargetHeap->GetCPUDescriptorHandleForHeapStart();
+
+	HRESULT hr;
+	// One RTV for each frame.
+	for (UINT n = 0; n < NUM_SWAP_BUFFERS; ++n)
+	{
+		hr = m_swapChain->GetBuffer(n, IID_PPV_ARGS(&m_renderTargets[n]));
+		m_device->CreateRenderTargetView(m_renderTargets[n], nullptr, cdh);
+		cdh.ptr += m_renderTargetDescriptorSize;
+	}
+
+	if (hr != S_OK)
+		return false;
+
+	return true;
 }
 
 bool Renderer::createViewportAndScissorRect(int, int)
