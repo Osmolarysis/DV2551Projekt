@@ -31,41 +31,41 @@ Renderer::Renderer(int width, int height)
 		exit(-1);
 	}
 
-	////create swap chain
-	//if (!createSwapChain()) {
-	//	printf("error creating swap chain\n");
-	//	exit(-1);
-	//}
+	//create swap chain
+	if (!createSwapChain()) {
+		printf("error creating swap chain\n");
+		exit(-1);
+	}
 
-	////create fence and event handler
-	//if (!createSwapChain()) {
-	//	printf("error creating swapchain and event handler\n");
-	//	exit(-1);
-	//}
+	//create fence and event handler
+	if (!createSwapChain()) {
+		printf("error creating swapchain and event handler\n");
+		exit(-1);
+	}
 
-	////create descriptor heaps
-	//if (!createDescriptorHeap()) {
-	//	printf("error creating descriptor heap\n");
-	//	exit(-1);
-	//}
+	//create descriptor heaps
+	if (!createDescriptorHeap()) {
+		printf("error creating descriptor heap\n");
+		exit(-1);
+	}
 
-	////create render target
-	//if (!createRenderTargets()) {
-	//	printf("error creating render target\n");
-	//	exit(-1);
-	//}
+	//create render target
+	if (!createRenderTargets()) {
+		printf("error creating render target\n");
+		exit(-1);
+	}
 
-	////create view port and scissor rect
-	//if (!createViewportAndScissorRect(SCREEN_WIDTH, SCREEN_HEIGHT)) {
-	//	printf("error creating view port and scissor rect\n");
-	//	exit(-1);
-	//}
+	//create view port and scissor rect
+	if (!createViewportAndScissorRect(SCREEN_WIDTH, SCREEN_HEIGHT)) {
+		printf("error creating view port and scissor rect\n");
+		exit(-1);
+	}
 
-	////create root signature
-	//if (!createRootSignature()) {
-	//	printf("error creating root signature\n");
-	//	exit(-1);
-	//}
+	//create root signature
+	if (!createRootSignature()) {
+		printf("error creating root signature\n");
+		exit(-1);
+	}
 }
 
 Renderer::~Renderer()
