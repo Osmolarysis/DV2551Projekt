@@ -247,7 +247,7 @@ bool Renderer::createCommandQueue()
 
 bool Renderer::createSwapChain()
 {
-	ComPtr<DXGI_SWAP_CHAIN_DESC1> swapChainDesc;
+	DXGI_SWAP_CHAIN_DESC1* swapChainDesc;
 
 	swapChainDesc = new DXGI_SWAP_CHAIN_DESC1;
 	swapChainDesc->Width = m_screenWidth;
@@ -263,10 +263,10 @@ bool Renderer::createSwapChain()
 	swapChainDesc->Flags = 0; //Optional
 	swapChainDesc->AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
 
-	IDXGISwapChain1* swapChain1 = nullptr;
+	ComPtr<IDXGISwapChain1> swapChain1 = nullptr;
 
 	HRESULT hr = m_factory->CreateSwapChainForHwnd(
-		m_commandQueue,
+		m_commandQueue.Get(),
 		m_handle,
 		swapChainDesc,
 		nullptr, //Windowed mode
@@ -283,7 +283,7 @@ bool Renderer::createSwapChain()
 		return false;
 	}
 
-
+	delete swapChainDesc;
 	return true;
 }
 
