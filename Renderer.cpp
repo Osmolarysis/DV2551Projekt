@@ -38,7 +38,7 @@ Renderer::Renderer(int width, int height)
 	}
 
 	//create fence and event handler
-	if (!createSwapChain()) {
+	if (!createFenceAndEventHandle()) {
 		printf("error creating swapchain and event handler\n");
 		exit(-1);
 	}
