@@ -76,6 +76,14 @@ Renderer::~Renderer()
 	//Device
 	m_factory->Release();
 	m_device->Release();
+
+	//Commandqueue/list/allocator
+	m_commandQueue->Release();
+	for (size_t i = 0; i < 2; i++)
+	{
+		m_commandAllocator[i]->Release();
+		m_graphicsCommandList[i]->Release();
+	}
 }
 Renderer* Renderer::getInstance()
 {
