@@ -43,7 +43,7 @@ private:
 
 	//Window
 	HWND m_handle;
-	const LPCWSTR m_windowTitle = L"ovikigt";
+	const LPCWSTR m_windowTitle = L"Projekt";
 	unsigned int m_screenWidth;
 	unsigned int m_screenHeight;
 
