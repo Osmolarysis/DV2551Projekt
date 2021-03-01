@@ -71,6 +71,7 @@ Renderer::Renderer(int width, int height)
 Renderer::~Renderer()
 {
 	SafeRelease(m_device.GetAddressOf());
+	SafeRelease(m_rootSignature.GetAddressOf());
 	SafeRelease(m_fence.GetAddressOf());
 	SafeRelease(m_eventHandle.GetAddressOf());
 	SafeRelease(m_debugController.GetAddressOf());

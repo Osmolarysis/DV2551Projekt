@@ -45,6 +45,8 @@ private:
 
 	//Device stuff
 	ComPtr<ID3D12Device8> m_device;
+
+	//Root signature
 	ComPtr<ID3D12RootSignature> m_rootSignature;
 
 	//Fence and event handle
