@@ -34,6 +34,9 @@ private:
 	static Renderer m_this;
 	bool m_isLoaded = false;
 
+	//Debug
+	ComPtr<ID3D12Debug3> m_debugController;
+
 	//Window
 	HWND m_handle;
 	const LPCWSTR m_windowTitle = L"ovikigt";
@@ -43,6 +46,11 @@ private:
 	//Device stuff
 	ComPtr<ID3D12Device8> m_device;
 	ComPtr<ID3D12RootSignature> m_rootSignature;
+
+	//Fence and event handle
+	ComPtr<ID3D12Fence1> m_fence;
+	UINT64 m_fenceValue = 0;
+	ComPtr<HANDLE> m_eventHandle;
 
 	Renderer(int, int);
 	~Renderer();
