@@ -10,7 +10,7 @@
 
 #include <WRL/client.h>
 
-using namespace Microsoft::WRL;
+using Microsoft::WRL::ComPtr;
 
 template<class Interface>
 inline void SafeRelease(
