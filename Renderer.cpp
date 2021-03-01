@@ -56,7 +56,7 @@ Renderer::Renderer(int width, int height)
 	}
 
 	//create view port and scissor rect
-	if (!createViewportAndScissorRect(SCREEN_WIDTH, SCREEN_HEIGHT)) {
+	if (!createViewportAndScissorRect()) {
 		printf("error creating view port and scissor rect\n");
 		exit(-1);
 	}
@@ -274,9 +274,23 @@ bool Renderer::createRenderTargets()
 	return false;
 }
 
-bool Renderer::createViewportAndScissorRect(int, int)
+bool Renderer::createViewportAndScissorRect()
 {
-	return false;
+	//Viewport
+	m_viewPort.TopLeftX = 0;
+	m_viewPort.TopLeftY = 0;
+	m_viewPort.Width = (FLOAT)SCREEN_WIDTH;
+	m_viewPort.Height = (FLOAT)SCREEN_HEIGHT;
+	m_viewPort.MinDepth = 0.0f;
+	m_viewPort.MaxDepth = 1.0f;
+
+	//Scissor rectangle
+	m_scissorRect.left = 0;
+	m_scissorRect.top = 0;
+	m_scissorRect.right = SCREEN_WIDTH;
+	m_scissorRect.bottom = SCREEN_HEIGHT;
+
+	return true;
 }
 
 bool Renderer::createRootSignature()
