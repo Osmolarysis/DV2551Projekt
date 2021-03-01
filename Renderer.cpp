@@ -80,6 +80,19 @@ Renderer::~Renderer()
 	SafeRelease(m_factory.GetAddressOf());
 	SafeRelease(m_device.GetAddressOf());
 
+	//Root signature
+	SafeRelease(m_rootSignature.GetAddressOf());
+
+	//Swapchain
+	SafeRelease(m_swapChain.GetAddressOf());
+
+	//Render Target
+	SafeRelease(m_renderTargetHeap.GetAddressOf());
+	for (size_t i = 0; i < NUM_SWAP_BUFFERS; i++)
+	{
+		SafeRelease(m_renderTargets[i].GetAddressOf());
+	}
+
 	//Commandqueue/list/allocator
 	SafeRelease(m_commandQueue.GetAddressOf());
 	for (size_t i = 0; i < NUM_COMMANDLISTS; i++)
