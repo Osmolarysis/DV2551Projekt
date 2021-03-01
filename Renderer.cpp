@@ -173,7 +173,44 @@ bool Renderer::createCommandQueue()
 
 bool Renderer::createSwapChain()
 {
-	return false;
+	ComPtr<DXGI_SWAP_CHAIN_DESC1> swapChainDesc;
+
+	swapChainDesc = new DXGI_SWAP_CHAIN_DESC1;
+	swapChainDesc->Width = m_screenWidth;
+	swapChainDesc->Height = m_screenHeight;
+	swapChainDesc->Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swapChainDesc->Stereo = FALSE;
+	swapChainDesc->SampleDesc.Count = 1; //No multisample
+	swapChainDesc->SampleDesc.Quality = 0; //Default settings
+	swapChainDesc->BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	swapChainDesc->BufferCount = NUM_SWAP_BUFFERS;
+	swapChainDesc->Scaling = DXGI_SCALING_NONE;
+	swapChainDesc->SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	swapChainDesc->Flags = 0; //Optional
+	swapChainDesc->AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+
+	IDXGISwapChain1* swapChain1 = nullptr;
+
+	HRESULT hr = m_factory->CreateSwapChainForHwnd(
+		m_commandQueue,
+		m_windowHandler,
+		swapChainDesc,
+		nullptr, //Windowed mode
+		nullptr, //restrict to output
+		&swapChain1
+	);
+	if (hr == S_OK)
+	{
+		if (SUCCEEDED(swapChain1->QueryInterface(IID_PPV_ARGS(&m_swapChain)))) {
+			swapChain1->Release();
+		}
+	}
+	else {
+		return false;
+	}
+
+
+	return true;
 }
 
 bool Renderer::createFenceAndEventHandle()
@@ -215,7 +252,7 @@ bool Renderer::createRenderTargets()
 	for (UINT n = 0; n < NUM_SWAP_BUFFERS; ++n)
 	{
 		hr = m_swapChain->GetBuffer(n, IID_PPV_ARGS(&m_renderTargets[n]));
-		m_device->CreateRenderTargetView(m_renderTargets[n], nullptr, cdh);
+		m_device->CreateRenderTargetView(m_renderTargets[n].Get(), nullptr, cdh);
 		cdh.ptr += m_renderTargetDescriptorSize;
 	}
 

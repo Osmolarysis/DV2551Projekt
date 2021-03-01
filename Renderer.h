@@ -53,6 +53,9 @@ private:
 	//Root signature
 	ComPtr<ID3D12RootSignature> m_rootSignature;
 
+	//Swapchain
+	ComPtr<IDXGISwapChain4> m_swapChain;
+
 	//Render Target
 	ComPtr<ID3D12DescriptorHeap> m_renderTargetHeap;
 	ComPtr<ID3D12Resource1> m_renderTargets[NUM_SWAP_BUFFERS];
