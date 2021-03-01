@@ -133,5 +133,53 @@ bool Renderer::createViewportAndScissorRect(int, int)
 
 bool Renderer::createRootSignature()
 {
-	return false;
+	//Define descriptor range(s)
+	D3D12_DESCRIPTOR_RANGE dtRangesCBV[1];
+	dtRangesCBV[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+	dtRangesCBV[0].NumDescriptors = 1;			// WVP matrix
+	dtRangesCBV[0].BaseShaderRegister = 0;		// Base shader register b0
+	dtRangesCBV[0].RegisterSpace = 0;
+	dtRangesCBV[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	//Create descriptor table(s)
+	D3D12_ROOT_DESCRIPTOR_TABLE rdtCBV;
+	rdtCBV.NumDescriptorRanges = ARRAYSIZE(dtRangesCBV);
+	rdtCBV.pDescriptorRanges = dtRangesCBV;
+
+	//Create root parameter
+	D3D12_ROOT_PARAMETER rootParam[1];
+	rootParam[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParam[0].DescriptorTable = rdtCBV;
+	rootParam[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+
+	D3D12_ROOT_SIGNATURE_DESC rsDesc;
+	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+	rsDesc.NumParameters = ARRAYSIZE(rootParam);
+	rsDesc.pParameters = rootParam;
+	rsDesc.NumStaticSamplers = 0;
+
+	ID3DBlob* sBlob;
+	HRESULT hr = D3D12SerializeRootSignature(
+		&rsDesc,
+		D3D_ROOT_SIGNATURE_VERSION_1,
+		&sBlob,
+		nullptr
+	);
+	if (hr != S_OK) {
+		return false;
+	}
+
+	hr = m_device->CreateRootSignature(
+		0,
+		sBlob->GetBufferPointer(),
+		sBlob->GetBufferSize(),
+		IID_PPV_ARGS(&m_rootSignature)
+	);
+	if (hr != S_OK) {
+		return false;
+	}
+
+	SafeRelease(&sBlob);
+
+	return true;
 }

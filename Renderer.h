@@ -42,6 +42,7 @@ private:
 
 	//Device stuff
 	ComPtr<ID3D12Device8> m_device;
+	ComPtr<ID3D12RootSignature> m_rootSignature;
 
 	Renderer(int, int);
 	~Renderer();
