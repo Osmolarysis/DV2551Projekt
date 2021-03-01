@@ -70,9 +70,13 @@ Renderer::Renderer(int width, int height)
 
 Renderer::~Renderer()
 {
-	SafeRelease(m_device.GetAddressOf());
-}
+	//Debug
+	m_debugController->Release();
 
+	//Device
+	m_factory->Release();
+	m_device->Release();
+}
 Renderer* Renderer::getInstance()
 {
 	return &m_this;
@@ -88,14 +92,75 @@ unsigned int Renderer::getScreenHeight() const
 	return m_screenHeight;
 }
 
-bool Renderer::createWindow()
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	return false;
+	switch (message)
+	{
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+	}
+
+	return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
-bool Renderer::createDevice()
+bool Renderer::createWindow()
 {
-	return false;
+	// Define window style
+	WNDCLASS wc = { 0 };
+	wc.style = CS_OWNDC;
+	wc.lpfnWndProc = WndProc;
+	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+	wc.lpszClassName = m_windowTitle;
+	RegisterClass(&wc);
+
+	// Create the window
+	m_handle = CreateWindow(m_windowTitle, m_windowTitle,
+		WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_VISIBLE, 0, 0, m_screenWidth,
+		m_screenHeight + 30, nullptr, nullptr, nullptr, nullptr);
+
+	return true;
+}
+
+bool Renderer::createDevice() // DXR support is assumed... todo
+{
+	ComPtr<IDXGIAdapter1> adapter; //Want to go four ööö
+
+	HRESULT hr = CreateDXGIFactory2(0, IID_PPV_ARGS(m_factory.GetAddressOf()));
+	if (hr != S_OK) {
+		return false;
+	}
+
+	for (size_t i = 0;; i++)
+	{
+		adapter.Reset();
+		if (DXGI_ERROR_NOT_FOUND == m_factory->EnumAdapters1(i, adapter.GetAddressOf())) {
+			break; //We ran out of adapters
+		}
+
+		//Check if the adapter supports out feature level, but dont create
+		if (SUCCEEDED(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_12_1, __uuidof(ID3D12Device), nullptr))) {
+			break;
+		}
+
+		adapter->Release();
+	}
+
+	if (adapter.Get()) {
+		hr = D3D12CreateDevice(
+			adapter.Get(), //nullptr if default adapter
+			D3D_FEATURE_LEVEL_12_1,
+			IID_PPV_ARGS(m_device.GetAddressOf())
+		);
+		if (hr != S_OK) {
+			return false;
+		}
+	}
+	else {
+		// No adapter with level 12.1
+		return false;
+	}
+	return true;
 }
 
 bool Renderer::createDebugMode()

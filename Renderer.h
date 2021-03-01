@@ -39,11 +39,12 @@ private:
 
 	//Window
 	HWND m_handle;
-	const LPCWSTR m_windowTitle = L"ovikigt";
+	const LPCWSTR m_windowTitle = L"Projekt";
 	unsigned int m_screenWidth;
 	unsigned int m_screenHeight;
 
 	//Device stuff
+	ComPtr<IDXGIFactory7> m_factory;
 	ComPtr<ID3D12Device8> m_device;
 
 	Renderer(int, int);
