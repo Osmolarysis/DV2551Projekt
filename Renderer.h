@@ -9,6 +9,7 @@
 #pragma comment (lib, "d3dcompiler.lib")
 
 #include <WRL/client.h>
+#include <iostream>
 
 using Microsoft::WRL::ComPtr;
 
@@ -24,6 +25,9 @@ inline void SafeRelease(
 	}
 }
 
+#define SCREEN_HEIGHT Renderer::getInstance()->getScreenHeight()
+#define SCREEN_WIDTH Renderer::getInstance()->getScreenWidth()
+
 class Renderer {
 private:
 	//Singleton
@@ -33,6 +37,8 @@ private:
 	//Window
 	HWND m_handle;
 	const LPCWSTR m_windowTitle = L"ovikigt";
+	unsigned int m_screenWidth;
+	unsigned int m_screenHeight;
 
 	//Device stuff
 	ComPtr<ID3D12Device8> m_device;
@@ -40,6 +46,22 @@ private:
 	Renderer(int, int);
 	~Renderer();
 
+	//Initialisation functions
+	bool createWindow();
+	bool createDevice();
+	bool createDebugMode();
+	bool createCommandQueue();
+	bool createSwapChain();
+	bool createFenceAndEventHandle();
+	bool createDescriptorHeap();
+	bool createRenderTargets();
+	bool createViewportAndScissorRect(int, int);
+	bool createRootSignature();
+
 public:
-	static void initialise(HWND);
+	static Renderer* getInstance();
+
+	//Window functions
+	unsigned int getScreenWidth() const;
+	unsigned int getScreenHeight() const;
 };
