@@ -72,8 +72,10 @@ Renderer::~Renderer()
 {
 	SafeRelease(m_device.GetAddressOf());
 	SafeRelease(m_fence.GetAddressOf());
-	SafeRelease(m_eventHandle.GetAddressOf());
+	
 	SafeRelease(m_debugController.GetAddressOf());
+
+	CloseHandle(m_eventHandle);
 }
 
 Renderer* Renderer::getInstance()
@@ -119,6 +121,47 @@ bool Renderer::createCommandQueue()
 {
 	//One of each type of queue (3 total), but six lists (possible to go 3 lists with 6 allocators, but hard appearently)
 	//Start with grade D, 1 Direct queue and 2 lists
+
+	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+
+	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+	HRESULT hr = m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(m_commandQueue.GetAddressOf()));
+	if (hr != S_OK) {
+		printf("Error creating command queue");
+		exit(-1);
+	}
+
+	for (int i = 0; i < 2; ++i)
+	{
+		hr = m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(m_commandAllocator[i].GetAddressOf()));
+		if (hr != S_OK) {
+			printf("Error creating command allocataor");
+			exit(-1);
+		}
+	
+		//Create command list.
+		hr = m_device->CreateCommandList(
+			0,
+			D3D12_COMMAND_LIST_TYPE_DIRECT,
+			m_commandAllocator[i].Get(),
+			nullptr,
+			IID_PPV_ARGS(m_graphicsCommandList[i].GetAddressOf())
+		);
+		if (hr != S_OK) {
+			printf("Error creating command list");
+			exit(-1);
+		}
+	}
+
+	//Command lists are created in the recording state. Since there is nothing to
+	//record right now and the main loop expects it to be closed, we close it.
+
+	if (hr != S_OK) {
+		printf("Error closing command list at initialisation");
+		exit(-1);
+	}
+
 	return false;
 }
 
@@ -138,7 +181,7 @@ bool Renderer::createFenceAndEventHandle()
 	// Creation of an event handle to use in GPU synchronization
 	m_eventHandle = CreateEvent(0, false, false, 0);
 
-	return 1;
+	return true;
 }
 
 bool Renderer::createDescriptorHeap()

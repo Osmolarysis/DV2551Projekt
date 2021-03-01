@@ -46,10 +46,15 @@ private:
 	//Device stuff
 	ComPtr<ID3D12Device8> m_device;
 
+	//Commandqueue/list/allocator
+	ComPtr<ID3D12CommandQueue> m_commandQueue;
+	ComPtr<ID3D12CommandAllocator> m_commandAllocator[2];
+	ComPtr<ID3D12GraphicsCommandList> m_graphicsCommandList[2];
+
 	//Fence and event handle
 	ComPtr<ID3D12Fence1> m_fence;
 	UINT64 m_fenceValue = 0;
-	ComPtr<HANDLE> m_eventHandle;
+	HANDLE m_eventHandle = nullptr;
 
 	Renderer(int, int);
 	~Renderer();
