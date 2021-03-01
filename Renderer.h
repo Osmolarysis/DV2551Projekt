@@ -29,7 +29,6 @@ inline void SafeRelease(
 #define SCREEN_WIDTH Renderer::getInstance()->getScreenWidth()
 
 const unsigned int NUM_SWAP_BUFFERS = 2; //Number of buffers
-
 const unsigned int NUM_COMMANDLISTS = 2;
 
 class Renderer {

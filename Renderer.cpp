@@ -215,7 +215,7 @@ bool Renderer::createCommandQueue()
 			printf("Error creating command allocataor");
 			exit(-1);
 		}
-	
+
 		//Create command list.
 		hr = m_device->CreateCommandList(
 			0,
@@ -325,7 +325,7 @@ bool Renderer::createRenderTargets()
 	// One RTV for each frame.
 	for (UINT n = 0; n < NUM_SWAP_BUFFERS; ++n)
 	{
-		hr = m_swapChain->GetBuffer(n, IID_PPV_ARGS(&m_renderTargets[n]));
+		hr = m_swapChain->GetBuffer(n, IID_PPV_ARGS(m_renderTargets[n].GetAddressOf()));
 		m_device->CreateRenderTargetView(m_renderTargets[n].Get(), nullptr, cdh);
 		cdh.ptr += m_renderTargetDescriptorSize;
 	}
