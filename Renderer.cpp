@@ -269,7 +269,7 @@ bool Renderer::createSwapChain()
 
 	HRESULT hr = m_factory->CreateSwapChainForHwnd(
 		m_commandQueue,
-		m_windowHandler,
+		m_handle,
 		swapChainDesc,
 		nullptr, //Windowed mode
 		nullptr, //restrict to output
