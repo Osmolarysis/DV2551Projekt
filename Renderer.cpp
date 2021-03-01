@@ -77,6 +77,7 @@ Renderer::~Renderer()
 	CloseWindow(m_handle);
 
 	//Device
+	SafeRelease(m_factory.GetAddressOf());
 	SafeRelease(m_device.GetAddressOf());
 
 	//Commandqueue/list/allocator
@@ -138,9 +139,8 @@ bool Renderer::createWindow()
 bool Renderer::createDevice() // DXR support is assumed... todo
 {
 	ComPtr<IDXGIAdapter1> adapter; //Want to go four R£££
-	ComPtr<IDXGIFactory7> factory;
 
-	HRESULT hr = CreateDXGIFactory2(0, IID_PPV_ARGS(factory.GetAddressOf()));
+	HRESULT hr = CreateDXGIFactory2(0, IID_PPV_ARGS(m_factory.GetAddressOf()));
 	if (hr != S_OK) {
 		return false;
 	}
@@ -148,7 +148,7 @@ bool Renderer::createDevice() // DXR support is assumed... todo
 	for (size_t i = 0;; i++)
 	{
 		adapter.Reset();
-		if (DXGI_ERROR_NOT_FOUND == factory->EnumAdapters1((UINT)i, adapter.GetAddressOf())) {
+		if (DXGI_ERROR_NOT_FOUND == m_factory->EnumAdapters1((UINT)i, adapter.GetAddressOf())) {
 			break; //We ran out of adapters
 		}
 
@@ -175,8 +175,7 @@ bool Renderer::createDevice() // DXR support is assumed... todo
 		return false;
 	}
 
-	//adapter->Release();
-	//factory->Release();
+	//adapter->Release(); //Does this automatically
 	return true;
 }
 
@@ -243,8 +242,7 @@ bool Renderer::createCommandQueue()
 
 	}
 
-
-	return false;
+	return true;
 }
 
 bool Renderer::createSwapChain()
