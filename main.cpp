@@ -8,5 +8,18 @@ int CALLBACK main(_In_ HINSTANCE appInstance, _In_opt_ HINSTANCE preInstance, _I
 
 	Renderer* renderer = Renderer::getInstance();
 
+	while (1) { //TODO: exit while loop in a good way
+		//Update
+
+		//Begin frame
+
+		//Record
+
+		//Execute list(s)
+
+		//Present
+	}
+
+	printf("Exiting main...\n");
 	return 0;
 }
