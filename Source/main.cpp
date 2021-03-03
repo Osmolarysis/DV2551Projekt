@@ -1,5 +1,5 @@
 #include <crtdbg.h>
-#include "Renderer.h"
+#include "Renderer/Renderer.h"
 
 int CALLBACK main(_In_ HINSTANCE appInstance, _In_opt_ HINSTANCE preInstance, _In_ LPSTR cmdLine,
 	_In_ int cmdCount)
