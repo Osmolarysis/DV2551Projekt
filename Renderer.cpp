@@ -151,7 +151,7 @@ bool Renderer::createWindow()
 
 bool Renderer::createDevice() // DXR support is assumed... todo
 {
-	ComPtr<IDXGIAdapter1> adapter; //Want to go four R£££
+	ComPtr<IDXGIAdapter1> adapter; //Want to go four, QueryInterface() is a solution.
 
 	HRESULT hr = CreateDXGIFactory2(0, IID_PPV_ARGS(m_factory.GetAddressOf()));
 	if (hr != S_OK) {

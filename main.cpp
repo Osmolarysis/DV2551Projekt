@@ -18,7 +18,7 @@ int CALLBACK main(_In_ HINSTANCE appInstance, _In_opt_ HINSTANCE preInstance, _I
 
 		//Begin frame
 
-		//Record
+		//Record (TODO: multithread)
 
 		//Execute list(s)
 
