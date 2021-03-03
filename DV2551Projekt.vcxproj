@@ -141,9 +141,15 @@
   <ItemGroup>
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\Renderer\Renderer.cpp" />
+    <ClCompile Include="Source\States\State.cpp" />
+    <ClCompile Include="Source\States\StateStack.cpp" />
+    <ClCompile Include="Source\States\StateTypes\CubeState.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Renderer\Renderer.h" />
+    <ClInclude Include="Source\States\State.h" />
+    <ClInclude Include="Source\States\StateStack.h" />
+    <ClInclude Include="Source\States\StateTypes\CubeState.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

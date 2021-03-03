@@ -16,6 +16,12 @@
     <Filter Include="Source Files\Renderer">
       <UniqueIdentifier>{64265e97-ae9e-421e-a3b0-ac8324de883e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\States">
+      <UniqueIdentifier>{7c8da378-38eb-42dc-9388-5f43d67a1324}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\States\StateTypes">
+      <UniqueIdentifier>{42cf3f7d-33fc-4af0-a556-6ffc3003bd6f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Renderer\Renderer.cpp">
@@ -24,10 +30,28 @@
     <ClCompile Include="Source\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\States\StateStack.cpp">
+      <Filter>Source Files\States</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\States\State.cpp">
+      <Filter>Source Files\States</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\States\StateTypes\CubeState.cpp">
+      <Filter>Source Files\States\StateTypes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Renderer\Renderer.h">
       <Filter>Source Files\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\States\StateStack.h">
+      <Filter>Source Files\States</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\States\State.h">
+      <Filter>Source Files\States</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\States\StateTypes\CubeState.h">
+      <Filter>Source Files\States\StateTypes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

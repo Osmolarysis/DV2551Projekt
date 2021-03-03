@@ -1,5 +1,6 @@
 #include <crtdbg.h>
 #include "Renderer/Renderer.h"
+#include "States\StateStack.h"
 
 int CALLBACK main(_In_ HINSTANCE appInstance, _In_opt_ HINSTANCE preInstance, _In_ LPSTR cmdLine,
 	_In_ int cmdCount)
@@ -8,6 +9,10 @@ int CALLBACK main(_In_ HINSTANCE appInstance, _In_opt_ HINSTANCE preInstance, _I
 
 	//Renderer
 	Renderer* renderer = Renderer::getInstance();
+
+	//StateStack
+	StateStack* stateStack = StateStack::getInstance();
+	stateStack->push(State::StateType::cubeState);
 
 	//Windows handler
 	MSG msg = { 0 };
