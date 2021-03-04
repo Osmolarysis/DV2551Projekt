@@ -2,9 +2,8 @@
 #include <unordered_map>
 
 //#include "VertexBuffer.h"	
-//#include "ConstantBuffer.h"	
+#include "../ConstantBuffer/ConstantBuffer.h"	
 class VertexBuffer;		// deklarationer tills vi gör faktiska klassen
-class ConstantBuffer;
 
 enum Location { POSITION, COLOR };
 
