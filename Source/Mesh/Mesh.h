@@ -1,9 +1,8 @@
 #pragma once
 #include <unordered_map>
-
-//#include "VertexBuffer.h"	
 #include "../ConstantBuffer/ConstantBuffer.h"	
-class VertexBuffer;		// deklarationer tills vi gör faktiska klassen
+
+class VertexBuffer;		// forward declaration. include in cpp
 
 enum Location { POSITION, COLOR };
 
@@ -17,8 +16,10 @@ private:
 		VertexBuffer* buffer;
 	};
 
-
 	std::unordered_map<Location, VertexBufferBind> geometryBuffers;
+
+	// helper functions
+	void bindIAVertexBuffer(Location location);
 public:
 	Mesh();
 	~Mesh();
@@ -31,6 +32,6 @@ public:
 		size_t sizeElement,
 		Location inputStream);
 
-	void bindIAVertexBuffer(Location location);
+	void bindAll();
 };
 
