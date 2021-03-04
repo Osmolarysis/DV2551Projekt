@@ -11,7 +11,7 @@ enum Location { POSITION, COLOR };
 class Mesh
 {
 private:
-	ConstantBuffer* m_cbuffer;
+	ConstantBuffer* m_cbuffer; // eller kanske bara data.
 
 	struct VertexBufferBind {
 		size_t sizeElement, numElements, offset;

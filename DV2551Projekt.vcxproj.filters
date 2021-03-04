@@ -62,10 +62,10 @@
     <ClInclude Include="Source\States\StateTypes\CubeState.h">
       <Filter>Source Files\States\StateTypes</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh.h">
+    <ClInclude Include="Source\Mesh\VertexBuffer.h">
       <Filter>Source Files\Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Mesh\VertexBuffer.h">
+    <ClInclude Include="Source\Mesh\Mesh.h">
       <Filter>Source Files\Mesh</Filter>
     </ClInclude>
   </ItemGroup>

@@ -148,7 +148,7 @@
     <ClCompile Include="Source\States\StateTypes\CubeState.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Source\Mesh\Mesh.h" />
     <ClInclude Include="Source\Mesh\VertexBuffer.h" />
     <ClInclude Include="Source\Renderer\Renderer.h" />
     <ClInclude Include="Source\States\State.h" />
