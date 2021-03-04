@@ -1,9 +1,13 @@
 #pragma once
+#include "../Renderer/Renderer.h"
+
 class VertexBuffer
 {
 private:
 	unsigned int refs = 0;
 
+	size_t m_totalsize;
+	ComPtr<ID3D12Resource2> m_vertexBufferResource;
 
 public:
 	VertexBuffer();

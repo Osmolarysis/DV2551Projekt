@@ -8,7 +8,7 @@ Mesh::Mesh()
 
 Mesh::~Mesh()
 {
-	for (auto g : geometryBuffers) {	// tagen från assignment 1
+	for (auto g : geometryBuffers) {	// tagen från assignment 1.
 		g.second.buffer->decRef();
 	}
 }
