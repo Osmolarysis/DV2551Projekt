@@ -73,5 +73,6 @@ void ConstantBuffer::updateData(const void* data, UINT currentBackBufferIndex)
 
 void ConstantBuffer::bind()
 {
-
+	//We need a constant buffer view somewhere that connects the constant buffer to the descriptor heap at the correct location.
+	//Should be doable once in the constructor though so this function might not be necessary.
 }
