@@ -8,7 +8,7 @@ Mesh::Mesh()
 
 Mesh::~Mesh()
 {
-	for (auto g : geometryBuffers) {	// tagen från assignment 1.
+	for (auto g : m_geometryBuffers) {	// tagen från assignment 1.
 		g.second.buffer->decRef();
 	}
 }
@@ -16,14 +16,24 @@ Mesh::~Mesh()
 void Mesh::addIAVertexBufferBinding(VertexBuffer* buffer, size_t offset, size_t numElements, size_t sizeElement, Location inputStream)
 {
 	buffer->incRef();
-	geometryBuffers[inputStream] = { sizeElement, numElements, offset, buffer };
+	m_geometryBuffers[inputStream] = { sizeElement, numElements, offset, buffer };
 
+}
+
+void Mesh::draw()
+{
+	// bind IA, cbuffers, etc.
+	bindAll(); 
+
+	// draw
+	UINT nrOfVertices = m_geometryBuffers[POSITION].numElements;
+	Renderer::getInstance()->getGraphicsCommandList()->DrawInstanced(nrOfVertices, 1, 0, 0);
 }
 
 void Mesh::bindIAVertexBuffer(Location location)
 {
 	// no checking if the key is valid...TODO
-	const VertexBufferBind& vb = geometryBuffers[location];
+	const VertexBufferBind& vb = m_geometryBuffers[location];
 	vb.buffer->bind(vb.offset, vb.numElements * vb.sizeElement, location);
 }
 
@@ -38,3 +48,5 @@ void Mesh::bindAll()
 
 	// alternatively if meshes later will have different vertexbuffers, have an array of locations and call bindIA.. with for each.
 }
+
+
