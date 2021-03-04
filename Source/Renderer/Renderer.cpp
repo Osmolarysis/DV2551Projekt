@@ -91,6 +91,7 @@ Renderer::~Renderer()
 	for (size_t i = 0; i < NUM_SWAP_BUFFERS; i++)
 	{
 		SafeRelease(m_renderTargets[i].GetAddressOf());
+		SafeRelease(m_cbDescriptorHeaps[i].GetAddressOf());
 	}
 
 	//Commandqueue/list/allocator
@@ -336,6 +337,19 @@ bool Renderer::createDescriptorHeap()
 		return false;
 	}
 
+	//Create descriptor heaps for constant buffers.
+	for (int i = 0; i < NUM_SWAP_BUFFERS; i++)
+	{
+		D3D12_DESCRIPTOR_HEAP_DESC dhdCB = {};
+		dhdCB.NumDescriptors = m_nrOfCBDescriptors;
+		dhdCB.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		dhdCB.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		hr = m_device->CreateDescriptorHeap(&dhdCB, IID_PPV_ARGS(&m_cbDescriptorHeaps[i]));
+		if (hr != S_OK) {
+			return false;
+		}
+	}
+
 	return true;
 }
 
@@ -381,10 +395,10 @@ bool Renderer::createViewportAndScissorRect()
 
 bool Renderer::createRootSignature()
 {
-	//Define descriptor range(s)
+	//Constant Buffer Descriptor Range
 	D3D12_DESCRIPTOR_RANGE dtRangesCBV[1];
 	dtRangesCBV[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-	dtRangesCBV[0].NumDescriptors = 1;			// WVP matrix
+	dtRangesCBV[0].NumDescriptors = m_nrOfCBDescriptors;
 	dtRangesCBV[0].BaseShaderRegister = 0;		// Base shader register b0
 	dtRangesCBV[0].RegisterSpace = 0;
 	dtRangesCBV[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;

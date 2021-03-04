@@ -20,14 +20,18 @@ int CALLBACK main(_In_ HINSTANCE appInstance, _In_opt_ HINSTANCE preInstance, _I
 
 	while (mainLoop) { //TODO: exit while loop in a good way - statestacks if we feelin fancy
 		//Update
+		stateStack->update();
 
 		//Begin frame
 
 		//Record (TODO: multithread)
+		stateStack->record();
 
 		//Execute list(s)
+		stateStack->executeList();
 
 		//Present
+		//renderer->present();
 
 		//Message handling
 		while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
