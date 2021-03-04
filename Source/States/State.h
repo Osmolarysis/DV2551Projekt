@@ -1,12 +1,15 @@
 #pragma once
 class State {
 public:
-	enum StateType {
-		cubeState
+	enum class StateType {
+		cubeState = 0,
+		nrOfStates = 1
 	};
+	State();
 	State(StateType type);
+	virtual ~State();
 
-	virtual void init() = 0;
+	virtual void initialise() = 0;
 	virtual void update() = 0;
 	virtual void record() = 0;
 	virtual void executeList() = 0;
