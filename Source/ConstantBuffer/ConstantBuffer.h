@@ -10,7 +10,7 @@ private:
 	UINT m_elementByteSize = 0;
 
 public:
-	ConstantBuffer();
+	ConstantBuffer(UINT elementSize);
 	~ConstantBuffer();
 
 	void setData();
