@@ -61,6 +61,9 @@ private:
 	ComPtr<ID3D12Resource1> m_renderTargets[NUM_SWAP_BUFFERS];
 	UINT m_renderTargetDescriptorSize = 0;
 
+	//Descriptor Heaps
+	ComPtr<ID3D12DescriptorHeap> m_cbDescriptorHeaps[NUM_SWAP_BUFFERS];
+
 	//Commandqueue/list/allocator
 	ComPtr<ID3D12CommandQueue> m_commandQueue;
 	ComPtr<ID3D12CommandAllocator> m_commandAllocator[NUM_COMMANDLISTS];

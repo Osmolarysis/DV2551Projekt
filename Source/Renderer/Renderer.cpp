@@ -91,6 +91,7 @@ Renderer::~Renderer()
 	for (size_t i = 0; i < NUM_SWAP_BUFFERS; i++)
 	{
 		SafeRelease(m_renderTargets[i].GetAddressOf());
+		SafeRelease(m_cbDescriptorHeaps[i].GetAddressOf());
 	}
 
 	//Commandqueue/list/allocator
@@ -339,6 +340,19 @@ bool Renderer::createDescriptorHeap()
 	HRESULT hr = m_device->CreateDescriptorHeap(&dhd, IID_PPV_ARGS(&m_renderTargetHeap));
 	if (hr != S_OK) {
 		return false;
+	}
+
+	//Create descriptor heaps for constant buffers.
+	for (int i = 0; i < NUM_SWAP_BUFFERS; i++)
+	{
+		D3D12_DESCRIPTOR_HEAP_DESC dhdCB = {};
+		dhdCB.NumDescriptors = 1;	//Hardcoded for now. Must change if we add more constant buffers.
+		dhdCB.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		dhdCB.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		hr = m_device->CreateDescriptorHeap(&dhdCB, IID_PPV_ARGS(&m_cbDescriptorHeaps[i]));
+		if (hr != S_OK) {
+			return false;
+		}
 	}
 
 	return true;

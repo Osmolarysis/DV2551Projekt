@@ -1,8 +1,10 @@
 #include "ConstantBuffer.h"
 
-ConstantBuffer::ConstantBuffer(UINT elementSize)
+ConstantBuffer::ConstantBuffer(UINT bufferSize)
 {
-	UINT cbSizeAligned = (elementSize + 255) & ~255;
+	m_bufferSize = bufferSize;
+
+	UINT cbSizeAligned = (m_bufferSize + 255) & ~255;
 
 	D3D12_HEAP_PROPERTIES heapProperties = {};
 	heapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
@@ -34,7 +36,8 @@ ConstantBuffer::ConstantBuffer(UINT elementSize)
 			printf("Error creating constant buffer");
 		}
 
-		hr = m_constantBufferResource[i]->Map(0, nullptr, reinterpret_cast<void**>(&m_mappedData[i]));
+		//Mapping data like this means we have to keep track of when it's updated so it's not in use by the GPU
+		hr = m_constantBufferResource[i]->Map(0, nullptr, reinterpret_cast<void**>(&m_mappedData[i])); 
 		if (hr != S_OK) {
 			printf("Error mapping constant buffer");
 		}
@@ -45,7 +48,10 @@ ConstantBuffer::~ConstantBuffer()
 {
 	for (int i = 0; i < NUM_SWAP_BUFFERS; i++) 
 	{
-		m_constantBufferResource[i]->Unmap(0, nullptr);
+		if (m_constantBufferResource[i] != nullptr) {
+			m_constantBufferResource[i]->Unmap(0, nullptr);
+			m_mappedData[i] = nullptr;
+		}
 		SafeRelease(m_constantBufferResource[i].GetAddressOf());
 	}
 }
@@ -67,4 +73,5 @@ void ConstantBuffer::updateData(const void* data, UINT currentBackBufferIndex)
 
 void ConstantBuffer::bind()
 {
+
 }
