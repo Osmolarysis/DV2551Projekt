@@ -26,3 +26,15 @@ void Mesh::bindIAVertexBuffer(Location location)
 	const VertexBufferBind& vb = geometryBuffers[location];
 	vb.buffer->bind(vb.offset, vb.numElements * vb.sizeElement, location);
 }
+
+void Mesh::bindAll()
+{
+	bindIAVertexBuffer(POSITION);
+	bindIAVertexBuffer(COLOR);
+
+	//m_cbuffer->bind();
+
+	// bind eventual textures.
+
+	// alternatively if meshes later will have different vertexbuffers, have an array of locations and call bindIA.. with for each.
+}

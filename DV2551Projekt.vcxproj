@@ -142,6 +142,7 @@
     <ClCompile Include="Source\ConstantBuffer\ConstantBuffer.cpp" />
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\Mesh\Mesh.cpp" />
+    <ClCompile Include="Source\Mesh\MeshGroup.cpp" />
     <ClCompile Include="Source\Mesh\VertexBuffer.cpp" />
     <ClCompile Include="Source\Renderer\Renderer.cpp" />
     <ClCompile Include="Source\States\State.cpp" />
@@ -149,8 +150,9 @@
     <ClCompile Include="Source\States\StateTypes\CubeState.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\Mesh\Mesh.h" />
     <ClInclude Include="Source\ConstantBuffer\ConstantBuffer.h" />
+    <ClInclude Include="Source\Mesh\Mesh.h" />
+    <ClInclude Include="Source\Mesh\MeshGroup.h" />
     <ClInclude Include="Source\Mesh\VertexBuffer.h" />
     <ClInclude Include="Source\Renderer\Renderer.h" />
     <ClInclude Include="Source\States\State.h" />

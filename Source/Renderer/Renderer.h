@@ -101,6 +101,4 @@ public:
 	//Window functions
 	unsigned int getScreenWidth() const;
 	unsigned int getScreenHeight() const;
-
-	ID3D12Device8* getDevice();
 };

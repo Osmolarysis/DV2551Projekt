@@ -8,7 +8,10 @@ private:
 	static StateStack m_this;
 	std::vector<State*> m_stack;
 
+	State* currentState() const;
+
 public:
+	~StateStack();
 	static StateStack* getInstance();
 
 	//Update & rendering

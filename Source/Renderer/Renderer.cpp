@@ -130,11 +130,6 @@ unsigned int Renderer::getScreenHeight() const
 	return m_screenHeight;
 }
 
-ID3D12Device8* Renderer::getDevice()
-{
-	return m_device.Get();
-}
-
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)

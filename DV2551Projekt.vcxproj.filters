@@ -45,14 +45,17 @@
     <ClCompile Include="Source\States\StateTypes\CubeState.cpp">
       <Filter>Source Files\States\StateTypes</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Mesh\Mesh.cpp">
-      <Filter>Source Files\Mesh</Filter>
+    <ClCompile Include="Source\ConstantBuffer\ConstantBuffer.cpp">
+      <Filter>Source Files\ConstantBuffer</Filter>
     </ClCompile>
     <ClCompile Include="Source\Mesh\VertexBuffer.cpp">
       <Filter>Source Files\Mesh</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ConstantBuffer\ConstantBuffer.cpp">
-      <Filter>Source Files\ConstantBuffer</Filter>
+    <ClCompile Include="Source\Mesh\MeshGroup.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Mesh\Mesh.cpp">
+      <Filter>Source Files\Mesh</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -68,14 +71,17 @@
     <ClInclude Include="Source\States\StateTypes\CubeState.h">
       <Filter>Source Files\States\StateTypes</Filter>
     </ClInclude>
+    <ClInclude Include="Source\ConstantBuffer\ConstantBuffer.h">
+      <Filter>Source Files\ConstantBuffer</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Mesh\VertexBuffer.h">
+      <Filter>Source Files\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Mesh\MeshGroup.h">
       <Filter>Source Files\Mesh</Filter>
     </ClInclude>
     <ClInclude Include="Source\Mesh\Mesh.h">
       <Filter>Source Files\Mesh</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ConstantBuffer\ConstantBuffer.h">
-      <Filter>Source Files\ConstantBuffer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

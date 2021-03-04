@@ -4,7 +4,10 @@ class CubeState : public State {
 private:
 	//Scene
 public:
-	void init();
+	CubeState();
+	~CubeState();
+
+	void initialise();
 	void update();
 	void record();
 	void executeList();
