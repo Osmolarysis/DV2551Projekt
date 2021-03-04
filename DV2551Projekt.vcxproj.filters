@@ -25,6 +25,9 @@
     <Filter Include="Source Files\Mesh">
       <UniqueIdentifier>{a71fbd59-eb97-4dff-9d97-a45d4047dcbf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ConstantBuffer">
+      <UniqueIdentifier>{ff39263f-09aa-415b-b4f7-bee352f322ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Renderer\Renderer.cpp">
@@ -42,10 +45,16 @@
     <ClCompile Include="Source\States\StateTypes\CubeState.cpp">
       <Filter>Source Files\States\StateTypes</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Mesh\Mesh.cpp">
-      <Filter>Source Files\Mesh</Filter>
+    <ClCompile Include="Source\ConstantBuffer\ConstantBuffer.cpp">
+      <Filter>Source Files\ConstantBuffer</Filter>
     </ClCompile>
     <ClCompile Include="Source\Mesh\VertexBuffer.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Mesh\MeshGroup.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Mesh\Mesh.cpp">
       <Filter>Source Files\Mesh</Filter>
     </ClCompile>
   </ItemGroup>
@@ -62,10 +71,16 @@
     <ClInclude Include="Source\States\StateTypes\CubeState.h">
       <Filter>Source Files\States\StateTypes</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh.h">
-      <Filter>Source Files\Mesh</Filter>
+    <ClInclude Include="Source\ConstantBuffer\ConstantBuffer.h">
+      <Filter>Source Files\ConstantBuffer</Filter>
     </ClInclude>
     <ClInclude Include="Source\Mesh\VertexBuffer.h">
+      <Filter>Source Files\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Mesh\MeshGroup.h">
+      <Filter>Source Files\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Mesh\Mesh.h">
       <Filter>Source Files\Mesh</Filter>
     </ClInclude>
   </ItemGroup>

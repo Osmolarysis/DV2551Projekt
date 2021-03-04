@@ -109,6 +109,16 @@ Renderer* Renderer::getInstance()
 	return &m_this;
 }
 
+ID3D12Device8* Renderer::getDevice()
+{
+	return m_device.Get();
+}
+
+ID3D12GraphicsCommandList* Renderer::getGraphicsCommandList()
+{
+	return m_graphicsCommandList->Get();
+}
+
 unsigned int Renderer::getScreenWidth() const
 {
 	return m_screenWidth;

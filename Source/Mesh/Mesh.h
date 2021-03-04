@@ -1,25 +1,25 @@
 #pragma once
 #include <unordered_map>
+#include "../ConstantBuffer/ConstantBuffer.h"	
 
-//#include "VertexBuffer.h"	
-//#include "ConstantBuffer.h"	
-class VertexBuffer;		// deklarationer tills vi gör faktiska klassen
-class ConstantBuffer;
+class VertexBuffer;		// forward declaration. include in cpp
 
 enum Location { POSITION, COLOR };
 
 class Mesh
 {
 private:
-	ConstantBuffer* m_cbuffer;
+	ConstantBuffer* m_cbuffer; // eller kanske bara data.
 
 	struct VertexBufferBind {
 		size_t sizeElement, numElements, offset;
 		VertexBuffer* buffer;
 	};
 
-
 	std::unordered_map<Location, VertexBufferBind> geometryBuffers;
+
+	// helper functions
+	void bindIAVertexBuffer(Location location);
 public:
 	Mesh();
 	~Mesh();
@@ -32,6 +32,6 @@ public:
 		size_t sizeElement,
 		Location inputStream);
 
-	void bindIAVertexBuffer(Location location);
+	void bindAll();
 };
 
