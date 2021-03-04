@@ -92,6 +92,8 @@ private:
 
 public:
 	static Renderer* getInstance();
+	ID3D12Device8* getDevice();
+	ID3D12GraphicsCommandList* getGraphicsCommandList();
 
 	//Window functions
 	unsigned int getScreenWidth() const;
