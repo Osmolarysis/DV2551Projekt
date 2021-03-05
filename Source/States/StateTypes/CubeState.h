@@ -1,8 +1,11 @@
 #pragma once
 #include "../State.h"
+#include <DirectXMath.h>
+
 class CubeState : public State {
 private:
 	//Scene
+	
 public:
 	CubeState();
 	~CubeState();

@@ -1,4 +1,5 @@
 #include "CubeState.h"
+#include "..\..\Renderer\Renderer.h"
 #include <iostream>
 
 CubeState::CubeState()
@@ -18,7 +19,7 @@ void CubeState::initialise()
 
 void CubeState::update()
 {
-	
+	//Update the rotation matrix
 }
 
 void CubeState::record()
@@ -28,5 +29,5 @@ void CubeState::record()
 
 void CubeState::executeList()
 {
-	
+
 }

@@ -104,17 +104,18 @@ Renderer::~Renderer()
 	//Fence and event handle
 	SafeRelease(m_fence.GetAddressOf());
 }
+
 Renderer* Renderer::getInstance()
 {
 	return &m_this;
 }
 
-ID3D12Device8* Renderer::getDevice()
+ID3D12Device8* Renderer::getDevice() const
 {
 	return m_device.Get();
 }
 
-ID3D12GraphicsCommandList* Renderer::getGraphicsCommandList()
+ID3D12GraphicsCommandList* Renderer::getGraphicsCommandList() const
 {
 	return m_graphicsCommandList->Get();
 }
@@ -127,6 +128,112 @@ unsigned int Renderer::getScreenWidth() const
 unsigned int Renderer::getScreenHeight() const
 {
 	return m_screenHeight;
+}
+
+void Renderer::beginFrame()
+{ 
+	UINT backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
+	float clearColour[4] = {0.3f, 0.3f, 0.0f, 1.0f};
+
+	//Clear
+
+	HRESULT hr = m_commandAllocator[backBufferIndex].Get()->Reset();
+	if (hr != S_OK) {
+		printf("Error reseting command allocator\n");
+		exit(-1);
+	}
+
+	hr = m_graphicsCommandList[backBufferIndex].Get()->Reset(m_commandAllocator[backBufferIndex].Get(), nullptr);
+	if (hr != S_OK) {
+		printf("Error reseting command list\n");
+		exit(-1);
+	}
+
+	//Set necessary states.
+	m_graphicsCommandList[backBufferIndex].Get()->RSSetViewports(1, &m_viewPort);
+	m_graphicsCommandList[backBufferIndex].Get()->RSSetScissorRects(1, &m_scissorRect);
+
+	// Indicate that the back buffer will be used as render target.
+	SetResourceTransitionBarrier(
+		m_graphicsCommandList[backBufferIndex].Get(),
+		m_renderTargets[backBufferIndex].Get(),
+		D3D12_RESOURCE_STATE_PRESENT,		//state before
+		D3D12_RESOURCE_STATE_RENDER_TARGET	//state after
+	);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE cdh = m_renderTargetHeap.Get()->GetCPUDescriptorHandleForHeapStart();
+	cdh.ptr += (SIZE_T)m_renderTargetDescriptorSize * (SIZE_T)backBufferIndex;
+
+	m_graphicsCommandList[backBufferIndex].Get()->ClearRenderTargetView(cdh,
+		clearColour, 0, nullptr);
+
+	//m_graphicsCommandList[backBufferIndex].Get()->ClearDepthStencilView( );//TODO!
+
+	// Specify the buffers we are going to render to. Correct render target?
+	m_graphicsCommandList[backBufferIndex].Get()->OMSetRenderTargets(1, &cdh, true, nullptr);
+
+	//Set root signature
+	m_graphicsCommandList[backBufferIndex].Get()->SetGraphicsRootSignature(m_rootSignature.Get());
+
+	m_graphicsCommandList[backBufferIndex].Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+void Renderer::executeList()
+{
+	UINT backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
+
+	SetResourceTransitionBarrier(m_graphicsCommandList[backBufferIndex].Get(),
+		m_renderTargets[backBufferIndex].Get(),
+		D3D12_RESOURCE_STATE_RENDER_TARGET,	//state before
+		D3D12_RESOURCE_STATE_PRESENT		//state after
+	);
+
+	HRESULT hr = m_graphicsCommandList[backBufferIndex].Get()->Close();
+	if (hr != S_OK) {
+		printf("Error closing command list %i\n", backBufferIndex);
+		exit(-1);
+	}
+
+	//Execute the commands!
+	ID3D12CommandList* listsToExecute[] = { m_graphicsCommandList[backBufferIndex].Get() };
+	m_commandQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecute), listsToExecute);
+}
+
+void Renderer::present()
+{
+	//Swap front and back buffers
+	DXGI_PRESENT_PARAMETERS pp = {}; //Are these important?
+	m_swapChain->Present1(0, 0, &pp);
+
+	waitForGPU(); //To be removed
+}
+
+void Renderer::SetResourceTransitionBarrier(ID3D12GraphicsCommandList* commandList, ID3D12Resource* resource, D3D12_RESOURCE_STATES StateBefore, D3D12_RESOURCE_STATES StateAfter)
+{
+	//Blatantly borrowed from Stefan or Fransisco
+	D3D12_RESOURCE_BARRIER barrierDesc = {};
+
+	barrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrierDesc.Transition.pResource = resource;
+	barrierDesc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	barrierDesc.Transition.StateBefore = StateBefore;
+	barrierDesc.Transition.StateAfter = StateAfter;
+
+	commandList->ResourceBarrier(1, &barrierDesc);
+}
+
+void Renderer::waitForGPU()
+{
+	const UINT64 fence = m_fenceValue;
+	m_commandQueue->Signal(m_fence.Get(), fence);
+	m_fenceValue++;
+
+	//Wait until command queue is done.
+	if (m_fence->GetCompletedValue() < fence)
+	{
+		m_fence->SetEventOnCompletion(fence, m_eventHandle);
+		WaitForSingleObject(m_eventHandle, INFINITE);
+	}
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -256,7 +363,7 @@ bool Renderer::createCommandQueue()
 		//Command lists are created in the recording state. Since there is nothing to
 		//record right now and the main loop expects it to be closed, we close it.
 
-		hr = m_graphicsCommandList[i]->Close();
+		hr = m_graphicsCommandList[i].Get()->Close();
 
 		if (hr != S_OK) {
 			printf("Error closing command list at initialisation");

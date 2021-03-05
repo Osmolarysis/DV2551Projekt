@@ -23,15 +23,17 @@ int CALLBACK main(_In_ HINSTANCE appInstance, _In_opt_ HINSTANCE preInstance, _I
 		stateStack->update();
 
 		//Begin frame
+		renderer->beginFrame();
 
 		//Record (TODO: multithread)
 		stateStack->record();
 
 		//Execute list(s)
-		stateStack->executeList();
+		//stateStack->executeList();
+		renderer->executeList();
 
 		//Present
-		//renderer->present();
+		renderer->present();
 
 		//Message handling
 		while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {

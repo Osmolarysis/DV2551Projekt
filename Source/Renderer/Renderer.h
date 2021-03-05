@@ -91,11 +91,23 @@ private:
 	bool createRootSignature();
 
 public:
+	//Gets
 	static Renderer* getInstance();
-	ID3D12Device8* getDevice();
-	ID3D12GraphicsCommandList* getGraphicsCommandList();
+	ID3D12Device8* getDevice() const;
+	ID3D12GraphicsCommandList* getGraphicsCommandList() const;
 
 	//Window functions
 	unsigned int getScreenWidth() const;
 	unsigned int getScreenHeight() const;
+
+	//Rendering functions
+	void beginFrame();
+	void executeList();
+	void present();
+
+	void SetResourceTransitionBarrier(ID3D12GraphicsCommandList* commandList, ID3D12Resource* resource,
+		D3D12_RESOURCE_STATES StateBefore, D3D12_RESOURCE_STATES StateAfter);
+
+	//Utility
+	void waitForGPU();
 };
