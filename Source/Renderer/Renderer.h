@@ -10,6 +10,7 @@
 
 #include <WRL/client.h>
 #include <iostream>
+#include <string>
 
 using Microsoft::WRL::ComPtr;
 
@@ -43,7 +44,7 @@ private:
 
 	//Window
 	HWND m_handle;
-	const LPCWSTR m_windowTitle = L"Projekt";
+	std::wstring m_windowTitle = L"Projekt";
 	unsigned int m_screenWidth;
 	unsigned int m_screenHeight;
 
@@ -114,6 +115,7 @@ public:
 		D3D12_RESOURCE_STATES StateBefore, D3D12_RESOURCE_STATES StateAfter);
 
 	//Utility
+	void setWindowTitle(std::wstring);
 	void waitForGPU();
 
 	//Descriptor heap functions

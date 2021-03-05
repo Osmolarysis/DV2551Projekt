@@ -149,6 +149,7 @@
     <ClCompile Include="Source\States\State.cpp" />
     <ClCompile Include="Source\States\StateStack.cpp" />
     <ClCompile Include="Source\States\StateTypes\CubeState.cpp" />
+    <ClCompile Include="Source\Utility\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Camera\Camera.h" />
@@ -160,6 +161,7 @@
     <ClInclude Include="Source\States\State.h" />
     <ClInclude Include="Source\States\StateStack.h" />
     <ClInclude Include="Source\States\StateTypes\CubeState.h" />
+    <ClInclude Include="Source\Utility\Timer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
