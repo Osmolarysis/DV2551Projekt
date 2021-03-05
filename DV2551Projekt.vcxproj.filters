@@ -28,6 +28,9 @@
     <Filter Include="Source Files\ConstantBuffer">
       <UniqueIdentifier>{ff39263f-09aa-415b-b4f7-bee352f322ee}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Camera">
+      <UniqueIdentifier>{bb6ab617-27ed-48bd-ba64-97eb2be0d51b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Renderer\Renderer.cpp">
@@ -57,6 +60,9 @@
     <ClCompile Include="Source\Mesh\Mesh.cpp">
       <Filter>Source Files\Mesh</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Camera\Camera.cpp">
+      <Filter>Source Files\Camera</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Renderer\Renderer.h">
@@ -82,6 +88,9 @@
     </ClInclude>
     <ClInclude Include="Source\Mesh\Mesh.h">
       <Filter>Source Files\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Camera\Camera.h">
+      <Filter>Source Files\Camera</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
