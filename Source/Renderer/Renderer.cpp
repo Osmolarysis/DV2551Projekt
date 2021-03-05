@@ -1,4 +1,5 @@
 ﻿#include "Renderer.h"
+#include "..\Utility\Timer.h"
 
 Renderer Renderer::m_this(1280, 720);
 
@@ -132,9 +133,11 @@ unsigned int Renderer::getScreenHeight() const
 }
 
 void Renderer::beginFrame()
-{ 
+{
+	setWindowTitle(L"Projekt");
+
 	UINT backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
-	float clearColour[4] = {0.3f, 0.3f, 0.0f, 1.0f};
+	float clearColour[4] = { 0.3f, 0.3f, 0.0f, 1.0f };
 
 	//Clear
 
@@ -223,6 +226,17 @@ void Renderer::SetResourceTransitionBarrier(ID3D12GraphicsCommandList* commandLi
 	commandList->ResourceBarrier(1, &barrierDesc);
 }
 
+void Renderer::setWindowTitle(std::wstring newTitle)
+{
+	Timer* timer = Timer::getInstance();
+	double dt = timer->getDt();
+	double fps = 1 / dt;
+	std::wstring fps_str = std::to_wstring(fps);
+	m_windowTitle = newTitle + L" " + fps_str;
+
+	SetWindowText(m_handle, m_windowTitle.c_str());
+}
+
 void Renderer::waitForGPU()
 {
 	const UINT64 fence = m_fenceValue;
@@ -256,11 +270,11 @@ bool Renderer::createWindow()
 	wc.style = CS_OWNDC;
 	wc.lpfnWndProc = WndProc;
 	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	wc.lpszClassName = m_windowTitle;
+	wc.lpszClassName = m_windowTitle.c_str();
 	RegisterClass(&wc);
 
 	// Create the window
-	m_handle = CreateWindow(m_windowTitle, m_windowTitle,
+	m_handle = CreateWindow(m_windowTitle.c_str(), m_windowTitle.c_str(),
 		WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_VISIBLE, 0, 0, m_screenWidth,
 		m_screenHeight + 30, nullptr, nullptr, nullptr, nullptr);
 
@@ -406,7 +420,7 @@ bool Renderer::createSwapChain()
 	);
 	if (hr == S_OK)
 	{
-		if (FAILED(swapChain1->QueryInterface(IID_PPV_ARGS(&m_swapChain)))) 
+		if (FAILED(swapChain1->QueryInterface(IID_PPV_ARGS(&m_swapChain))))
 		{
 			return false;
 		}
