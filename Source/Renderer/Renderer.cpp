@@ -8,6 +8,10 @@ Renderer::Renderer(int width, int height)
 	m_screenWidth = width;
 	m_screenHeight = height;
 
+	for (int i = 0; i < NUM_CONSTANT_BUFFERS; i++) {
+		m_cbDescriptorSize[i] = 0;
+	}
+
 	//Set debug mode
 	if (!createDebugMode()) {
 		printf("error setting debug mode\n");
@@ -251,6 +255,21 @@ void Renderer::waitForGPU()
 	}
 }
 
+ID3D12DescriptorHeap* Renderer::getCBDescriptorHeap(UINT bufferIndex) const
+{
+	return m_cbDescriptorHeaps[bufferIndex].Get();
+}
+
+UINT Renderer::getCBDescriptorSize(UINT bufferIndex) const
+{
+	return m_cbDescriptorSize[bufferIndex];
+}
+
+void Renderer::setCBDescriptorSize(UINT location, UINT size)
+{
+	m_cbDescriptorSize[location] = size;
+}
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
@@ -462,7 +481,7 @@ bool Renderer::createDescriptorHeap()
 	for (int i = 0; i < NUM_SWAP_BUFFERS; i++)
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC dhdCB = {};
-		dhdCB.NumDescriptors = m_nrOfCBDescriptors;
+		dhdCB.NumDescriptors = NUM_CONSTANT_BUFFERS;
 		dhdCB.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		dhdCB.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 		hr = m_device->CreateDescriptorHeap(&dhdCB, IID_PPV_ARGS(&m_cbDescriptorHeaps[i]));
@@ -519,7 +538,7 @@ bool Renderer::createRootSignature()
 	//Constant Buffer Descriptor Range
 	D3D12_DESCRIPTOR_RANGE dtRangesCBV[1];
 	dtRangesCBV[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-	dtRangesCBV[0].NumDescriptors = m_nrOfCBDescriptors;
+	dtRangesCBV[0].NumDescriptors = NUM_CONSTANT_BUFFERS;
 	dtRangesCBV[0].BaseShaderRegister = 0;		// Base shader register b0
 	dtRangesCBV[0].RegisterSpace = 0;
 	dtRangesCBV[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;

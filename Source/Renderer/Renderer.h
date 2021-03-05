@@ -30,6 +30,7 @@ inline void SafeRelease(
 #define SCREEN_WIDTH Renderer::getInstance()->getScreenWidth()
 
 const unsigned int NUM_SWAP_BUFFERS = 2; //Number of buffers
+const unsigned int NUM_CONSTANT_BUFFERS = 2;
 const unsigned int NUM_COMMANDLISTS = 2;
 
 class Renderer {
@@ -64,7 +65,7 @@ private:
 
 	//Constant Buffer Descriptor Heaps
 	ComPtr<ID3D12DescriptorHeap> m_cbDescriptorHeaps[NUM_SWAP_BUFFERS];
-	UINT m_nrOfCBDescriptors = 2;
+	UINT m_cbDescriptorSize[NUM_CONSTANT_BUFFERS];
 
 	//Commandqueue/list/allocator
 	ComPtr<ID3D12CommandQueue> m_commandQueue;
@@ -116,4 +117,9 @@ public:
 	//Utility
 	void setWindowTitle(std::wstring);
 	void waitForGPU();
+
+	//Descriptor heap functions
+	ID3D12DescriptorHeap* getCBDescriptorHeap(UINT bufferIndex) const;
+	UINT getCBDescriptorSize(UINT location) const;
+	void setCBDescriptorSize(UINT location, UINT size);
 };

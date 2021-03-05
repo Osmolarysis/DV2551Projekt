@@ -1,8 +1,10 @@
 #include "ConstantBuffer.h"
 
-ConstantBuffer::ConstantBuffer(UINT bufferSize)
+ConstantBuffer::ConstantBuffer(UINT bufferSize, UINT location)
 {
+	Renderer* renderer = Renderer::getInstance();
 	m_bufferSize = bufferSize;
+	m_location = location;
 
 	UINT cbSizeAligned = (m_bufferSize + 255) & ~255;
 
@@ -22,9 +24,11 @@ ConstantBuffer::ConstantBuffer(UINT bufferSize)
 	resourceDesc.SampleDesc.Count = 1;
 	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
+	renderer->setCBDescriptorSize(m_location, cbSizeAligned);
+
 	for (int i = 0; i < NUM_SWAP_BUFFERS; i++)
 	{
-		HRESULT hr = Renderer::getInstance()->getDevice()->CreateCommittedResource(
+		HRESULT hr = renderer->getDevice()->CreateCommittedResource(
 			&heapProperties,
 			D3D12_HEAP_FLAG_NONE,
 			&resourceDesc,
@@ -41,6 +45,16 @@ ConstantBuffer::ConstantBuffer(UINT bufferSize)
 		if (hr != S_OK) {
 			printf("Error mapping constant buffer");
 		}
+
+		D3D12_GPU_VIRTUAL_ADDRESS cbAddress = m_constantBufferResource[i]->GetGPUVirtualAddress();
+		for (UINT j = 0; j < location; j++) {
+			cbAddress += renderer->getCBDescriptorSize(j);
+		}
+
+		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+		cbvDesc.BufferLocation = cbAddress;
+		cbvDesc.SizeInBytes = cbSizeAligned;
+		renderer->getDevice()->CreateConstantBufferView(&cbvDesc, renderer->getCBDescriptorHeap(i)->GetCPUDescriptorHandleForHeapStart());
 	}
 }
 
