@@ -116,14 +116,19 @@ Renderer* Renderer::getInstance()
 	return &m_this;
 }
 
-ID3D12Device8* Renderer::getDevice() const
+ID3D12Device8* Renderer::getDevice()
 {
 	return m_device.Get();
 }
 
-ID3D12GraphicsCommandList* Renderer::getGraphicsCommandList() const
+ID3D12GraphicsCommandList* Renderer::getGraphicsCommandList()
 {
 	return m_graphicsCommandList->Get();
+}
+
+ID3D12RootSignature* Renderer::getRootSignature()
+{
+	return m_rootSignature.Get();
 }
 
 unsigned int Renderer::getScreenWidth() const

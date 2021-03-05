@@ -99,8 +99,10 @@ private:
 public:
 	//Gets
 	static Renderer* getInstance();
-	ID3D12Device8* getDevice() const;
-	ID3D12GraphicsCommandList* getGraphicsCommandList() const;
+	ID3D12Device8* getDevice();
+	ID3D12GraphicsCommandList* getGraphicsCommandList();
+	ID3D12RootSignature* getRootSignature();
+
 
 	//Window functions
 	unsigned int getScreenWidth() const;
