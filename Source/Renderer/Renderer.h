@@ -10,6 +10,7 @@
 
 #include <WRL/client.h>
 #include <iostream>
+#include <string>
 
 using Microsoft::WRL::ComPtr;
 
@@ -29,6 +30,7 @@ inline void SafeRelease(
 #define SCREEN_WIDTH Renderer::getInstance()->getScreenWidth()
 
 const unsigned int NUM_SWAP_BUFFERS = 2; //Number of buffers
+const unsigned int NUM_CONSTANT_BUFFERS = 2;
 const unsigned int NUM_COMMANDLISTS = 2;
 
 class Renderer {
@@ -42,7 +44,7 @@ private:
 
 	//Window
 	HWND m_handle;
-	const LPCWSTR m_windowTitle = L"Projekt";
+	std::wstring m_windowTitle = L"Projekt";
 	unsigned int m_screenWidth;
 	unsigned int m_screenHeight;
 
@@ -63,7 +65,7 @@ private:
 
 	//Constant Buffer Descriptor Heaps
 	ComPtr<ID3D12DescriptorHeap> m_cbDescriptorHeaps[NUM_SWAP_BUFFERS];
-	UINT m_nrOfCBDescriptors = 2;
+	UINT m_cbDescriptorSize[NUM_CONSTANT_BUFFERS];
 
 	//Commandqueue/list/allocator
 	ComPtr<ID3D12CommandQueue> m_commandQueue;
@@ -95,6 +97,7 @@ private:
 	bool createRootSignature();
 
 public:
+	//Gets
 	static Renderer* getInstance();
 	ID3D12Device8* getDevice();
 	ID3D12GraphicsCommandList* getGraphicsCommandList();
@@ -104,4 +107,21 @@ public:
 	//Window functions
 	unsigned int getScreenWidth() const;
 	unsigned int getScreenHeight() const;
+
+	//Rendering functions
+	void beginFrame();
+	void executeList();
+	void present();
+
+	void SetResourceTransitionBarrier(ID3D12GraphicsCommandList* commandList, ID3D12Resource* resource,
+		D3D12_RESOURCE_STATES StateBefore, D3D12_RESOURCE_STATES StateAfter);
+
+	//Utility
+	void setWindowTitle(std::wstring);
+	void waitForGPU();
+
+	//Descriptor heap functions
+	ID3D12DescriptorHeap* getCBDescriptorHeap(UINT bufferIndex) const;
+	UINT getCBDescriptorSize(UINT location) const;
+	void setCBDescriptorSize(UINT location, UINT size);
 };

@@ -28,6 +28,9 @@
     <Filter Include="Source Files\ConstantBuffer">
       <UniqueIdentifier>{ff39263f-09aa-415b-b4f7-bee352f322ee}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Utility">
+      <UniqueIdentifier>{198a7ad6-def2-47cd-bd59-18ebea077fec}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Renderer\Renderer.cpp">
@@ -57,6 +60,9 @@
     <ClCompile Include="Source\Mesh\Mesh.cpp">
       <Filter>Source Files\Mesh</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Utility\Timer.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Renderer\Renderer.h">
@@ -82,6 +88,9 @@
     </ClInclude>
     <ClInclude Include="Source\Mesh\Mesh.h">
       <Filter>Source Files\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Utility\Timer.h">
+      <Filter>Source Files\Utility</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

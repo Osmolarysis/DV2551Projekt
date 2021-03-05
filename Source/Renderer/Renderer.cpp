@@ -1,4 +1,5 @@
 ﻿#include "Renderer.h"
+#include "..\Utility\Timer.h"
 
 Renderer Renderer::m_this(1280, 720);
 
@@ -6,6 +7,10 @@ Renderer::Renderer(int width, int height)
 {
 	m_screenWidth = width;
 	m_screenHeight = height;
+
+	for (int i = 0; i < NUM_CONSTANT_BUFFERS; i++) {
+		m_cbDescriptorSize[i] = 0;
+	}
 
 	//Set debug mode
 	if (!createDebugMode()) {
@@ -105,17 +110,18 @@ Renderer::~Renderer()
 	//Fence and event handle
 	SafeRelease(m_fence.GetAddressOf());
 }
+
 Renderer* Renderer::getInstance()
 {
 	return &m_this;
 }
 
-ID3D12Device8* Renderer::getDevice()
+ID3D12Device8* Renderer::getDevice() const
 {
 	return m_device.Get();
 }
 
-ID3D12GraphicsCommandList* Renderer::getGraphicsCommandList()
+ID3D12GraphicsCommandList* Renderer::getGraphicsCommandList() const
 {
 	return m_graphicsCommandList->Get();
 }
@@ -133,6 +139,140 @@ unsigned int Renderer::getScreenWidth() const
 unsigned int Renderer::getScreenHeight() const
 {
 	return m_screenHeight;
+}
+
+void Renderer::beginFrame()
+{
+	setWindowTitle(L"Projekt");
+
+	UINT backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
+	float clearColour[4] = { 0.3f, 0.3f, 0.0f, 1.0f };
+
+	//Clear
+
+	HRESULT hr = m_commandAllocator[backBufferIndex].Get()->Reset();
+	if (hr != S_OK) {
+		printf("Error reseting command allocator\n");
+		exit(-1);
+	}
+
+	hr = m_graphicsCommandList[backBufferIndex].Get()->Reset(m_commandAllocator[backBufferIndex].Get(), nullptr);
+	if (hr != S_OK) {
+		printf("Error reseting command list\n");
+		exit(-1);
+	}
+
+	//Set necessary states.
+	m_graphicsCommandList[backBufferIndex].Get()->RSSetViewports(1, &m_viewPort);
+	m_graphicsCommandList[backBufferIndex].Get()->RSSetScissorRects(1, &m_scissorRect);
+
+	// Indicate that the back buffer will be used as render target.
+	SetResourceTransitionBarrier(
+		m_graphicsCommandList[backBufferIndex].Get(),
+		m_renderTargets[backBufferIndex].Get(),
+		D3D12_RESOURCE_STATE_PRESENT,		//state before
+		D3D12_RESOURCE_STATE_RENDER_TARGET	//state after
+	);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE cdh = m_renderTargetHeap.Get()->GetCPUDescriptorHandleForHeapStart();
+	cdh.ptr += (SIZE_T)m_renderTargetDescriptorSize * (SIZE_T)backBufferIndex;
+
+	m_graphicsCommandList[backBufferIndex].Get()->ClearRenderTargetView(cdh,
+		clearColour, 0, nullptr);
+
+	//m_graphicsCommandList[backBufferIndex].Get()->ClearDepthStencilView( );//TODO!
+
+	// Specify the buffers we are going to render to. Correct render target?
+	m_graphicsCommandList[backBufferIndex].Get()->OMSetRenderTargets(1, &cdh, true, nullptr);
+
+	//Set root signature
+	m_graphicsCommandList[backBufferIndex].Get()->SetGraphicsRootSignature(m_rootSignature.Get());
+
+	m_graphicsCommandList[backBufferIndex].Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+void Renderer::executeList()
+{
+	UINT backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
+
+	SetResourceTransitionBarrier(m_graphicsCommandList[backBufferIndex].Get(),
+		m_renderTargets[backBufferIndex].Get(),
+		D3D12_RESOURCE_STATE_RENDER_TARGET,	//state before
+		D3D12_RESOURCE_STATE_PRESENT		//state after
+	);
+
+	HRESULT hr = m_graphicsCommandList[backBufferIndex].Get()->Close();
+	if (hr != S_OK) {
+		printf("Error closing command list %i\n", backBufferIndex);
+		exit(-1);
+	}
+
+	//Execute the commands!
+	ID3D12CommandList* listsToExecute[] = { m_graphicsCommandList[backBufferIndex].Get() };
+	m_commandQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecute), listsToExecute);
+}
+
+void Renderer::present()
+{
+	//Swap front and back buffers
+	DXGI_PRESENT_PARAMETERS pp = {}; //Are these important?
+	m_swapChain->Present1(0, 0, &pp);
+
+	waitForGPU(); //To be removed
+}
+
+void Renderer::SetResourceTransitionBarrier(ID3D12GraphicsCommandList* commandList, ID3D12Resource* resource, D3D12_RESOURCE_STATES StateBefore, D3D12_RESOURCE_STATES StateAfter)
+{
+	//Blatantly borrowed from Stefan or Fransisco
+	D3D12_RESOURCE_BARRIER barrierDesc = {};
+
+	barrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrierDesc.Transition.pResource = resource;
+	barrierDesc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	barrierDesc.Transition.StateBefore = StateBefore;
+	barrierDesc.Transition.StateAfter = StateAfter;
+
+	commandList->ResourceBarrier(1, &barrierDesc);
+}
+
+void Renderer::setWindowTitle(std::wstring newTitle)
+{
+	Timer* timer = Timer::getInstance();
+	double dt = timer->getDt();
+	double fps = 1 / dt;
+	std::wstring fps_str = std::to_wstring(fps);
+	m_windowTitle = newTitle + L" " + fps_str;
+
+	SetWindowText(m_handle, m_windowTitle.c_str());
+}
+
+void Renderer::waitForGPU()
+{
+	const UINT64 fence = m_fenceValue;
+	m_commandQueue->Signal(m_fence.Get(), fence);
+	m_fenceValue++;
+
+	//Wait until command queue is done.
+	if (m_fence->GetCompletedValue() < fence)
+	{
+		m_fence->SetEventOnCompletion(fence, m_eventHandle);
+		WaitForSingleObject(m_eventHandle, INFINITE);
+	}
+}
+
+ID3D12DescriptorHeap* Renderer::getCBDescriptorHeap(UINT bufferIndex) const
+{
+	return m_cbDescriptorHeaps[bufferIndex].Get();
+}
+
+UINT Renderer::getCBDescriptorSize(UINT bufferIndex) const
+{
+	return m_cbDescriptorSize[bufferIndex];
+}
+
+void Renderer::setCBDescriptorSize(UINT location, UINT size)
+{
+	m_cbDescriptorSize[location] = size;
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -154,11 +294,11 @@ bool Renderer::createWindow()
 	wc.style = CS_OWNDC;
 	wc.lpfnWndProc = WndProc;
 	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	wc.lpszClassName = m_windowTitle;
+	wc.lpszClassName = m_windowTitle.c_str();
 	RegisterClass(&wc);
 
 	// Create the window
-	m_handle = CreateWindow(m_windowTitle, m_windowTitle,
+	m_handle = CreateWindow(m_windowTitle.c_str(), m_windowTitle.c_str(),
 		WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_VISIBLE, 0, 0, m_screenWidth,
 		m_screenHeight + 30, nullptr, nullptr, nullptr, nullptr);
 
@@ -262,7 +402,7 @@ bool Renderer::createCommandQueue()
 		//Command lists are created in the recording state. Since there is nothing to
 		//record right now and the main loop expects it to be closed, we close it.
 
-		hr = m_graphicsCommandList[i]->Close();
+		hr = m_graphicsCommandList[i].Get()->Close();
 
 		if (hr != S_OK) {
 			printf("Error closing command list at initialisation");
@@ -304,7 +444,7 @@ bool Renderer::createSwapChain()
 	);
 	if (hr == S_OK)
 	{
-		if (FAILED(swapChain1->QueryInterface(IID_PPV_ARGS(&m_swapChain)))) 
+		if (FAILED(swapChain1->QueryInterface(IID_PPV_ARGS(&m_swapChain))))
 		{
 			return false;
 		}
@@ -346,7 +486,7 @@ bool Renderer::createDescriptorHeap()
 	for (int i = 0; i < NUM_SWAP_BUFFERS; i++)
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC dhdCB = {};
-		dhdCB.NumDescriptors = m_nrOfCBDescriptors;
+		dhdCB.NumDescriptors = NUM_CONSTANT_BUFFERS;
 		dhdCB.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		dhdCB.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 		hr = m_device->CreateDescriptorHeap(&dhdCB, IID_PPV_ARGS(&m_cbDescriptorHeaps[i]));
@@ -403,7 +543,7 @@ bool Renderer::createRootSignature()
 	//Constant Buffer Descriptor Range
 	D3D12_DESCRIPTOR_RANGE dtRangesCBV[1];
 	dtRangesCBV[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-	dtRangesCBV[0].NumDescriptors = m_nrOfCBDescriptors;
+	dtRangesCBV[0].NumDescriptors = NUM_CONSTANT_BUFFERS;
 	dtRangesCBV[0].BaseShaderRegister = 0;		// Base shader register b0
 	dtRangesCBV[0].RegisterSpace = 0;
 	dtRangesCBV[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
