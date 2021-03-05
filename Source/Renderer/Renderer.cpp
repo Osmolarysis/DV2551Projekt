@@ -120,6 +120,11 @@ ID3D12GraphicsCommandList* Renderer::getGraphicsCommandList()
 	return m_graphicsCommandList->Get();
 }
 
+ID3D12RootSignature* Renderer::getRootSignature()
+{
+	return m_rootSignature.Get();
+}
+
 unsigned int Renderer::getScreenWidth() const
 {
 	return m_screenWidth;
