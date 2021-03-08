@@ -136,6 +136,11 @@ unsigned int Renderer::getScreenWidth() const
 	return m_screenWidth;
 }
 
+IDXGISwapChain4* Renderer::getSwapChain()
+{
+	return m_swapChain.Get();
+}
+
 unsigned int Renderer::getScreenHeight() const
 {
 	return m_screenHeight;
@@ -265,7 +270,7 @@ void Renderer::waitForGPU()
 	}
 }
 
-ID3D12DescriptorHeap* Renderer::getCBDescriptorHeap(UINT bufferIndex) const
+ID3D12DescriptorHeap* Renderer::getCBDescriptorHeap(UINT bufferIndex)
 {
 	return m_cbDescriptorHeaps[bufferIndex].Get();
 }

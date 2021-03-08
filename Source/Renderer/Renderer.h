@@ -102,6 +102,7 @@ public:
 	ID3D12Device8* getDevice();
 	ID3D12GraphicsCommandList* getGraphicsCommandList();
 	ID3D12RootSignature* getRootSignature();
+	IDXGISwapChain4* getSwapChain();
 
 
 	//Window functions
@@ -121,7 +122,7 @@ public:
 	void waitForGPU();
 
 	//Descriptor heap functions
-	ID3D12DescriptorHeap* getCBDescriptorHeap(UINT bufferIndex) const;
+	ID3D12DescriptorHeap* getCBDescriptorHeap(UINT bufferIndex);
 	UINT getCBDescriptorSize(UINT location) const;
 	void setCBDescriptorSize(UINT location, UINT size);
 };
