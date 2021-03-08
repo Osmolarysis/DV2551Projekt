@@ -182,6 +182,11 @@ void Renderer::beginFrame()
 
 	//m_graphicsCommandList[backBufferIndex].Get()->ClearDepthStencilView( );//TODO!
 
+	//Set constant buffer descriptor heaps
+	ID3D12DescriptorHeap* descriptorHeaps[] = { m_cbDescriptorHeaps[backBufferIndex].Get() };
+	m_graphicsCommandList[backBufferIndex].Get()->SetDescriptorHeaps(ARRAYSIZE(descriptorHeaps), descriptorHeaps);
+	m_graphicsCommandList[backBufferIndex].Get()->SetGraphicsRootDescriptorTable(0, m_cbDescriptorHeaps[backBufferIndex].Get()->GetGPUDescriptorHandleForHeapStart());
+
 	// Specify the buffers we are going to render to. Correct render target?
 	m_graphicsCommandList[backBufferIndex].Get()->OMSetRenderTargets(1, &cdh, true, nullptr);
 
