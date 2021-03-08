@@ -23,7 +23,7 @@ void Mesh::draw()
 	bindAll(); 
 
 	// draw
-	UINT nrOfVertices = m_geometryBuffers.numElements;
+	UINT nrOfVertices = (UINT)m_geometryBuffers.numElements;
 	Renderer::getInstance()->getGraphicsCommandList()->DrawInstanced(nrOfVertices, 1, 0, 0);
 }
 

@@ -31,6 +31,12 @@
     <Filter Include="Source Files\Utility">
       <UniqueIdentifier>{198a7ad6-def2-47cd-bd59-18ebea077fec}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Camera">
+      <UniqueIdentifier>{bb6ab617-27ed-48bd-ba64-97eb2be0d51b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Shaders">
+      <UniqueIdentifier>{4fe47ed5-27d4-4590-a746-889ceed5aa20}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Renderer\Renderer.cpp">
@@ -59,6 +65,9 @@
     </ClCompile>
     <ClCompile Include="Source\Mesh\Mesh.cpp">
       <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Camera\Camera.cpp">
+      <Filter>Source Files\Camera</Filter>
     </ClCompile>
     <ClCompile Include="Source\Utility\Timer.cpp">
       <Filter>Source Files\Utility</Filter>
@@ -92,5 +101,16 @@
     <ClInclude Include="Source\Utility\Timer.h">
       <Filter>Source Files\Utility</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Camera\Camera.h">
+      <Filter>Source Files\Camera</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Source\Shaders\VertexShader.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Source\Shaders\PixelShader.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

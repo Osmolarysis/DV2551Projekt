@@ -1,11 +1,13 @@
 #pragma once
 #include "../State.h"
+#include "../../Camera/Camera.h"
 #include <DirectXMath.h>
 #include "../../Mesh/MeshGroup.h"
 
 class CubeState : public State {
 private:
 	//Scene
+	Camera* m_camera = nullptr;
 	std::vector<MeshGroup> m_meshGroups;
 
 public:
