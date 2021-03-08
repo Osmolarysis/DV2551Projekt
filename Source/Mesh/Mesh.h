@@ -38,6 +38,6 @@ public:
 		size_t sizeElement);
 
 	void draw();
-	const Transform* getTransform(); const
+	const Transform* getTransform();
 };
 
