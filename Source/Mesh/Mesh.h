@@ -1,28 +1,30 @@
 #pragma once
 #include <unordered_map>
-#include "../ConstantBuffer/ConstantBuffer.h"	
 
-class VertexBuffer;		// forward declaration. include in cpp
+#include "VertexBuffer.h"
 
-enum Location { POSITION, COLOR };
+struct Transform {
+	float translate[3] = { 0,0,0 };
+	//float rotate[3] = { 0,0,0 };
+};
 
 // Holds an objects mesh (vertex data) and transform data
 // For now every mesh holds vertexdata, even if they are identical. We change so this holds a vector of "objects" that hold only constantbufferdata.
 class Mesh
 {
 private:
-	ConstantBuffer* m_cbuffer = nullptr; // eller kanske bara data.
 	// Transform data
+	Transform m_transform;
 
 	struct VertexBufferBind {
 		size_t sizeElement, numElements, offset;
 		VertexBuffer* buffer;
 	};
 
-	std::unordered_map<Location, VertexBufferBind> m_geometryBuffers;
+	VertexBufferBind m_geometryBuffers;
 
 	// helper functions
-	void bindIAVertexBuffer(Location location);
+	void bindIAVertexBuffer();
 	void bindAll();
 public:
 	Mesh();
@@ -33,9 +35,9 @@ public:
 		VertexBuffer* buffer,
 		size_t offset,
 		size_t numElements,
-		size_t sizeElement,
-		Location inputStream);
+		size_t sizeElement);
 
 	void draw();
+	const Transform* getTransform();
 };
 

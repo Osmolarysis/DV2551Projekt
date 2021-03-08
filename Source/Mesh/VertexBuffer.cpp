@@ -2,7 +2,7 @@
 
 VertexBuffer::VertexBuffer(size_t size)
 {
-	m_totalSize = size;
+	m_totalSize = size; //in bytes
 
 	//Do initial stuff
 	D3D12_HEAP_PROPERTIES hp = {};
@@ -59,10 +59,10 @@ void VertexBuffer::setData(const void* data, size_t size, size_t offset, size_t 
 	m_vertexBufferView.SizeInBytes = UINT(m_totalSize);
 }
 
-void VertexBuffer::bind(size_t offset, size_t size, unsigned int location)
+void VertexBuffer::bind(size_t offset, size_t size)
 {
 	//Location tells us which vertexbuffer we're setting
-	Renderer::getInstance()->getGraphicsCommandList()->IASetVertexBuffers(location, 1, &m_vertexBufferView);
+	Renderer::getInstance()->getGraphicsCommandList()->IASetVertexBuffers(0, 1, &m_vertexBufferView);
 
 }
 
