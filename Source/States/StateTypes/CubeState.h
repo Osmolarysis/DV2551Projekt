@@ -1,11 +1,11 @@
 #pragma once
 #include "../State.h"
-#include <DirectXMath.h>
+#include "../../Camera/Camera.h"
 
 class CubeState : public State {
 private:
 	//Scene
-	
+	Camera* m_camera = nullptr;
 public:
 	CubeState();
 	~CubeState();
