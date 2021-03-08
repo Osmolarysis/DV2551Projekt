@@ -20,7 +20,7 @@ Camera::Camera()
 	m_farPlane = 100.0f;
 	m_matrices.m_proj = XMMatrixPerspectiveFovRH(m_fov, m_aspectRatio, m_nearPlane, m_farPlane);
 
-	//m_cameraBuffer->setData(&m_matrices);
+	m_cameraBuffer->setData(&m_matrices);
 }
 
 Camera::~Camera()
@@ -69,5 +69,5 @@ void Camera::update()
 	m_matrices.m_view = XMMatrixLookAtRH(m_eye, m_target, m_up);
 	m_matrices.m_proj = XMMatrixPerspectiveFovRH(m_fov, m_aspectRatio, m_nearPlane, m_farPlane);
 
-	//m_cameraBuffer->updateData(&m_matrices, Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex());
+	m_cameraBuffer->updateData(&m_matrices, Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex());
 }
