@@ -1,5 +1,4 @@
 #include "Mesh.h"
-#include "VertexBuffer.h"	
 
 
 Mesh::Mesh()
@@ -8,15 +7,13 @@ Mesh::Mesh()
 
 Mesh::~Mesh()
 {
-	for (auto g : m_geometryBuffers) {	// tagen från assignment 1.
-		g.second.buffer->decRef();
-	}
+	m_geometryBuffers.buffer->decRef();
 }
 
-void Mesh::addIAVertexBufferBinding(VertexBuffer* buffer, size_t offset, size_t numElements, size_t sizeElement, Location inputStream)
+void Mesh::addIAVertexBufferBinding(VertexBuffer* buffer, size_t offset, size_t numElements, size_t sizeElement)
 {
 	buffer->incRef();
-	m_geometryBuffers[inputStream] = { sizeElement, numElements, offset, buffer };
+	m_geometryBuffers = { sizeElement, numElements, offset, buffer };
 
 }
 
@@ -26,23 +23,27 @@ void Mesh::draw()
 	bindAll(); 
 
 	// draw
-	UINT nrOfVertices = m_geometryBuffers[POSITION].numElements;
+	UINT nrOfVertices = m_geometryBuffers.numElements;
 	Renderer::getInstance()->getGraphicsCommandList()->DrawInstanced(nrOfVertices, 1, 0, 0);
 }
 
-void Mesh::bindIAVertexBuffer(Location location)
+const Transform* Mesh::getTransform()
+{
+	return &m_transform;
+}
+
+void Mesh::bindIAVertexBuffer()
 {
 	// no checking if the key is valid...TODO
-	const VertexBufferBind& vb = m_geometryBuffers[location];
-	vb.buffer->bind(vb.offset, vb.numElements * vb.sizeElement, location);
+	VertexBufferBind& vb = m_geometryBuffers;
+	vb.buffer->bind(vb.offset, vb.numElements * vb.sizeElement);
 }
 
 void Mesh::bindAll()
 {
-	bindIAVertexBuffer(POSITION);
-	bindIAVertexBuffer(COLOR);
+	bindIAVertexBuffer();
 
-	//m_cbuffer->bind();
+	// cbuffer binds in meshgroup instead
 
 	// bind eventual textures.
 

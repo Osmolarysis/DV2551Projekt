@@ -1,11 +1,11 @@
 #include "MeshGroup.h"
 
-MeshGroup::MeshGroup(LPCWSTR shaderFiles[])
+MeshGroup::MeshGroup(LPCWSTR shaderFiles[], UINT cbufferSize, UINT cbufferLocation)
 {
 	std::string errorStr;
 	m_vsBlob = compileShader(shaderFiles[0], errorStr, ShaderType::VS);
 	m_psBlob = compileShader(shaderFiles[1], errorStr, ShaderType::PS);
-
+	m_cbuffer = std::make_unique<ConstantBuffer>(ConstantBuffer(cbufferSize, cbufferLocation));
 	makePipelineStateObject();
 }
 
@@ -14,7 +14,7 @@ MeshGroup::~MeshGroup()
 	SafeRelease(m_pipelineStateObject.GetAddressOf());
 }
 
-void MeshGroup::addMesh(Mesh* mesh)
+void MeshGroup::addMesh(std::shared_ptr<Mesh> mesh)
 {
 	m_meshes.push_back(mesh);
 }
@@ -24,9 +24,12 @@ void MeshGroup::drawAll()
 	// bind pipeline state object
 	Renderer::getInstance()->getGraphicsCommandList()->SetPipelineState(m_pipelineStateObject.Get());
 
+	// Theoreticly constantfuffer seems to bind automaticlly? (a least with 1 obj, probably)
+
 	// draw all meshes
 	for (auto& mesh : m_meshes)
 	{
+		m_cbuffer->setData((void*)mesh->getTransform());
 		mesh->draw();
 	}
 }
