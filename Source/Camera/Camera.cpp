@@ -7,7 +7,7 @@ Camera::Camera()
 {
 	Renderer* renderer = Renderer::getInstance();
 
-	m_cameraBuffer = new ConstantBuffer(sizeof(m_matrices), 0);
+	m_cameraBuffer = new ConstantBuffer(sizeof(m_matrices), LOCATION_CAMERA);
 
 	m_eye = XMVectorSet(2.0f, 2.0f, 2.0f, 0.0f);
 	m_target = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);

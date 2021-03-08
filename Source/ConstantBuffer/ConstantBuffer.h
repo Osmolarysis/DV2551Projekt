@@ -2,6 +2,9 @@
 
 #include "../Renderer/Renderer.h"
 
+#define LOCATION_CAMERA 0
+#define LOCATION_TRANSLATION 1
+
 class ConstantBuffer 
 {
 private:
