@@ -11,7 +11,6 @@ Timer* Timer::getInstance()
 Timer::Timer()
 {
 	m_time = std::chrono::steady_clock::now();
-	//m_timer = clock();
 }
 
 void Timer::update()
@@ -22,18 +21,6 @@ void Timer::update()
 	m_elapsedTime = delta.count() / 1000.0;
 
 	m_time = now;
-
-	//printf("\ndt: %f", m_elapsedTime);
-
-	/*
-	clock_t now = clock();
-	m_elapsedTime = double((now - m_timer) / 1000.0);
-	if (m_elapsedTime > 1.0)
-	{
-		m_elapsedTime = 0.0;
-	}
-	m_timer = now;
-	*/
 }
 
 double Timer::getDt()
