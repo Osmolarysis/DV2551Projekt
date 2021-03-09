@@ -22,6 +22,8 @@ void CubeState::initialise()
 void CubeState::update()
 {
 	//Update the rotation matrix
+
+	//Update camera
 	m_camera->update();
 }
 
