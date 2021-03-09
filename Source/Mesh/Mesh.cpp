@@ -7,14 +7,13 @@ Mesh::Mesh()
 
 Mesh::~Mesh()
 {
-	m_geometryBuffers.buffer->decRef();
+
 }
 
-void Mesh::addIAVertexBufferBinding(VertexBuffer* buffer, size_t offset, size_t numElements, size_t sizeElement)
+void Mesh::addIAVertexBufferBinding(std::shared_ptr<VertexBuffer> vb)
 {
-	buffer->incRef();
-	m_geometryBuffers = { sizeElement, numElements, offset, buffer };
-
+	m_vertexBuffer = vb;
+	m_nrOfVertices = m_vertexBuffer->getSize() / sizeof(VertexBuffer::Vertex);
 }
 
 void Mesh::draw()
@@ -23,8 +22,7 @@ void Mesh::draw()
 	bindAll(); 
 
 	// draw
-	UINT nrOfVertices = (UINT)m_geometryBuffers.numElements;
-	Renderer::getInstance()->getGraphicsCommandList()->DrawInstanced(nrOfVertices, 1, 0, 0);
+	Renderer::getInstance()->getGraphicsCommandList()->DrawInstanced(m_nrOfVertices, 1, 0, 0);
 }
 
 const Transform* Mesh::getTransform()
@@ -34,9 +32,7 @@ const Transform* Mesh::getTransform()
 
 void Mesh::bindIAVertexBuffer()
 {
-	// no checking if the key is valid...TODO
-	VertexBufferBind& vb = m_geometryBuffers;
-	vb.buffer->bind(vb.offset, vb.numElements * vb.sizeElement);
+	m_vertexBuffer->bind(0, 0);
 }
 
 void Mesh::bindAll()

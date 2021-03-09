@@ -1,6 +1,6 @@
 #include "VertexBuffer.h"
 
-VertexBuffer::VertexBuffer(size_t size)
+VertexBuffer::VertexBuffer(size_t size) // may move content to own function that is called in setData
 {
 	m_totalSize = size; //in bytes
 
@@ -40,7 +40,7 @@ VertexBuffer::~VertexBuffer()
 	SafeRelease(m_vertexBufferResource.GetAddressOf());
 }
 
-void VertexBuffer::setData(const void* data, size_t size, size_t offset, size_t nrOFVertices)	// offset is in bytes
+void VertexBuffer::setData(const void* data)	// size and offset is in bytes
 {
 	//This copies some data to the buffer.
 	void* dataBegin = nullptr;
@@ -50,12 +50,12 @@ void VertexBuffer::setData(const void* data, size_t size, size_t offset, size_t 
 		printf("Error mapping vertex buffer resources");
 		exit(-1);
 	}
-	memcpy((char*)dataBegin + offset, (char*)data, size);
+	memcpy((char*)dataBegin, (char*)data, m_totalSize);
 	m_vertexBufferResource->Unmap(0, nullptr);
 
 	//Prepare VB view to be used in bind.
 	m_vertexBufferView.BufferLocation = m_vertexBufferResource->GetGPUVirtualAddress();
-	m_vertexBufferView.StrideInBytes = UINT(size / nrOFVertices);
+	m_vertexBufferView.StrideInBytes = UINT(sizeof(Vertex));
 	m_vertexBufferView.SizeInBytes = UINT(m_totalSize);
 }
 

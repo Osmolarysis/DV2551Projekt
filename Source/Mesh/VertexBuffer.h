@@ -15,7 +15,7 @@ public:
 	~VertexBuffer();
 
 	// just taken from assignment 1
-	void setData(const void* data, size_t size, size_t offset, size_t nrOfVertices);
+	void setData(const void* data);
 	void bind(size_t offset, size_t size);
 	void unbind();
 	size_t getSize();

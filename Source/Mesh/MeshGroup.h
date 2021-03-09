@@ -22,6 +22,7 @@ public:
 	~MeshGroup();
 
 	void addMesh(std::shared_ptr<Mesh> mesh);
+	void addMesh(std::shared_ptr<VertexBuffer> vb);
 	void drawAll();
 
 	ComPtr<ID3DBlob> compileShader(LPCWSTR shaderFile, std::string& errString, ShaderType type);

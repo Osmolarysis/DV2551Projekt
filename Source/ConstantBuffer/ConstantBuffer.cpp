@@ -49,10 +49,11 @@ ConstantBuffer::ConstantBuffer(UINT bufferSize, UINT location)
 		}*/
 
 		D3D12_GPU_VIRTUAL_ADDRESS cbAddress = m_constantBufferResource[i]->GetGPUVirtualAddress();
+		size_t offset = 0;
 		for (UINT j = 0; j < location; j++) {
-			cbAddress += renderer->getCBDescriptorSize(j);
+			offset += renderer->getCBDescriptorSize(j);
 		}
-
+		cbAddress += offset;
 		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
 		cbvDesc.BufferLocation = cbAddress;
 		cbvDesc.SizeInBytes = cbSizeAligned;

@@ -19,6 +19,13 @@ void MeshGroup::addMesh(std::shared_ptr<Mesh> mesh)
 	m_meshes.push_back(mesh);
 }
 
+void addMesh(std::shared_ptr<VertexBuffer> vb)
+{
+	std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
+	mesh->addIAVertexBufferBinding(vb);
+}
+
+
 void MeshGroup::drawAll()
 {
 	// bind pipeline state object

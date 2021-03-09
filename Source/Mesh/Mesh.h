@@ -16,13 +16,8 @@ private:
 	// Transform data
 	Transform m_transform;
 
-	struct VertexBufferBind {
-		size_t sizeElement, numElements, offset;
-		VertexBuffer* buffer;
-	};
-
-	VertexBufferBind m_geometryBuffers;
-
+	std::shared_ptr<VertexBuffer> m_vertexBuffer;
+	UINT m_nrOfVertices = 0;
 	// helper functions
 	void bindIAVertexBuffer();
 	void bindAll();
@@ -31,11 +26,7 @@ public:
 	~Mesh();
 
 	// array of buffers with locations (binding points in shaders)
-	void addIAVertexBufferBinding(
-		VertexBuffer* buffer,
-		size_t offset,
-		size_t numElements,
-		size_t sizeElement);
+	void addIAVertexBufferBinding(std::shared_ptr<VertexBuffer> vb);
 
 	void draw();
 	const Transform* getTransform();
