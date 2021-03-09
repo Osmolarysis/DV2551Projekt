@@ -23,6 +23,7 @@ void MeshGroup::addMesh(std::shared_ptr<VertexBuffer> vb)
 {
 	std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
 	mesh->addIAVertexBufferBinding(vb);
+	m_meshes.push_back(mesh);
 }
 
 
