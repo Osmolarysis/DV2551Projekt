@@ -7,7 +7,7 @@
 class CubeState : public State {
 private:
 	//Scene
-	Camera* m_camera = nullptr;
+	std::unique_ptr<Camera> m_camera;
 	std::vector<MeshGroup> m_meshGroups;
 
 public:

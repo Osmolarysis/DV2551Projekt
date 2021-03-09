@@ -10,15 +10,13 @@ CubeState::CubeState()
 CubeState::~CubeState()
 {
 	printf("Destroying cubeState...\n");
-	if (m_camera != nullptr)
-		delete m_camera;
 }
 
 void CubeState::initialise()
 {
 	printf("Initialising cubeState...\n"); //For debugging, remove when implementing
 
-	m_camera = new Camera();
+	m_camera = std::make_unique<Camera>(Camera());
 }
 
 void CubeState::update()
