@@ -19,7 +19,7 @@ void MeshGroup::addMesh(std::shared_ptr<Mesh> mesh)
 	m_meshes.push_back(mesh);
 }
 
-void addMesh(std::shared_ptr<VertexBuffer> vb)
+void MeshGroup::addMesh(std::shared_ptr<VertexBuffer> vb)
 {
 	std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
 	mesh->addIAVertexBufferBinding(vb);
@@ -49,11 +49,11 @@ ComPtr<ID3DBlob> MeshGroup::compileShader(LPCWSTR shaderFile, std::string& errSt
 	{
 	case ShaderType::VS:
 		shaderModel = "vs_5_0";
-		entryPoint = "VS_main";
+		entryPoint = "main";
 		break;
 	case ShaderType::PS:
 		shaderModel = "ps_5_0";
-		entryPoint = "PS_main";
+		entryPoint = "main";
 		break;
 	default:
 		break;
@@ -70,8 +70,8 @@ ComPtr<ID3DBlob> MeshGroup::compileShader(LPCWSTR shaderFile, std::string& errSt
 		shaderModel.c_str(),
 		0,				// shader compile options
 		0,				// effect compile options
-		&byteCode,
-		&errors);
+		byteCode.GetAddressOf(),
+		errors.GetAddressOf());
 
 	if (errors != nullptr)
 	{

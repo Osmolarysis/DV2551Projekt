@@ -123,7 +123,8 @@ ID3D12Device8* Renderer::getDevice()
 
 ID3D12GraphicsCommandList* Renderer::getGraphicsCommandList()
 {
-	return m_graphicsCommandList->Get();
+	int index = m_swapChain->GetCurrentBackBufferIndex();
+	return m_graphicsCommandList[index].Get();
 }
 
 ID3D12RootSignature* Renderer::getRootSignature()
