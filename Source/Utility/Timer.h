@@ -1,6 +1,5 @@
 #pragma once
 #include <chrono>
-//#include <time.h>
 
 class Timer {
 private:

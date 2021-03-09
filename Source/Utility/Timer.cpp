@@ -31,5 +31,4 @@ double Timer::getDt()
 void Timer::reset()
 {
 	m_time = std::chrono::steady_clock::now();
-	//m_timer = clock();
 }

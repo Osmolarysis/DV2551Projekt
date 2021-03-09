@@ -10,8 +10,7 @@ CubeState::CubeState()
 CubeState::~CubeState()
 {
 	printf("Destroying cubeState...\n");
-	if (m_camera != nullptr)
-		delete m_camera;
+	delete m_camera;
 }
 
 void CubeState::initialise()
@@ -24,6 +23,8 @@ void CubeState::initialise()
 void CubeState::update()
 {
 	//Update the rotation matrix
+
+	//Update camera
 	m_camera->update();
 }
 
