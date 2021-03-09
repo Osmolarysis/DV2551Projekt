@@ -49,15 +49,17 @@ ConstantBuffer::ConstantBuffer(UINT bufferSize, UINT location)
 		}*/
 
 		D3D12_GPU_VIRTUAL_ADDRESS cbAddress = m_constantBufferResource[i]->GetGPUVirtualAddress();
-		size_t offset = 0;
-		for (UINT j = 0; j < location; j++) {
-			offset += renderer->getCBDescriptorSize(j);
-		}
-		cbAddress += offset;
+
 		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
 		cbvDesc.BufferLocation = cbAddress;
 		cbvDesc.SizeInBytes = cbSizeAligned;
-		renderer->getDevice()->CreateConstantBufferView(&cbvDesc, renderer->getCBDescriptorHeap(i)->GetCPUDescriptorHandleForHeapStart());
+
+		auto handle = renderer->getCBDescriptorHeap(i)->GetCPUDescriptorHandleForHeapStart();
+		size_t offset = 0;
+		offset = renderer->getDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * (ULONG)location;
+		handle.ptr += offset;
+
+		renderer->getDevice()->CreateConstantBufferView(&cbvDesc, handle);
 	}
 }
 
