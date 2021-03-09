@@ -7,7 +7,7 @@ Camera::Camera()
 {
 	Renderer* renderer = Renderer::getInstance();
 
-	m_cameraBuffer = new ConstantBuffer(sizeof(m_matrices), LOCATION_CAMERA);
+	m_cameraBuffer = std::make_shared<ConstantBuffer>(ConstantBuffer(sizeof(m_matrices), LOCATION_CAMERA));
 
 	m_eye = XMVectorSet(2.0f, 2.0f, 2.0f, 0.0f);
 	m_target = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
@@ -25,8 +25,7 @@ Camera::Camera()
 
 Camera::~Camera()
 {
-	if (m_cameraBuffer != nullptr)
-		delete m_cameraBuffer;
+	
 }
 
 void Camera::setEye(float x, float y, float z)

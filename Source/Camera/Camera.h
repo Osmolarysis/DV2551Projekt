@@ -11,7 +11,7 @@ private:
 		DirectX::XMMATRIX m_proj;
 	};
 
-	ConstantBuffer* m_cameraBuffer;
+	std::shared_ptr<ConstantBuffer> m_cameraBuffer;
 	Matrices m_matrices;
 
 	DirectX::XMVECTOR m_eye;
