@@ -16,7 +16,7 @@ void CubeState::initialise()
 {
 	printf("Initialising cubeState...\n"); //For debugging, remove when implementing
 
-	m_camera = new Camera();
+	m_camera = std::make_unique<Camera>();
 	
 	// create meshGroup
 	LPCWSTR shaderFiles[] = { L"VertexShader.hlsl", L"PixelShader" };
