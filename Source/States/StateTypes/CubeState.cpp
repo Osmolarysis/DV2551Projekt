@@ -27,9 +27,9 @@ void CubeState::initialise()
 	//Create triangle (later cube)
 	VertexBuffer::Vertex meshVertices[] =
 	{
-		{ { 0.0f, 0.25f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-		{ { 0.25f, -0.25f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-		{ { -0.25f, -0.25f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+		{ { 0.0f, 0.25f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+		{ { 0.25f, -0.25f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+		{ { -0.25f, -0.25f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
 	};
 	int size = sizeof(meshVertices);
 	std::shared_ptr<VertexBuffer> vertBuf = std::make_shared<VertexBuffer>(size);
