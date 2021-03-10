@@ -154,7 +154,7 @@ void Renderer::beginFrame()
 
 	UINT backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
 
-	int lastFinishedQueue = m_fence.Get()->GetCompletedValue(); //Number of last finished queue
+	UINT64 lastFinishedQueue = m_fence.Get()->GetCompletedValue(); //Number of last finished queue
 
 	//Wait
 	while (m_fenceValue - lastFinishedQueue >= 2) {

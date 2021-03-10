@@ -116,9 +116,9 @@ void VertexBuffer::bind()
 void VertexBuffer::draw()
 {
 	if (m_nrOfIndices == 0)
-		Renderer::getInstance()->getGraphicsCommandList()->DrawInstanced(m_nrOfVertices, 1, 0, 0);
+		Renderer::getInstance()->getGraphicsCommandList()->DrawInstanced((UINT)m_nrOfVertices, 1, 0, 0);
 	else
-		Renderer::getInstance()->getGraphicsCommandList()->DrawIndexedInstanced(m_nrOfIndices, 1, 0, 0, 0);
+		Renderer::getInstance()->getGraphicsCommandList()->DrawIndexedInstanced((UINT)m_nrOfIndices, 1, 0, 0, 0);
 
 }
 
