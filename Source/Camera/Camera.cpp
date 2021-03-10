@@ -1,5 +1,6 @@
 #include "Camera.h"
 #include "../Renderer/Renderer.h"
+#include "../Utility/Timer.h"
 
 using namespace DirectX;
 
@@ -65,6 +66,11 @@ void Camera::setFarPlane(float farPlane)
 
 void Camera::update()
 {
+
+	XMVECTOR move;
+	move = XMVectorSet(0.1, 0.1, 0.1, 0.0);
+	m_eye -= move * Timer::getInstance()->getDt();
+
 	m_matrices.m_view = XMMatrixLookAtRH(m_eye, m_target, m_up);
 	m_matrices.m_proj = XMMatrixPerspectiveFovRH(m_fov, m_aspectRatio, m_nearPlane, m_farPlane);
 
