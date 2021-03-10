@@ -27,8 +27,8 @@ VS_out main( VS_in input )
 	VS_out output;
 
 	output.posH = input.pos + translate;
-	output.posH = mul(output.posH, viewMatrix);
-	output.posH = mul(output.posH, projMatrix);
+	output.posH = mul(viewMatrix, output.posH);
+	output.posH = mul(projMatrix, output.posH);
 	output.colour = input.colour;
 
 	return output;
