@@ -13,7 +13,6 @@ Mesh::~Mesh()
 void Mesh::addIAVertexBufferBinding(std::shared_ptr<VertexBuffer> vb)
 {
 	m_vertexBuffer = vb;
-	m_nrOfVertices = (UINT)m_vertexBuffer->getSize() / (UINT)sizeof(VertexBuffer::Vertex);
 }
 
 void Mesh::draw()
@@ -22,7 +21,7 @@ void Mesh::draw()
 	bindAll(); 
 
 	// draw
-	Renderer::getInstance()->getGraphicsCommandList()->DrawInstanced(m_nrOfVertices, 1, 0, 0);
+	m_vertexBuffer->draw();
 }
 
 const Transform* Mesh::getTransform()
@@ -32,7 +31,7 @@ const Transform* Mesh::getTransform()
 
 void Mesh::bindIAVertexBuffer()
 {
-	m_vertexBuffer->bind(0, 0);
+	m_vertexBuffer->bind();
 }
 
 void Mesh::bindAll()

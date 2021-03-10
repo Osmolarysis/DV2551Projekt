@@ -17,7 +17,6 @@ private:
 	Transform m_transform;
 
 	std::shared_ptr<VertexBuffer> m_vertexBuffer;
-	UINT m_nrOfVertices = 0;
 	// helper functions
 	void bindIAVertexBuffer();
 	void bindAll();

@@ -1,8 +1,10 @@
 #include "VertexBuffer.h"
 
-VertexBuffer::VertexBuffer(size_t size) // may move content to own function that is called in setData
+VertexBuffer::VertexBuffer(size_t size, size_t sizeIndexData) // may move content to own function that is called in setData
 {
 	m_totalSize = size; //in bytes
+	m_nrOfVertices = size / sizeof(Vertex);
+	m_nrOfIndices = sizeIndexData / sizeof(UINT16);
 
 	//Do initial stuff
 	D3D12_HEAP_PROPERTIES hp = {};
@@ -19,6 +21,7 @@ VertexBuffer::VertexBuffer(size_t size) // may move content to own function that
 	rd.SampleDesc.Count = 1;
 	rd.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
+	// create vertexbuffer
 	HRESULT hr = Renderer::getInstance()->getDevice()->CreateCommittedResource(
 		&hp,
 		D3D12_HEAP_FLAG_NONE,
@@ -33,7 +36,27 @@ VertexBuffer::VertexBuffer(size_t size) // may move content to own function that
 	}
 
 	m_vertexBufferResource->SetName(L"vb heap");
+
+	// create index buffer
+	if (m_nrOfIndices > 0)
+	{
+		hr = Renderer::getInstance()->getDevice()->CreateCommittedResource(
+			&hp,
+			D3D12_HEAP_FLAG_NONE,
+			&rd,
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(m_indexBufferResource.GetAddressOf())
+		);
+		if (hr != S_OK) {
+			printf("Error creating vertex buffer\n");
+			exit(-1);
+		}
+
+		m_indexBufferResource->SetName(L"ib heap");
+	}
 }
+
 
 VertexBuffer::~VertexBuffer()
 {
@@ -59,10 +82,43 @@ void VertexBuffer::setData(const void* data)	// size and offset is in bytes
 	m_vertexBufferView.SizeInBytes = UINT(m_totalSize);
 }
 
-void VertexBuffer::bind(size_t offset, size_t size)
+void VertexBuffer::setData(const void* data, const void* indices)
+{
+	// set vertexbuffer
+	setData(data);
+
+	// set indexbuffer
+		//This copies some data to the buffer.
+	void* dataBegin = nullptr;
+	D3D12_RANGE range = { 0, 0 };	// We do not intend to read from this resource on the CPU.
+	HRESULT hr = m_indexBufferResource->Map(0, &range, &dataBegin);
+	if (hr != S_OK) {
+		printf("Error mapping vertex buffer resources");
+		exit(-1);
+	}
+	memcpy((char*)dataBegin, (char*)indices, m_nrOfIndices*sizeof(UINT64));
+	m_indexBufferResource->Unmap(0, nullptr);
+
+	//Prepare VB view to be used in bind.
+	m_indexBufferView.BufferLocation = m_indexBufferResource->GetGPUVirtualAddress();
+	m_indexBufferView.SizeInBytes = UINT(m_nrOfIndices*sizeof(UINT16));
+	m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
+}
+
+void VertexBuffer::bind()
 {
 	//Location tells us which vertexbuffer we're setting
 	Renderer::getInstance()->getGraphicsCommandList()->IASetVertexBuffers(0, 1, &m_vertexBufferView);
+	if (m_nrOfIndices > 0)
+		Renderer::getInstance()->getGraphicsCommandList()->IASetIndexBuffer(&m_indexBufferView);
+}
+
+void VertexBuffer::draw()
+{
+	if (m_nrOfIndices == 0)
+		Renderer::getInstance()->getGraphicsCommandList()->DrawInstanced(m_nrOfVertices, 1, 0, 0);
+	else
+		Renderer::getInstance()->getGraphicsCommandList()->DrawIndexedInstanced(m_nrOfIndices, 1, 0, 0, 0);
 
 }
 
