@@ -13,7 +13,7 @@ Mesh::~Mesh()
 void Mesh::addIAVertexBufferBinding(std::shared_ptr<VertexBuffer> vb)
 {
 	m_vertexBuffer = vb;
-	m_nrOfVertices = m_vertexBuffer->getSize() / sizeof(VertexBuffer::Vertex);
+	m_nrOfVertices = (UINT)m_vertexBuffer->getSize() / (UINT)sizeof(VertexBuffer::Vertex);
 }
 
 void Mesh::draw()
