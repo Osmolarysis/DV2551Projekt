@@ -9,11 +9,26 @@ struct VS_out {
 	float4 colour : COLOR;
 };
 
+cbuffer matrixBuffer : register(b0)
+{
+	float4x4 viewMatrix;
+	float4x4 projMatrix;
+	float4x4 padd1[2];
+}
+
+cbuffer transformBuffer : register(b1)
+{
+	float4 translate;
+	float4 padd2[15];
+}
+
 VS_out main( VS_in input )
 {
 	VS_out output;
 
-	output.posH = mul(input.pos, float4(1, 1, 1, 1)/*worldViewPerspective matrix from camera*/);
+	output.posH = input.pos + translate;
+	output.posH = mul(output.posH, viewMatrix);
+	output.posH = mul(output.posH, projMatrix);
 	output.colour = input.colour;
 
 	return output;

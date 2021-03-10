@@ -4,7 +4,7 @@
 #include "VertexBuffer.h"
 
 struct Transform {
-	float translate[3] = { 0,0,0 };
+	float translate[4] = { 0,0,0,0 };
 	//float rotate[3] = { 0,0,0 };
 };
 
