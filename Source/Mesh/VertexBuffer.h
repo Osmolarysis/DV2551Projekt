@@ -33,7 +33,7 @@ public:
 		struct { float r, g, b; };
 	} float3;
 	struct Vertex {
-		float4 pos;
+		float3 pos;
 		float4 color;
 	};
 };
