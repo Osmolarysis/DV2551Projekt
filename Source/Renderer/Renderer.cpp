@@ -149,9 +149,18 @@ unsigned int Renderer::getScreenHeight() const
 
 void Renderer::beginFrame()
 {
+
 	setWindowTitle(L"Projekt");
 
 	UINT backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
+
+	int lastFinishedQueue = m_fence.Get()->GetCompletedValue(); //Number of last finished queue
+
+	//Wait
+	while (m_fenceValue - lastFinishedQueue >= 2) {
+		lastFinishedQueue = m_fence.Get()->GetCompletedValue();
+	}
+
 	float clearColour[4] = { 0.3f, 0.3f, 0.0f, 1.0f };
 
 	//Clear
@@ -221,6 +230,11 @@ void Renderer::executeList()
 	//Execute the commands!
 	ID3D12CommandList* listsToExecute[] = { m_graphicsCommandList[backBufferIndex].Get() };
 	m_commandQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecute), listsToExecute);
+
+	m_fenceValue++;
+
+	//Set finished rendering value
+	m_commandQueue.Get()->Signal(m_fence.Get(), m_fenceValue);
 }
 
 void Renderer::present()
@@ -228,8 +242,6 @@ void Renderer::present()
 	//Swap front and back buffers
 	DXGI_PRESENT_PARAMETERS pp = {}; //Are these important?
 	m_swapChain->Present1(0, 0, &pp);
-
-	waitForGPU(); //To be removed
 }
 
 void Renderer::SetResourceTransitionBarrier(ID3D12GraphicsCommandList* commandList, ID3D12Resource* resource, D3D12_RESOURCE_STATES StateBefore, D3D12_RESOURCE_STATES StateAfter)
@@ -284,6 +296,11 @@ UINT Renderer::getCBDescriptorSize(UINT bufferIndex) const
 void Renderer::setCBDescriptorSize(UINT location, UINT size)
 {
 	m_cbDescriptorSize[location] = size;
+}
+
+void Renderer::setFence(int fence, int value)
+{
+	m_commandQueue.Get()->Signal(m_fence.Get(), value);
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -475,7 +492,7 @@ bool Renderer::createFenceAndEventHandle()
 		printf("Error creating fence");
 		exit(-1);
 	}
-	m_fenceValue = 1;
+	m_fenceValue = 0;
 	// Creation of an event handle to use in GPU synchronization
 	m_eventHandle = CreateEvent(0, false, false, 0);
 

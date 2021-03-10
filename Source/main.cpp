@@ -24,8 +24,8 @@ int CALLBACK main(_In_ HINSTANCE appInstance, _In_opt_ HINSTANCE preInstance, _I
 
 	timer->reset();
 	while (mainLoop) { //TODO: exit while loop in a good way - statestacks if we feelin fancy
-		timer->update();
 		//Update
+		timer->update();
 		stateStack->update();
 
 		//Begin frame
@@ -48,6 +48,7 @@ int CALLBACK main(_In_ HINSTANCE appInstance, _In_opt_ HINSTANCE preInstance, _I
 			switch (msg.message) {
 			case WM_QUIT: {
 				mainLoop = false;
+				renderer->waitForGPU();
 				break;
 			}
 			}

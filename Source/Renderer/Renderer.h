@@ -125,4 +125,7 @@ public:
 	ID3D12DescriptorHeap* getCBDescriptorHeap(UINT bufferIndex);
 	UINT getCBDescriptorSize(UINT location) const;
 	void setCBDescriptorSize(UINT location, UINT size);
+
+	//Fence functions
+	void setFence(int, int);
 };
