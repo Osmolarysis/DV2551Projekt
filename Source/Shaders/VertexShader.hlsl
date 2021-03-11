@@ -18,15 +18,15 @@ cbuffer matrixBuffer : register(b0)
 
 cbuffer transformBuffer : register(b1)
 {
-	float4 translate;
-	float4 padd2[15];
+	float4x4 transform;
+	float4 padd2[12];
 }
 
 VS_out main( VS_in input )
 {
 	VS_out output;
 
-	output.posH = float4(input.pos, 1.0f) + translate;
+	output.posH = mul(transform, float4(input.pos, 1.0f));
 	output.posH = mul(viewMatrix, output.posH);
 	output.posH = mul(projMatrix, output.posH);
 	output.colour = input.colour;

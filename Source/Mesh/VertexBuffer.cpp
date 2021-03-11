@@ -122,11 +122,6 @@ void VertexBuffer::draw()
 
 }
 
-void VertexBuffer::unbind()
-{
-	//Seems to only be a helper function. Might not be necessary.
-}
-
 size_t VertexBuffer::getSize()
 {
 	return m_totalSize;

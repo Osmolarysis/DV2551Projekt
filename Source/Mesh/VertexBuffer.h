@@ -19,25 +19,15 @@ public:
 	~VertexBuffer();
 
 	// just taken from assignment 1
-	void setData(const void* data);
-	void setData(const void* data, const void* indices);
+	void setData(const void* data);	// vertex buffer only
+	void setData(const void* data, const void* indices);	// vertex and index buffer
 	void bind();
 	void draw();
-	void unbind();
 	size_t getSize();
 	void incRef() { refs++; };
 	void decRef() { if (refs > 0) refs--; };
 	inline unsigned int refCount() { return refs; };
-
-	// lissajous points
-	typedef union {
-		struct { float x, y, z, w; };
-		struct { float r, g, b, a; };
-	} float4;
-	typedef union {
-		struct { float x, y, z; };
-		struct { float r, g, b; };
-	} float3;
+		
 	struct Vertex {
 		DirectX::XMFLOAT3 pos;
 		DirectX::XMFLOAT4 color;

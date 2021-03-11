@@ -25,6 +25,8 @@ public:
 	void addMesh(std::shared_ptr<VertexBuffer> vb);
 	void drawAll();
 
+	std::shared_ptr<Mesh> getMesh(int index);
+
 	ComPtr<ID3DBlob> compileShader(LPCWSTR shaderFile, std::string& errString, ShaderType type);
 	bool makePipelineStateObject();
 };

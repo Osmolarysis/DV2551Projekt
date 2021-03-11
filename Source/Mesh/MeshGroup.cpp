@@ -37,9 +37,14 @@ void MeshGroup::drawAll()
 	// draw all meshes
 	for (auto& mesh : m_meshes)
 	{
-		m_cbuffer->setData((void*)mesh->getTransform());
+		m_cbuffer->setData((void*)mesh->getMatrix());
 		mesh->draw();
 	}
+}
+
+std::shared_ptr<Mesh> MeshGroup::getMesh(int index)
+{
+	return m_meshes[index];
 }
 
 ComPtr<ID3DBlob> MeshGroup::compileShader(LPCWSTR shaderFile, std::string& errString, ShaderType type)
