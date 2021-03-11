@@ -67,9 +67,9 @@ void Camera::setFarPlane(float farPlane)
 void Camera::update()
 {
 
-	XMVECTOR move;
+	/*XMVECTOR move;
 	move = XMVectorSet(0.1f, 0.1f, 0.1f, 0.0f);
-	m_eye -= move * (float)Timer::getInstance()->getDt();
+	m_eye -= move * (float)Timer::getInstance()->getDt();*/
 
 	m_matrices.m_view = XMMatrixLookAtRH(m_eye, m_target, m_up);
 	m_matrices.m_proj = XMMatrixPerspectiveFovRH(m_fov, m_aspectRatio, m_nearPlane, m_farPlane);
