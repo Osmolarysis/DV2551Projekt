@@ -157,8 +157,12 @@ void Renderer::beginFrame()
 	UINT64 lastFinishedQueue = m_fence.Get()->GetCompletedValue(); //Number of last finished queue
 
 	//Wait
-	while (m_fenceValue - lastFinishedQueue >= 2) {
+	/*while (m_fenceValue - lastFinishedQueue >= 2) {
 		lastFinishedQueue = m_fence.Get()->GetCompletedValue();
+	}*/
+	if (m_fenceValue - lastFinishedQueue >= 2) {
+		m_fence.Get()->SetEventOnCompletion(m_fenceValue - UINT64(1), m_eventHandle);
+		WaitForSingleObject(m_eventHandle, INFINITE);
 	}
 
 	float clearColour[4] = { 0.3f, 0.3f, 0.0f, 1.0f };
