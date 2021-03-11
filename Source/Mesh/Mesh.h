@@ -1,11 +1,11 @@
 #pragma once
 #include <unordered_map>
-
 #include "VertexBuffer.h"
+using namespace DirectX;
 
 struct Transform {
-	float translate[4] = { 0,0,0,0 };
-	//float rotate[3] = { 0,0,0 };
+	XMFLOAT3 translate = { 0,0,0 };
+	XMFLOAT3 rotation  = { 0,0,0 };	
 };
 
 // Holds an objects mesh (vertex data) and transform data
@@ -16,10 +16,16 @@ private:
 	// Transform data
 	Transform m_transform;
 
+	// Transform matrix, will apear in constantbuffer
+	XMMATRIX m_matrix;
+	bool m_matrixUpdated = false;
+
 	std::shared_ptr<VertexBuffer> m_vertexBuffer;
 	// helper functions
 	void bindIAVertexBuffer();
 	void bindAll();
+
+	void calculateMatrix();
 public:
 	Mesh();
 	~Mesh();
@@ -29,5 +35,10 @@ public:
 
 	void draw();
 	const Transform* getTransform();
+	const XMMATRIX* getMatrix();
+	void setPosition(XMFLOAT3 pos);
+	void setRotation(XMFLOAT3 rot);
+	void move(float length, int axis = 0);
+	void rotate(float angle, int axis = 1);
 };
 

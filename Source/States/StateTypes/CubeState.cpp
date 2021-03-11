@@ -1,5 +1,6 @@
 #include "CubeState.h"
 #include "..\..\Renderer\Renderer.h"
+#include "..\..\Utility\Timer.h"
 #include <iostream>
 using namespace DirectX;
 
@@ -21,7 +22,7 @@ void CubeState::initialise()
 	
 	// create meshGroup
 	LPCWSTR shaderFiles[] = { L"Source/Shaders/VertexShader.hlsl", L"Source/Shaders/PixelShader.hlsl" };
-	UINT cbufferSize = sizeof(float) * 4;
+	UINT cbufferSize = sizeof(XMMATRIX);
 	UINT cbufferLocation = 1;
 	m_scene.push_back(std::make_unique<MeshGroup>(shaderFiles, cbufferSize, cbufferLocation));
 
@@ -78,6 +79,10 @@ void CubeState::initialise()
 void CubeState::update()
 {
 	//Update the rotation matrix
+	static double timer = 0;
+	timer += Timer::getInstance()->getDt();
+	int axis = (int)(timer*0.5) % 3;
+	m_scene[0]->getMesh(0)->rotate(Timer::getInstance()->getDt(),axis);
 
 	//Update camera
 	m_camera->update();
