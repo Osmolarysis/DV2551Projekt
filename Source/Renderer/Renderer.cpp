@@ -60,6 +60,12 @@ Renderer::Renderer(int width, int height)
 		exit(-1);
 	}
 
+	//create depth stencil
+	if (!createDepthStencil()) {
+		printf("error creating depth stencil\n");
+		exit(-1);
+	}
+
 	//create view port and scissor rect
 	if (!createViewportAndScissorRect()) {
 		printf("error creating view port and scissor rect\n");
@@ -109,6 +115,60 @@ Renderer::~Renderer()
 
 	//Fence and event handle
 	SafeRelease(m_fence.GetAddressOf());
+}
+
+bool Renderer::createDepthStencil()
+{
+	D3D12_RESOURCE_DESC depthStencilDesc;
+	depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	depthStencilDesc.Alignment = 0;
+	depthStencilDesc.Width = m_screenWidth;
+	depthStencilDesc.Height = m_screenHeight;
+	depthStencilDesc.DepthOrArraySize = 1;
+	depthStencilDesc.MipLevels = 1;
+	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilDesc.SampleDesc.Count = 1;
+	depthStencilDesc.SampleDesc.Quality = 0;
+	depthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+	D3D12_CLEAR_VALUE optClear;
+	optClear.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	optClear.DepthStencil.Depth = 1.0f;
+	optClear.DepthStencil.Stencil = 0;
+
+	D3D12_HEAP_PROPERTIES hp = {};
+	hp.Type = D3D12_HEAP_TYPE_DEFAULT;
+	//hp.Type = D3D12_HEAP_TYPE_UPLOAD;
+	hp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	hp.CreationNodeMask = 1; //used when multi-gpu (we don't do that here)
+	hp.VisibleNodeMask = 1; //used when multi-gpu (we don't do that here)
+	hp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+	m_depthBufferDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+
+	for (size_t i = 0; i < NUM_SWAP_BUFFERS; i++)
+	{
+		HRESULT hr = m_device.Get()->CreateCommittedResource(
+			&hp,
+			D3D12_HEAP_FLAG_NONE,
+			&depthStencilDesc,
+			D3D12_RESOURCE_STATE_COMMON,
+			&optClear,
+			IID_PPV_ARGS(m_depthStencilBuffer[i].GetAddressOf()));
+
+		if (hr != S_OK) {
+			return false;
+		}
+
+		D3D12_CPU_DESCRIPTOR_HANDLE cdh = m_dbDescriptorHeap.Get()->GetCPUDescriptorHandleForHeapStart();
+		cdh.ptr += (SIZE_T)m_depthBufferDescriptorSize * (SIZE_T)i;
+
+		m_device.Get()->CreateDepthStencilView(m_depthStencilBuffer[i].Get(), nullptr, cdh);
+	}
+
+
+	return true;
 }
 
 Renderer* Renderer::getInstance()
@@ -199,7 +259,17 @@ void Renderer::beginFrame()
 	m_graphicsCommandList[backBufferIndex].Get()->ClearRenderTargetView(cdh,
 		clearColour, 0, nullptr);
 
-	//m_graphicsCommandList[backBufferIndex].Get()->ClearDepthStencilView( );//TODO!
+	SetResourceTransitionBarrier(
+			m_graphicsCommandList[backBufferIndex].Get(),
+			m_depthStencilBuffer[backBufferIndex].Get(),
+			D3D12_RESOURCE_STATE_COMMON,		//state before
+			D3D12_RESOURCE_STATE_DEPTH_WRITE	//state after
+		);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE DBcdh = m_dbDescriptorHeap.Get()->GetCPUDescriptorHandleForHeapStart();
+	DBcdh.ptr += (SIZE_T)m_depthBufferDescriptorSize * (SIZE_T)backBufferIndex;
+
+	m_graphicsCommandList[backBufferIndex].Get()->ClearDepthStencilView(DBcdh, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 1, &m_scissorRect);
 
 	// Specify the buffers we are going to render to. Correct render target?
 	m_graphicsCommandList[backBufferIndex].Get()->OMSetRenderTargets(1, &cdh, true, nullptr);
@@ -223,6 +293,13 @@ void Renderer::executeList()
 		m_renderTargets[backBufferIndex].Get(),
 		D3D12_RESOURCE_STATE_RENDER_TARGET,	//state before
 		D3D12_RESOURCE_STATE_PRESENT		//state after
+	);
+
+	SetResourceTransitionBarrier(
+		m_graphicsCommandList[backBufferIndex].Get(),
+		m_depthStencilBuffer[backBufferIndex].Get(),
+		D3D12_RESOURCE_STATE_DEPTH_WRITE,	//state after
+		D3D12_RESOURCE_STATE_COMMON		//state before
 	);
 
 	HRESULT hr = m_graphicsCommandList[backBufferIndex].Get()->Close();
@@ -526,6 +603,17 @@ bool Renderer::createDescriptorHeap()
 			return false;
 		}
 	}
+
+	//Create descriptor heaps for depth buffer view.
+	D3D12_DESCRIPTOR_HEAP_DESC dhdDB = {};
+	dhdDB.NumDescriptors = NUM_CONSTANT_BUFFERS;
+	dhdDB.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	dhdDB.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	hr = m_device->CreateDescriptorHeap(&dhdDB, IID_PPV_ARGS(&m_dbDescriptorHeap));
+	if (hr != S_OK) {
+		return false;
+	}
+
 
 	return true;
 }

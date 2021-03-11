@@ -63,6 +63,11 @@ private:
 	ComPtr<ID3D12Resource1> m_renderTargets[NUM_SWAP_BUFFERS];
 	UINT m_renderTargetDescriptorSize = 0;
 
+	//Depth stencil
+	ComPtr<ID3D12DescriptorHeap> m_dbDescriptorHeap;
+	ComPtr<ID3D12Resource> m_depthStencilBuffer[NUM_SWAP_BUFFERS];
+	UINT m_depthBufferDescriptorSize = 0;
+
 	//Constant Buffer Descriptor Heaps
 	ComPtr<ID3D12DescriptorHeap> m_cbDescriptorHeaps[NUM_SWAP_BUFFERS];
 	UINT m_cbDescriptorSize[NUM_CONSTANT_BUFFERS];
@@ -93,6 +98,7 @@ private:
 	bool createFenceAndEventHandle();
 	bool createDescriptorHeap();
 	bool createRenderTargets();
+	bool createDepthStencil();
 	bool createViewportAndScissorRect();
 	bool createRootSignature();
 
@@ -127,5 +133,5 @@ public:
 	void setCBDescriptorSize(UINT location, UINT size);
 
 	//Fence functions
-	void setFence(int, int);
+	void setFence(int, int); //Unused, remove?
 };
