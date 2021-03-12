@@ -7,19 +7,9 @@ VertexBuffer::VertexBuffer(size_t size, size_t sizeIndexData) // may move conten
 	m_nrOfIndices = sizeIndexData / sizeof(UINT16);
 
 	//Do initial stuff
-	D3D12_HEAP_PROPERTIES hp = {};
-	hp.Type = D3D12_HEAP_TYPE_UPLOAD; // Not ideal. Should use DEFAULT but this is easier for now. TODO: switch to default
-	hp.CreationNodeMask = 1;
-	hp.VisibleNodeMask = 1;
+	auto hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 
-	D3D12_RESOURCE_DESC rd = {};
-	rd.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	rd.Width = m_totalSize;	//Not sure about this
-	rd.Height = 1;
-	rd.DepthOrArraySize = 1;
-	rd.MipLevels = 1;
-	rd.SampleDesc.Count = 1;
-	rd.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	auto rd = CD3DX12_RESOURCE_DESC::Buffer(m_totalSize);
 
 	// create vertexbuffer
 	HRESULT hr = Renderer::getInstance()->getDevice()->CreateCommittedResource(

@@ -12,6 +12,9 @@
 #include <iostream>
 #include <string>
 
+#include <initguid.h> //maybe needed for d3dx12.h
+#include "..\..\Include\d3dx12.h"
+
 using Microsoft::WRL::ComPtr;
 
 template<class Interface>
