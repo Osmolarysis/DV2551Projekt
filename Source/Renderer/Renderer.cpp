@@ -259,20 +259,23 @@ void Renderer::beginFrame()
 	m_graphicsCommandList[backBufferIndex].Get()->ClearRenderTargetView(cdh,
 		clearColour, 0, nullptr);
 
-	SetResourceTransitionBarrier(
+	if (!dsvSetWrite[backBufferIndex]) { //TODO: Find a better way than this, maybe "gpu warm up" function
+		SetResourceTransitionBarrier(
 			m_graphicsCommandList[backBufferIndex].Get(),
 			m_depthStencilBuffer[backBufferIndex].Get(),
 			D3D12_RESOURCE_STATE_COMMON,		//state before
 			D3D12_RESOURCE_STATE_DEPTH_WRITE	//state after
 		);
+		dsvSetWrite[backBufferIndex] = true;
+	}
 
 	D3D12_CPU_DESCRIPTOR_HANDLE DBcdh = m_dbDescriptorHeap.Get()->GetCPUDescriptorHandleForHeapStart();
 	DBcdh.ptr += (SIZE_T)m_depthBufferDescriptorSize * (SIZE_T)backBufferIndex;
 
-	m_graphicsCommandList[backBufferIndex].Get()->ClearDepthStencilView(DBcdh, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 1, &m_scissorRect);
+	m_graphicsCommandList[backBufferIndex].Get()->ClearDepthStencilView(DBcdh, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 1, &m_scissorRect);
 
 	// Specify the buffers we are going to render to. Correct render target?
-	m_graphicsCommandList[backBufferIndex].Get()->OMSetRenderTargets(1, &cdh, true, nullptr);
+	m_graphicsCommandList[backBufferIndex].Get()->OMSetRenderTargets(1, &cdh, true, &DBcdh);
 
 	//Set root signature
 	m_graphicsCommandList[backBufferIndex].Get()->SetGraphicsRootSignature(m_rootSignature.Get());
@@ -293,13 +296,6 @@ void Renderer::executeList()
 		m_renderTargets[backBufferIndex].Get(),
 		D3D12_RESOURCE_STATE_RENDER_TARGET,	//state before
 		D3D12_RESOURCE_STATE_PRESENT		//state after
-	);
-
-	SetResourceTransitionBarrier(
-		m_graphicsCommandList[backBufferIndex].Get(),
-		m_depthStencilBuffer[backBufferIndex].Get(),
-		D3D12_RESOURCE_STATE_DEPTH_WRITE,	//state after
-		D3D12_RESOURCE_STATE_COMMON		//state before
 	);
 
 	HRESULT hr = m_graphicsCommandList[backBufferIndex].Get()->Close();

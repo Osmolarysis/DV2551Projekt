@@ -67,6 +67,7 @@ private:
 	ComPtr<ID3D12DescriptorHeap> m_dbDescriptorHeap;
 	ComPtr<ID3D12Resource> m_depthStencilBuffer[NUM_SWAP_BUFFERS];
 	UINT m_depthBufferDescriptorSize = 0;
+	bool dsvSetWrite[NUM_SWAP_BUFFERS] = {false, false};
 
 	//Constant Buffer Descriptor Heaps
 	ComPtr<ID3D12DescriptorHeap> m_cbDescriptorHeaps[NUM_SWAP_BUFFERS];
