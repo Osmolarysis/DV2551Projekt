@@ -119,21 +119,26 @@ Renderer::~Renderer()
 
 bool Renderer::createDepthStencil()
 {
-	D3D12_RESOURCE_DESC depthStencilDesc;
-	depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	depthStencilDesc.Alignment = 0;
-	depthStencilDesc.Width = m_screenWidth;
-	depthStencilDesc.Height = m_screenHeight;
-	depthStencilDesc.DepthOrArraySize = 1;
-	depthStencilDesc.MipLevels = 1;
-	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	depthStencilDesc.SampleDesc.Count = 1;
-	depthStencilDesc.SampleDesc.Quality = 0;
-	depthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+	D3D12_RESOURCE_DESC resourceDesc;
+	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	resourceDesc.Alignment = 0;
+	resourceDesc.Width = m_screenWidth;
+	resourceDesc.Height = m_screenHeight;
+	resourceDesc.DepthOrArraySize = 1;
+	resourceDesc.MipLevels = 1;
+	resourceDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	resourceDesc.SampleDesc.Count = 1;
+	resourceDesc.SampleDesc.Quality = 0;
+	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+	D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilDesc = {};
+	depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	depthStencilDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+	depthStencilDesc.Flags = D3D12_DSV_FLAG_NONE;
 
 	D3D12_CLEAR_VALUE optClear;
-	optClear.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	optClear.Format = DXGI_FORMAT_D32_FLOAT;
 	optClear.DepthStencil.Depth = 1.0f;
 	optClear.DepthStencil.Stencil = 0;
 
@@ -152,7 +157,7 @@ bool Renderer::createDepthStencil()
 		HRESULT hr = m_device.Get()->CreateCommittedResource(
 			&hp,
 			D3D12_HEAP_FLAG_NONE,
-			&depthStencilDesc,
+			&resourceDesc,
 			D3D12_RESOURCE_STATE_COMMON,
 			&optClear,
 			IID_PPV_ARGS(m_depthStencilBuffer[i].GetAddressOf()));
@@ -164,7 +169,7 @@ bool Renderer::createDepthStencil()
 		D3D12_CPU_DESCRIPTOR_HANDLE cdh = m_dbDescriptorHeap.Get()->GetCPUDescriptorHandleForHeapStart();
 		cdh.ptr += (SIZE_T)m_depthBufferDescriptorSize * (SIZE_T)i;
 
-		m_device.Get()->CreateDepthStencilView(m_depthStencilBuffer[i].Get(), nullptr, cdh);
+		m_device.Get()->CreateDepthStencilView(m_depthStencilBuffer[i].Get(), &depthStencilDesc, cdh);
 	}
 
 
@@ -272,7 +277,7 @@ void Renderer::beginFrame()
 	D3D12_CPU_DESCRIPTOR_HANDLE DBcdh = m_dbDescriptorHeap.Get()->GetCPUDescriptorHandleForHeapStart();
 	DBcdh.ptr += (SIZE_T)m_depthBufferDescriptorSize * (SIZE_T)backBufferIndex;
 
-	m_graphicsCommandList[backBufferIndex].Get()->ClearDepthStencilView(DBcdh, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 1, &m_scissorRect);
+	m_graphicsCommandList[backBufferIndex].Get()->ClearDepthStencilView(DBcdh, D3D12_CLEAR_FLAG_DEPTH /*| D3D12_CLEAR_FLAG_STENCIL*/, 1.0f, 0, 1, &m_scissorRect);
 
 	// Specify the buffers we are going to render to. Correct render target?
 	m_graphicsCommandList[backBufferIndex].Get()->OMSetRenderTargets(1, &cdh, true, &DBcdh);
@@ -586,6 +591,7 @@ bool Renderer::createDescriptorHeap()
 	if (hr != S_OK) {
 		return false;
 	}
+	m_renderTargetHeap->SetName(L"Render target Heap");
 
 	//Create descriptor heaps for constant buffers.
 	for (int i = 0; i < NUM_SWAP_BUFFERS; i++)
@@ -598,18 +604,21 @@ bool Renderer::createDescriptorHeap()
 		if (hr != S_OK) {
 			return false;
 		}
+		std::wstring cbName = L"Constant buffer Heap ";
+		cbName.append(std::to_wstring(i));
+		m_cbDescriptorHeaps[i]->SetName(cbName.c_str());
 	}
 
 	//Create descriptor heaps for depth buffer view.
 	D3D12_DESCRIPTOR_HEAP_DESC dhdDB = {};
-	dhdDB.NumDescriptors = NUM_CONSTANT_BUFFERS;
+	dhdDB.NumDescriptors = NUM_SWAP_BUFFERS;
 	dhdDB.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	dhdDB.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 	hr = m_device->CreateDescriptorHeap(&dhdDB, IID_PPV_ARGS(&m_dbDescriptorHeap));
 	if (hr != S_OK) {
 		return false;
 	}
-
+	m_dbDescriptorHeap->SetName(L"Depth Resource Heap");
 
 	return true;
 }

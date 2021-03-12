@@ -124,6 +124,21 @@ bool MeshGroup::makePipelineStateObject()
 	//if (r->getwireFrame()) gpsd.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 	gpsd.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 
+	const D3D12_DEPTH_STENCILOP_DESC defaultStencilOp =	{ D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_ALWAYS };
+
+	D3D12_DEPTH_STENCIL_DESC depthStencilDesc;
+	depthStencilDesc.DepthEnable = true;
+	depthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+	depthStencilDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+	depthStencilDesc.StencilEnable = false;
+	depthStencilDesc.StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK;
+	depthStencilDesc.StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK;
+	depthStencilDesc.BackFace = defaultStencilOp;
+	depthStencilDesc.FrontFace = defaultStencilOp;
+
+	gpsd.DepthStencilState = depthStencilDesc;
+	gpsd.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+
 	//Specify blend descriptions.
 	D3D12_RENDER_TARGET_BLEND_DESC defaultRTdesc = {
 		false, false,
