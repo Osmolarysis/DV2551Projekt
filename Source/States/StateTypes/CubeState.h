@@ -1,6 +1,7 @@
 #pragma once
 #include <DirectXMath.h>
 #include <thread>
+#include <mutex>
 #include "../State.h"
 #include "../../Camera/Camera.h"
 #include "../../Mesh/MeshGroup.h"
@@ -10,6 +11,18 @@ private:
 	//Scene
 	std::vector<std::unique_ptr<MeshGroup>> m_scene;
 	std::unique_ptr<Camera> m_camera;
+
+	struct recordingThread {
+		std::thread* m_thread = nullptr;
+		std::mutex m_mutex;
+		bool isRunning = false; //Is it actually working? or idling?
+		bool isActive = true; //Should we NOT destroy it?
+	};
+	recordingThread m_copyThread;
+	recordingThread m_computeThread;
+	recordingThread m_directThread;
+
+	void directRecord();
 
 public:
 	CubeState();

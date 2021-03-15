@@ -4,10 +4,25 @@
 #include <iostream>
 using namespace DirectX;
 
+void CubeState::directRecord()
+{
+	while (m_directThread.isActive) {
+		while (m_directThread.isRunning) {
+			for (auto& meshG : m_scene)
+			{
+				meshG->drawAll();
+			}
+
+			m_directThread.isRunning = false; //Todo mutex lock
+		}
+	}
+	//Destroy thread
+}
+
 CubeState::CubeState()
 {
 	printf("Constructing cubeState...\n"); //For debugging, remove when implementing
-	
+
 }
 
 CubeState::~CubeState()
@@ -20,7 +35,7 @@ void CubeState::initialise()
 	printf("Initialising cubeState...\n"); //For debugging, remove when implementing
 
 	m_camera = std::make_unique<Camera>();
-	
+
 	// create meshGroup
 	LPCWSTR shaderFiles[] = { L"Source/Shaders/VertexShader.hlsl", L"Source/Shaders/PixelShader.hlsl" };
 	UINT cbufferSize = sizeof(XMMATRIX);
@@ -75,6 +90,9 @@ void CubeState::initialise()
 	// Add VertexBuffer (or Mesh) to the MeshGroup. (Mesh transform default to (0,0,0))
 	m_scene[0]->addMesh(vertBuf);
 
+	//Multithread
+	m_directThread.m_thread = new std::thread([this] {directRecord(); });
+
 }
 
 void CubeState::update()
@@ -82,7 +100,7 @@ void CubeState::update()
 	//Update the rotation matrix
 	static double timer = 0;
 	timer += Timer::getInstance()->getDt();
-	int axis = (int)(timer*0.5) % 3;
+	int axis = (int)(timer * 0.5) % 3;
 	m_scene[0]->getMesh(0)->rotate((float)Timer::getInstance()->getDt(), axis);
 
 	//Update camera
@@ -91,10 +109,10 @@ void CubeState::update()
 
 void CubeState::record()
 {
-	for (auto& meshG : m_scene)
-	{
-		meshG->drawAll();
-	}
+	//thread is running = true
+
+	//When all threads are done
+	//thread is running =  false
 }
 
 void CubeState::executeList()
