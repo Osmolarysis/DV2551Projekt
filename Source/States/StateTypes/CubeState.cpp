@@ -82,7 +82,7 @@ void CubeState::update()
 	static double timer = 0;
 	timer += Timer::getInstance()->getDt();
 	int axis = (int)(timer*0.5) % 3;
-	m_scene[0]->getMesh(0)->rotate(Timer::getInstance()->getDt(),axis);
+	m_scene[0]->getMesh(0)->rotate((float)Timer::getInstance()->getDt(), axis);
 
 	//Update camera
 	m_camera->update();
