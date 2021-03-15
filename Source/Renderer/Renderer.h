@@ -11,7 +11,6 @@
 #include <WRL/client.h>
 #include <iostream>
 #include <string>
-#include <thread>
 
 #include <initguid.h> //maybe needed for d3dx12.h
 #include "..\..\Include\d3dx12.h"
@@ -100,9 +99,6 @@ private:
 	//viewport and rect
 	D3D12_VIEWPORT m_viewPort;
 	D3D12_RECT m_scissorRect;
-
-	// Multithreading
-	std::thread m_thread;
 
 	Renderer(int, int);
 	~Renderer();

@@ -1,7 +1,8 @@
 #pragma once
+#include <DirectXMath.h>
+#include <thread>
 #include "../State.h"
 #include "../../Camera/Camera.h"
-#include <DirectXMath.h>
 #include "../../Mesh/MeshGroup.h"
 
 class CubeState : public State {

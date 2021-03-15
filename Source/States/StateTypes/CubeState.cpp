@@ -7,6 +7,7 @@ using namespace DirectX;
 CubeState::CubeState()
 {
 	printf("Constructing cubeState...\n"); //For debugging, remove when implementing
+	
 }
 
 CubeState::~CubeState()
