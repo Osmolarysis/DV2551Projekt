@@ -32,47 +32,58 @@ Camera::~Camera()
 void Camera::setEye(float x, float y, float z)
 {
 	m_eye = XMVectorSet(x, y, z, 0.0f);
+	m_viewUpdated = true;
 }
 
 void Camera::setTarget(float x, float y, float z)
 {
 	m_target = XMVectorSet(x, y, z, 0.0f);
+	m_viewUpdated = true;
 }
 
 void Camera::setUp(float x, float y, float z)
 {
 	m_up = XMVectorSet(x, y, z, 0.0f);
+	m_viewUpdated = true;
 }
 
 void Camera::setFov(float fov)
 {
 	m_fov = fov;
+	m_projUpdated = true;
 }
 
 void Camera::setAspectRatio(float aspecRatio)
 {
 	m_aspectRatio = aspecRatio;
+	m_projUpdated = true;
 }
 
 void Camera::setNearPlane(float nearPlane)
 {
 	m_nearPlane = nearPlane;
+	m_projUpdated = true;
 }
 
 void Camera::setFarPlane(float farPlane)
 {
 	m_farPlane = farPlane;
+	m_projUpdated = true;
 }
 
 void Camera::update()
 {
+	if (m_viewUpdated || m_projUpdated)
+	{
+		if (m_viewUpdated) {
+			m_matrices.m_view = XMMatrixLookAtRH(m_eye, m_target, m_up);
+			m_viewUpdated = false;
+		}
+		if (m_projUpdated) {
+			m_matrices.m_proj = XMMatrixPerspectiveFovRH(m_fov, m_aspectRatio, m_nearPlane, m_farPlane);
+			m_projUpdated = false;
+		}
 
-	/*XMVECTOR move;
-	move = XMVectorSet(0.1f, 0.1f, 0.1f, 0.0f);
-	m_eye -= move * (float)Timer::getInstance()->getDt();*/
-
-	m_matrices.m_view = XMMatrixLookAtRH(m_eye, m_target, m_up);
-	m_matrices.m_proj = XMMatrixPerspectiveFovRH(m_fov, m_aspectRatio, m_nearPlane, m_farPlane);
-
-	m_cameraBuffer->updateData(&m_matrices, Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex());
+		m_cameraBuffer->updateData(&m_matrices, Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex());
+	}
 }

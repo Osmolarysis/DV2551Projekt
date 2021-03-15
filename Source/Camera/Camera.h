@@ -22,6 +22,9 @@ private:
 	float m_aspectRatio;
 	float m_nearPlane;
 	float m_farPlane;
+
+	bool m_viewUpdated = false;
+	bool m_projUpdated = false;
 public:
 	Camera();
 	~Camera();
