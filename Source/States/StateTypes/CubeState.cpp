@@ -69,22 +69,31 @@ CubeState::~CubeState()
 	m_copyThread.m_mutex.lock();
 	m_copyThread.isRunning = false;
 	m_copyThread.isActive = false;
-	m_copyThread.m_thread->join();
-	delete m_copyThread.m_thread;
+	if (m_copyThread.m_thread != nullptr)
+	{
+		m_copyThread.m_thread->join();
+		delete m_copyThread.m_thread;
+	}
 	m_copyThread.m_mutex.unlock();
 
 	m_computeThread.m_mutex.lock();
 	m_computeThread.isRunning = false;
 	m_computeThread.isActive = false;
-	m_computeThread.m_thread->join();
-	delete m_computeThread.m_thread;
+	if (m_computeThread.m_thread != nullptr)
+	{
+		m_computeThread.m_thread->join();
+		delete m_computeThread.m_thread;
+	}
 	m_computeThread.m_mutex.unlock();
 
 	m_directThread.m_mutex.lock();
 	m_directThread.isRunning = false;
 	m_directThread.isActive = false;
-	m_directThread.m_thread->join();
-	delete m_directThread.m_thread;
+	if (m_directThread.m_thread != nullptr)
+	{
+		m_directThread.m_thread->join();
+		delete m_directThread.m_thread;
+	}
 	m_directThread.m_mutex.unlock();
 }
 
