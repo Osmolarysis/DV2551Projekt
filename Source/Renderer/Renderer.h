@@ -76,10 +76,20 @@ private:
 	ComPtr<ID3D12DescriptorHeap> m_cbDescriptorHeaps[NUM_SWAP_BUFFERS];
 	UINT m_cbDescriptorSize[NUM_CONSTANT_BUFFERS];
 
-	//Commandqueue/list/allocator
-	ComPtr<ID3D12CommandQueue> m_commandQueue;
-	ComPtr<ID3D12CommandAllocator> m_commandAllocator[NUM_COMMANDLISTS];
-	ComPtr<ID3D12GraphicsCommandList> m_graphicsCommandList[NUM_COMMANDLISTS];
+	//Direct queue/list/allocator
+	ComPtr<ID3D12CommandQueue> m_directQueue;
+	ComPtr<ID3D12CommandAllocator> m_directAllocator[NUM_COMMANDLISTS];
+	ComPtr<ID3D12GraphicsCommandList> m_graphicsDirectList[NUM_COMMANDLISTS];
+
+	//Copy queue/list/allocator
+	ComPtr<ID3D12CommandQueue> m_copyQueue;
+	ComPtr<ID3D12CommandAllocator> m_copyAllocator[NUM_COMMANDLISTS];
+	ComPtr<ID3D12GraphicsCommandList> m_graphicsCopyList[NUM_COMMANDLISTS];
+
+	//Compute queue/list/allocator
+	ComPtr<ID3D12CommandQueue> m_computeQueue;
+	ComPtr<ID3D12CommandAllocator> m_computeAllocator[NUM_COMMANDLISTS];
+	ComPtr<ID3D12GraphicsCommandList> m_graphicsComputeList[NUM_COMMANDLISTS];
 
 	//Fence and event handle
 	ComPtr<ID3D12Fence1> m_fence;
@@ -100,7 +110,10 @@ private:
 	bool createWindow();
 	bool createDevice();
 	bool createDebugMode();
-	bool createCommandQueue();
+	bool createCommandQueues();
+	bool createDirectQueue();
+	bool createCopyQueue();
+	bool createComputeQueue();
 	bool createSwapChain();
 	bool createFenceAndEventHandle();
 	bool createDescriptorHeap();
