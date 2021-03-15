@@ -195,7 +195,7 @@ void CubeState::record()
 	while (m_directThread.isRunning || m_computeThread.isRunning || m_copyThread.isRunning)
 	{
 		loops++;
-		printf("Loop: %i\n", loops);
+		printf("Loop: %i\n", loops); //TODO: clean this mess up
 	}
 }
 
