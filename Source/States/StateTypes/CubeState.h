@@ -22,6 +22,8 @@ private:
 	recordingThread m_computeThread;
 	recordingThread m_directThread;
 
+	void copyRecord();
+	void computeRecord();
 	void directRecord();
 
 public:

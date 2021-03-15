@@ -4,19 +4,55 @@
 #include <iostream>
 using namespace DirectX;
 
+void CubeState::copyRecord()
+{
+	while (m_copyThread.isActive) {
+		while (m_copyThread.isRunning) {
+			
+			//Thread work
+			
+
+			//Thread handling
+			m_copyThread.m_mutex.lock();
+			m_copyThread.isRunning = false;
+			m_copyThread.m_mutex.unlock();
+		}
+	}
+}
+
+void CubeState::computeRecord()
+{
+	while (m_computeThread.isActive) {
+		while (m_computeThread.isRunning) {
+
+			//Thread work
+
+
+			//Thread handling
+			m_computeThread.m_mutex.lock();
+			m_computeThread.isRunning = false;
+			m_computeThread.m_mutex.unlock();
+		}
+	}
+}
+
 void CubeState::directRecord()
 {
 	while (m_directThread.isActive) {
 		while (m_directThread.isRunning) {
+
+			//Thread work
 			for (auto& meshG : m_scene)
 			{
 				meshG->drawAll();
 			}
 
-			m_directThread.isRunning = false; //Todo mutex lock
+			//Thread handling
+			m_directThread.m_mutex.lock();
+			m_directThread.isRunning = false;
+			m_directThread.m_mutex.unlock();
 		}
 	}
-	//Destroy thread
 }
 
 CubeState::CubeState()
@@ -28,6 +64,28 @@ CubeState::CubeState()
 CubeState::~CubeState()
 {
 	printf("Destroying cubeState...\n");
+
+	//Multithreads
+	m_copyThread.m_mutex.lock();
+	m_copyThread.isRunning = false;
+	m_copyThread.isActive = false;
+	m_copyThread.m_thread->join();
+	delete m_copyThread.m_thread;
+	m_copyThread.m_mutex.unlock();
+
+	m_computeThread.m_mutex.lock();
+	m_computeThread.isRunning = false;
+	m_computeThread.isActive = false;
+	m_computeThread.m_thread->join();
+	delete m_computeThread.m_thread;
+	m_computeThread.m_mutex.unlock();
+
+	m_directThread.m_mutex.lock();
+	m_directThread.isRunning = false;
+	m_directThread.isActive = false;
+	m_directThread.m_thread->join();
+	delete m_directThread.m_thread;
+	m_directThread.m_mutex.unlock();
 }
 
 void CubeState::initialise()
@@ -91,8 +149,17 @@ void CubeState::initialise()
 	m_scene[0]->addMesh(vertBuf);
 
 	//Multithread
-	m_directThread.m_thread = new std::thread([this] {directRecord(); });
+	m_copyThread.m_mutex.lock();
+	m_copyThread.m_thread = new std::thread([this] {copyRecord(); });
+	m_copyThread.m_mutex.unlock();
 
+	m_computeThread.m_mutex.lock();
+	m_computeThread.m_thread = new std::thread([this] {computeRecord(); });
+	m_computeThread.m_mutex.unlock();
+
+	m_directThread.m_mutex.lock();
+	m_directThread.m_thread = new std::thread([this] {directRecord(); });
+	m_directThread.m_mutex.unlock();
 }
 
 void CubeState::update()
@@ -110,9 +177,26 @@ void CubeState::update()
 void CubeState::record()
 {
 	//thread is running = true
+	m_copyThread.m_mutex.lock();
+	m_copyThread.isRunning = true;
+	m_copyThread.m_mutex.unlock();
 
-	//When all threads are done
-	//thread is running =  false
+	m_computeThread.m_mutex.lock();
+	m_computeThread.isRunning = true;
+	m_computeThread.m_mutex.unlock();
+
+	m_directThread.m_mutex.lock();
+	m_directThread.isRunning = true;
+	m_directThread.m_mutex.unlock();
+
+	int loops = 0;
+
+	//Signal when all threads are done
+	while (m_directThread.isRunning || m_computeThread.isRunning || m_copyThread.isRunning)
+	{
+		loops++;
+		printf("Loop: %i\n", loops);
+	}
 }
 
 void CubeState::executeList()
