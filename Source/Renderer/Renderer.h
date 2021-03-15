@@ -90,6 +90,9 @@ private:
 	D3D12_VIEWPORT m_viewPort;
 	D3D12_RECT m_scissorRect;
 
+	// Multithreading
+
+
 	Renderer(int, int);
 	~Renderer();
 

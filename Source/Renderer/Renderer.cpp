@@ -1,6 +1,7 @@
 ﻿#include "Renderer.h"
 #include "..\Utility\Timer.h"
 
+
 Renderer Renderer::m_this(1280, 720);
 
 Renderer::Renderer(int width, int height)
