@@ -23,21 +23,25 @@ void Timer::update()
 	m_frameTimeSum += delta.count();
 	m_frameCount += 1.0;
 
-	if (m_frameTimeSum > 1000.0) {
-		double averageDt = m_frameTimeSum / m_frameCount;
-		double averageFps = 1000.0 / averageDt;
-		printf("Average FPS: %f\n", averageFps);
-
-		m_frameTimeSum = 0.0;
-		m_frameCount = 0.0;
-	}
-
 	m_time = now;
 }
 
 double Timer::getDt()
 {
 	return m_elapsedTime;
+}
+
+double Timer::getAverageFPS(int updateInterval)
+{
+	if (m_frameTimeSum > updateInterval) {
+		double averageDt = m_frameTimeSum / m_frameCount;
+		m_averageFPS = 1000.0 / averageDt;
+
+		m_frameTimeSum = 0.0;
+		m_frameCount = 0.0;
+	}
+
+	return m_averageFPS;
 }
 
 void Timer::reset()

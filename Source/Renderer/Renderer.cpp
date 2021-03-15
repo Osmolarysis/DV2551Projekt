@@ -361,9 +361,10 @@ void Renderer::setWindowTitle(std::wstring newTitle)
 {
 	Timer* timer = Timer::getInstance();
 	double dt = timer->getDt();
-	double fps = 1 / dt;
-	std::wstring fps_str = std::to_wstring(fps);
-	m_windowTitle = newTitle + L" " + fps_str;
+	double avgFPS = timer->getAverageFPS(1000);
+	std::wstring dt_str = std::to_wstring(dt);
+	std::wstring avg_fps_str = std::to_wstring(avgFPS);
+	m_windowTitle = newTitle + L" dt: " + dt_str + L"s, avg fps: " + avg_fps_str;
 
 	SetWindowText(m_handle, m_windowTitle.c_str());
 }
@@ -627,7 +628,7 @@ bool Renderer::createComputeQueue()
 			IID_PPV_ARGS(m_graphicsComputeList[i].GetAddressOf())
 		);
 		if (hr != S_OK) {
-			printf("Error creating copute list");
+			printf("Error creating compute list");
 			exit(-1);
 		}
 
