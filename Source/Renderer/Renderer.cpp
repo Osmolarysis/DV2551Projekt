@@ -31,8 +31,8 @@ Renderer::Renderer(int width, int height)
 	}
 
 	//Create command queue and lists
-	if (!createCommandQueue()) {
-		printf("error creating command queue\n");
+	if (!createCommandQueues()) {
+		printf("error creating command queues\n");
 		exit(-1);
 	}
 
@@ -105,12 +105,28 @@ Renderer::~Renderer()
 		SafeRelease(m_cbDescriptorHeaps[i].GetAddressOf());
 	}
 
-	//Commandqueue/list/allocator
-	SafeRelease(m_commandQueue.GetAddressOf());
+	//Direct queue/list/allocator
+	SafeRelease(m_directQueue.GetAddressOf());
 	for (size_t i = 0; i < NUM_COMMANDLISTS; i++)
 	{
-		SafeRelease(m_commandAllocator[i].GetAddressOf());
-		SafeRelease(m_graphicsCommandList[i].GetAddressOf());
+		SafeRelease(m_directAllocator[i].GetAddressOf());
+		SafeRelease(m_graphicsDirectList[i].GetAddressOf());
+	}
+
+	//Copy queue/list/allocator
+	SafeRelease(m_copyQueue.GetAddressOf());
+	for (size_t i = 0; i < NUM_COMMANDLISTS; i++)
+	{
+		SafeRelease(m_copyAllocator[i].GetAddressOf());
+		SafeRelease(m_graphicsCopyList[i].GetAddressOf());
+	}
+
+	//Compute queue/list/allocator
+	SafeRelease(m_computeQueue.GetAddressOf());
+	for (size_t i = 0; i < NUM_COMMANDLISTS; i++)
+	{
+		SafeRelease(m_computeAllocator[i].GetAddressOf());
+		SafeRelease(m_graphicsComputeList[i].GetAddressOf());
 	}
 
 	//Fence and event handle
@@ -189,7 +205,7 @@ ID3D12Device8* Renderer::getDevice()
 ID3D12GraphicsCommandList* Renderer::getGraphicsCommandList()
 {
 	int index = m_swapChain->GetCurrentBackBufferIndex();
-	return m_graphicsCommandList[index].Get();
+	return m_graphicsDirectList[index].Get();
 }
 
 ID3D12RootSignature* Renderer::getRootSignature()
@@ -234,25 +250,25 @@ void Renderer::beginFrame()
 
 	//Clear
 
-	HRESULT hr = m_commandAllocator[backBufferIndex].Get()->Reset();
+	HRESULT hr = m_directAllocator[backBufferIndex].Get()->Reset();
 	if (hr != S_OK) {
-		printf("Error reseting command allocator\n");
+		printf("Error reseting direct allocator\n");
 		exit(-1);
 	}
 
-	hr = m_graphicsCommandList[backBufferIndex].Get()->Reset(m_commandAllocator[backBufferIndex].Get(), nullptr);
+	hr = m_graphicsDirectList[backBufferIndex].Get()->Reset(m_directAllocator[backBufferIndex].Get(), nullptr);
 	if (hr != S_OK) {
-		printf("Error reseting command list\n");
+		printf("Error reseting direct list\n");
 		exit(-1);
 	}
 
 	//Set necessary states.
-	m_graphicsCommandList[backBufferIndex].Get()->RSSetViewports(1, &m_viewPort);
-	m_graphicsCommandList[backBufferIndex].Get()->RSSetScissorRects(1, &m_scissorRect);
+	m_graphicsDirectList[backBufferIndex].Get()->RSSetViewports(1, &m_viewPort);
+	m_graphicsDirectList[backBufferIndex].Get()->RSSetScissorRects(1, &m_scissorRect);
 
 	// Indicate that the back buffer will be used as render target.
 	SetResourceTransitionBarrier(
-		m_graphicsCommandList[backBufferIndex].Get(),
+		m_graphicsDirectList[backBufferIndex].Get(),
 		m_renderTargets[backBufferIndex].Get(),
 		D3D12_RESOURCE_STATE_PRESENT,		//state before
 		D3D12_RESOURCE_STATE_RENDER_TARGET	//state after
@@ -261,12 +277,12 @@ void Renderer::beginFrame()
 	D3D12_CPU_DESCRIPTOR_HANDLE cdh = m_renderTargetHeap.Get()->GetCPUDescriptorHandleForHeapStart();
 	cdh.ptr += (SIZE_T)m_renderTargetDescriptorSize * (SIZE_T)backBufferIndex;
 
-	m_graphicsCommandList[backBufferIndex].Get()->ClearRenderTargetView(cdh,
+	m_graphicsDirectList[backBufferIndex].Get()->ClearRenderTargetView(cdh,
 		clearColour, 0, nullptr);
 
 	if (!dsvSetWrite[backBufferIndex]) { //TODO: Find a better way than this, maybe "gpu warm up" function
 		SetResourceTransitionBarrier(
-			m_graphicsCommandList[backBufferIndex].Get(),
+			m_graphicsDirectList[backBufferIndex].Get(),
 			m_depthStencilBuffer[backBufferIndex].Get(),
 			D3D12_RESOURCE_STATE_COMMON,		//state before
 			D3D12_RESOURCE_STATE_DEPTH_WRITE	//state after
@@ -277,46 +293,46 @@ void Renderer::beginFrame()
 	D3D12_CPU_DESCRIPTOR_HANDLE DBcdh = m_dbDescriptorHeap.Get()->GetCPUDescriptorHandleForHeapStart();
 	DBcdh.ptr += (SIZE_T)m_depthBufferDescriptorSize * (SIZE_T)backBufferIndex;
 
-	m_graphicsCommandList[backBufferIndex].Get()->ClearDepthStencilView(DBcdh, D3D12_CLEAR_FLAG_DEPTH /*| D3D12_CLEAR_FLAG_STENCIL*/, 1.0f, 0, 1, &m_scissorRect);
+	m_graphicsDirectList[backBufferIndex].Get()->ClearDepthStencilView(DBcdh, D3D12_CLEAR_FLAG_DEPTH /*| D3D12_CLEAR_FLAG_STENCIL*/, 1.0f, 0, 1, &m_scissorRect);
 
 	// Specify the buffers we are going to render to. Correct render target?
-	m_graphicsCommandList[backBufferIndex].Get()->OMSetRenderTargets(1, &cdh, true, &DBcdh);
+	m_graphicsDirectList[backBufferIndex].Get()->OMSetRenderTargets(1, &cdh, true, &DBcdh);
 
 	//Set root signature
-	m_graphicsCommandList[backBufferIndex].Get()->SetGraphicsRootSignature(m_rootSignature.Get());
+	m_graphicsDirectList[backBufferIndex].Get()->SetGraphicsRootSignature(m_rootSignature.Get());
 
-	m_graphicsCommandList[backBufferIndex].Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	m_graphicsDirectList[backBufferIndex].Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	//Set constant buffer descriptor heaps
 	ID3D12DescriptorHeap* descriptorHeaps[] = { m_cbDescriptorHeaps[backBufferIndex].Get() };
-	m_graphicsCommandList[backBufferIndex].Get()->SetDescriptorHeaps(ARRAYSIZE(descriptorHeaps), descriptorHeaps);
-	m_graphicsCommandList[backBufferIndex].Get()->SetGraphicsRootDescriptorTable(0, m_cbDescriptorHeaps[backBufferIndex].Get()->GetGPUDescriptorHandleForHeapStart());
+	m_graphicsDirectList[backBufferIndex].Get()->SetDescriptorHeaps(ARRAYSIZE(descriptorHeaps), descriptorHeaps);
+	m_graphicsDirectList[backBufferIndex].Get()->SetGraphicsRootDescriptorTable(0, m_cbDescriptorHeaps[backBufferIndex].Get()->GetGPUDescriptorHandleForHeapStart());
 }
 
 void Renderer::executeList()
 {
 	UINT backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
 
-	SetResourceTransitionBarrier(m_graphicsCommandList[backBufferIndex].Get(),
+	SetResourceTransitionBarrier(m_graphicsDirectList[backBufferIndex].Get(),
 		m_renderTargets[backBufferIndex].Get(),
 		D3D12_RESOURCE_STATE_RENDER_TARGET,	//state before
 		D3D12_RESOURCE_STATE_PRESENT		//state after
 	);
 
-	HRESULT hr = m_graphicsCommandList[backBufferIndex].Get()->Close();
+	HRESULT hr = m_graphicsDirectList[backBufferIndex].Get()->Close();
 	if (hr != S_OK) {
-		printf("Error closing command list %i\n", backBufferIndex);
+		printf("Error closing direct list %i\n", backBufferIndex);
 		exit(-1);
 	}
 
 	//Execute the commands!
-	ID3D12CommandList* listsToExecute[] = { m_graphicsCommandList[backBufferIndex].Get() };
-	m_commandQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecute), listsToExecute);
+	ID3D12CommandList* listsToExecute[] = { m_graphicsDirectList[backBufferIndex].Get() };
+	m_directQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecute), listsToExecute);
 
 	m_fenceValue++;
 
 	//Set finished rendering value
-	m_commandQueue.Get()->Signal(m_fence.Get(), m_fenceValue);
+	m_directQueue.Get()->Signal(m_fence.Get(), m_fenceValue);
 }
 
 void Renderer::present()
@@ -354,10 +370,10 @@ void Renderer::setWindowTitle(std::wstring newTitle)
 void Renderer::waitForGPU()
 {
 	const UINT64 fence = m_fenceValue;
-	m_commandQueue->Signal(m_fence.Get(), fence);
+	m_directQueue->Signal(m_fence.Get(), fence);
 	m_fenceValue++;
 
-	//Wait until command queue is done.
+	//Wait until direct queue is done.
 	if (m_fence->GetCompletedValue() < fence)
 	{
 		m_fence->SetEventOnCompletion(fence, m_eventHandle);
@@ -382,7 +398,7 @@ void Renderer::setCBDescriptorSize(UINT location, UINT size)
 
 void Renderer::setFence(int fence, int value)
 {
-	m_commandQueue.Get()->Signal(m_fence.Get(), value);
+	m_directQueue.Get()->Signal(m_fence.Get(), value);
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -472,26 +488,40 @@ bool Renderer::createDebugMode()
 	}
 }
 
-bool Renderer::createCommandQueue()
+bool Renderer::createCommandQueues()
 {
 	//One of each type of queue (3 total), but six lists (possible to go 3 lists with 6 allocators, but hard appearently)
 	//Start with grade D, 1 Direct queue and 2 lists
+	if (!createDirectQueue()) {
+		return false;
+	}
+	if (!createCopyQueue()) {
+		return false;
+	}
+	if (!createComputeQueue()) {
+		return false;
+	}
+	
+	return true;
+}
 
+bool Renderer::createDirectQueue()
+{
 	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
 
 	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-	HRESULT hr = m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(m_commandQueue.GetAddressOf()));
+	HRESULT hr = m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(m_directQueue.GetAddressOf()));
 	if (hr != S_OK) {
-		printf("Error creating command queue");
+		printf("Error creating direct queue");
 		exit(-1);
 	}
 
 	for (int i = 0; i < 2; ++i)
 	{
-		hr = m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(m_commandAllocator[i].GetAddressOf()));
+		hr = m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(m_directAllocator[i].GetAddressOf()));
 		if (hr != S_OK) {
-			printf("Error creating command allocataor");
+			printf("Error creating direct allocataor");
 			exit(-1);
 		}
 
@@ -499,26 +529,115 @@ bool Renderer::createCommandQueue()
 		hr = m_device->CreateCommandList(
 			0,
 			D3D12_COMMAND_LIST_TYPE_DIRECT,
-			m_commandAllocator[i].Get(),
+			m_directAllocator[i].Get(),
 			nullptr,
-			IID_PPV_ARGS(m_graphicsCommandList[i].GetAddressOf())
+			IID_PPV_ARGS(m_graphicsDirectList[i].GetAddressOf())
 		);
 		if (hr != S_OK) {
-			printf("Error creating command list");
+			printf("Error creating direct list");
 			exit(-1);
 		}
-
 
 		//Command lists are created in the recording state. Since there is nothing to
 		//record right now and the main loop expects it to be closed, we close it.
-
-		hr = m_graphicsCommandList[i].Get()->Close();
+		hr = m_graphicsDirectList[i].Get()->Close();
 
 		if (hr != S_OK) {
-			printf("Error closing command list at initialisation");
+			printf("Error closing direct list at initialisation");
+			exit(-1);
+		}
+	}
+
+	return true;
+}
+
+bool Renderer::createCopyQueue()
+{
+	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+
+	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COPY;
+	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+	HRESULT hr = m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(m_copyQueue.GetAddressOf()));
+	if (hr != S_OK) {
+		printf("Error creating copy queue");
+		exit(-1);
+	}
+
+	for (int i = 0; i < 2; ++i)
+	{
+		hr = m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COPY, IID_PPV_ARGS(m_copyAllocator[i].GetAddressOf()));
+		if (hr != S_OK) {
+			printf("Error creating copy allocataor");
 			exit(-1);
 		}
 
+		//Create command list.
+		hr = m_device->CreateCommandList(
+			0,
+			D3D12_COMMAND_LIST_TYPE_COPY,
+			m_copyAllocator[i].Get(),
+			nullptr,
+			IID_PPV_ARGS(m_graphicsCopyList[i].GetAddressOf())
+		);
+		if (hr != S_OK) {
+			printf("Error creating copy list");
+			exit(-1);
+		}
+
+		//Command lists are created in the recording state. Since there is nothing to
+		//record right now and the main loop expects it to be closed, we close it.
+		hr = m_graphicsCopyList[i].Get()->Close();
+
+		if (hr != S_OK) {
+			printf("Error closing copy list at initialisation");
+			exit(-1);
+		}
+	}
+
+	return true;
+}
+
+bool Renderer::createComputeQueue()
+{
+	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+
+	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
+	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+	HRESULT hr = m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(m_computeQueue.GetAddressOf()));
+	if (hr != S_OK) {
+		printf("Error creating compute queue");
+		exit(-1);
+	}
+
+	for (int i = 0; i < 2; ++i)
+	{
+		hr = m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COMPUTE, IID_PPV_ARGS(m_computeAllocator[i].GetAddressOf()));
+		if (hr != S_OK) {
+			printf("Error creating compute allocataor");
+			exit(-1);
+		}
+
+		//Create command list.
+		hr = m_device->CreateCommandList(
+			0,
+			D3D12_COMMAND_LIST_TYPE_COMPUTE,
+			m_computeAllocator[i].Get(),
+			nullptr,
+			IID_PPV_ARGS(m_graphicsComputeList[i].GetAddressOf())
+		);
+		if (hr != S_OK) {
+			printf("Error creating copute list");
+			exit(-1);
+		}
+
+		//Command lists are created in the recording state. Since there is nothing to
+		//record right now and the main loop expects it to be closed, we close it.
+		hr = m_graphicsComputeList[i].Get()->Close();
+
+		if (hr != S_OK) {
+			printf("Error closing compute list at initialisation");
+			exit(-1);
+		}
 	}
 
 	return true;
@@ -545,7 +664,7 @@ bool Renderer::createSwapChain()
 	ComPtr<IDXGISwapChain1> swapChain1 = nullptr;
 
 	HRESULT hr = m_factory->CreateSwapChainForHwnd(
-		m_commandQueue.Get(),
+		m_directQueue.Get(),
 		m_handle,
 		swapChainDesc,
 		nullptr, //Windowed mode
