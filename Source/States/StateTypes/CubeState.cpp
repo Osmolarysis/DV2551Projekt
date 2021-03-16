@@ -78,10 +78,10 @@ CubeState::~CubeState()
 	printf("Destroying cubeState...\n");
 
 	//Multithreads
-	Renderer::getInstance()->getCopyFence()->Signal(Renderer::getInstance()->getCopyValue() + 1);
 	m_copyThread.m_mutex.lock();
 	m_copyThread.isRunning = false;
 	m_copyThread.isActive = false;
+	Renderer::getInstance()->getCopyFence()->Signal(Renderer::getInstance()->getCopyValue() + 1);
 	if (m_copyThread.m_thread != nullptr)
 	{
 		m_copyThread.m_thread->join();
@@ -89,10 +89,10 @@ CubeState::~CubeState()
 	}
 	m_copyThread.m_mutex.unlock();
 
-	Renderer::getInstance()->getComputeFence()->Signal(Renderer::getInstance()->getComputeValue() + 1);
 	m_computeThread.m_mutex.lock();
 	m_computeThread.isRunning = false;
 	m_computeThread.isActive = false;
+	Renderer::getInstance()->getComputeFence()->Signal(Renderer::getInstance()->getComputeValue() + 1);
 	if (m_computeThread.m_thread != nullptr)
 	{
 		m_computeThread.m_thread->join();
@@ -101,10 +101,10 @@ CubeState::~CubeState()
 	m_computeThread.m_mutex.unlock();
 
 
-	Renderer::getInstance()->getDirectFence()->Signal(Renderer::getInstance()->getDirectValue() + 1);
 	m_directThread.m_mutex.lock();
 	m_directThread.isRunning = false;
 	m_directThread.isActive = false;
+	Renderer::getInstance()->getDirectFence()->Signal(Renderer::getInstance()->getDirectValue() + 1);
 	if (m_directThread.m_thread != nullptr)
 	{
 		m_directThread.m_thread->join();
