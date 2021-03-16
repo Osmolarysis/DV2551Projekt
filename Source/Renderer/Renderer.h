@@ -97,13 +97,19 @@ private:
 	HANDLE m_eventHandle = nullptr;
 
 	ComPtr<ID3D12Fence1> m_copyFence;
+	UINT64 m_copyFenceValue = 0;
 	HANDLE m_copyHandle = nullptr;
+	HANDLE m_copyThreadHandle = nullptr;
 
 	ComPtr<ID3D12Fence1> m_computeFence;
+	UINT64 m_computeFenceValue = 0;
 	HANDLE m_computeHandle = nullptr;
+	HANDLE m_computeThreadHandle = nullptr;
 	
 	ComPtr<ID3D12Fence1> m_directFence;
+	UINT64 m_directFenceValue = 0;
 	HANDLE m_directHandle = nullptr;
+	HANDLE m_directThreadHandle = nullptr;
 
 	//viewport and rect
 	D3D12_VIEWPORT m_viewPort;
@@ -137,10 +143,22 @@ public:
 	IDXGISwapChain4* getSwapChain();
 
 	ID3D12Fence1* getCopyFence();
+	UINT64 incAndGetCopyValue();
+	UINT64 getCopyValue();
+	HANDLE getCopyHandle();
+	HANDLE getCopyThreadHandle();
 
 	ID3D12Fence1* getComputeFence();
+	UINT64 incAndGetComputeValue();
+	UINT64 getComputeValue();
+	HANDLE getComputeHandle();
+	HANDLE getComputeThreadHandle();
 
 	ID3D12Fence1* getDirectFence();
+	UINT64 incAndGetDirectValue();
+	UINT64 getDirectValue();
+	HANDLE getDirectHandle();
+	HANDLE getDirectThreadHandle();
 
 	//Window functions
 	unsigned int getScreenWidth() const;
