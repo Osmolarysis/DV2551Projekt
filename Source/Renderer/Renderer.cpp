@@ -320,6 +320,28 @@ void Renderer::executeList()
 {
 	UINT backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
 
+	//Wait for Copy queue to finish recording
+
+	WaitForSingleObject(m_copyHandle, INFINITE);
+
+	//Execute Copy queue
+
+	//TODO
+
+	//Wait for Compute queue to finish recording
+
+	WaitForSingleObject(m_computeHandle, INFINITE);
+
+	//Execute Compute queue
+
+	//TODO
+
+	//Wait for Direct queue to finish recording
+
+	WaitForSingleObject(m_directHandle, INFINITE);
+
+	//Execute Direct queue
+
 	SetResourceTransitionBarrier(m_graphicsDirectList[backBufferIndex].Get(),
 		m_renderTargets[backBufferIndex].Get(),
 		D3D12_RESOURCE_STATE_RENDER_TARGET,	//state before
@@ -402,6 +424,84 @@ UINT Renderer::getCBDescriptorSize(UINT bufferIndex) const
 void Renderer::setCBDescriptorSize(UINT location, UINT size)
 {
 	m_cbDescriptorSize[location] = size;
+}
+
+ID3D12Fence1* Renderer::getCopyFence()
+{
+	return m_copyFence.Get();
+}
+
+HANDLE Renderer::getCopyHandle()
+{
+	return m_copyHandle;
+}
+
+HANDLE Renderer::getCopyThreadHandle()
+{
+	return m_copyThreadHandle;
+}
+
+UINT64 Renderer::getCopyValue()
+{
+	return m_copyFenceValue;
+}
+
+UINT64 Renderer::incAndGetCopyValue()
+{
+	m_copyFenceValue++;
+	return m_copyFenceValue;
+}
+
+ID3D12Fence1* Renderer::getComputeFence()
+{
+	return m_computeFence.Get();
+}
+
+UINT64 Renderer::getComputeValue()
+{
+	return m_computeFenceValue;
+}
+
+UINT64 Renderer::incAndGetComputeValue()
+{
+	m_computeFenceValue++;
+	return m_computeFenceValue;
+}
+
+HANDLE Renderer::getComputeHandle()
+{
+	return m_computeHandle;
+}
+
+HANDLE Renderer::getComputeThreadHandle()
+{
+	return m_computeThreadHandle;
+}
+
+ID3D12Fence1* Renderer::getDirectFence()
+{
+	return m_directFence.Get();
+}
+
+UINT64 Renderer::getDirectValue()
+{
+	return m_directFenceValue;
+}
+
+UINT64 Renderer::incAndGetDirectValue()
+{
+	m_directFenceValue++;
+	return m_directFenceValue;
+}
+
+HANDLE Renderer::getDirectHandle()
+{
+	return m_directHandle;
+}
+
+HANDLE Renderer::getDirectThreadHandle()
+{
+	return m_directThreadHandle;
 }
 
 void Renderer::setFence(int fence, int value)
@@ -720,6 +820,7 @@ bool Renderer::createSwapChain()
 
 bool Renderer::createFenceAndEventHandle()
 {
+	//Rendering fence
 	HRESULT hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_fence.GetAddressOf()));
 	if (hr != S_OK) {
 		printf("Error creating fence");
@@ -728,6 +829,37 @@ bool Renderer::createFenceAndEventHandle()
 	m_fenceValue = 0;
 	// Creation of an event handle to use in GPU synchronization
 	m_eventHandle = CreateEvent(0, false, false, 0);
+
+
+	//Copy queue fence
+	hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_copyFence.GetAddressOf()));
+	if (hr != S_OK) {
+		printf("Error creating copy fence");
+		exit(-1);
+	}
+	// Creation of an event handle to use in GPU synchronization
+	m_copyHandle = CreateEvent(0, false, false, 0);
+	m_copyThreadHandle = CreateEvent(0, false, false, 0);
+
+	//Compute queue fence
+	hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_computeFence.GetAddressOf()));
+	if (hr != S_OK) {
+		printf("Error creating compute fence");
+		exit(-1);
+	}
+	// Creation of an event handle to use in GPU synchronization
+	m_computeHandle = CreateEvent(0, false, false, 0);
+	m_computeThreadHandle = CreateEvent(0, false, false, 0);
+
+	//Direct queue fence
+	hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_directFence.GetAddressOf()));
+	if (hr != S_OK) {
+		printf("Error creating direct fence");
+		exit(-1);
+	}
+	// Creation of an event handle to use in GPU synchronization
+	m_directHandle = CreateEvent(0, false, false, 0);
+	m_directThreadHandle = CreateEvent(0, false, false, 0);
 
 	return true;
 }
