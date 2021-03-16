@@ -398,6 +398,21 @@ void Renderer::setCBDescriptorSize(UINT location, UINT size)
 	m_cbDescriptorSize[location] = size;
 }
 
+ID3D12Fence1* Renderer::getCopyFence()
+{
+	return m_copyFence.Get();
+}
+
+ID3D12Fence1* Renderer::getComputeFence()
+{
+	return m_computeFence.Get();
+}
+
+ID3D12Fence1* Renderer::getDirectFence()
+{
+	return m_directFence.Get();
+}
+
 void Renderer::setFence(int fence, int value)
 {
 	m_directQueue.Get()->Signal(m_fence.Get(), value);
