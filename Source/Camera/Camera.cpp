@@ -1,6 +1,7 @@
 #include "Camera.h"
 #include "../Renderer/Renderer.h"
 #include "../Utility/Timer.h"
+#include "../Utility/Input.h"
 
 using namespace DirectX;
 
@@ -73,6 +74,14 @@ void Camera::setFarPlane(float farPlane)
 
 void Camera::update()
 {
+	Timer* timer = Timer::getInstance();
+
+	//Just for testing
+	if (Input::getInstance()->keyDown(Keyboard::Keys::W)) 
+		setFov(m_fov - (float)timer->getDt());
+	else if (Input::getInstance()->keyDown(Keyboard::Keys::S))
+		setFov(m_fov + (float)timer->getDt());
+	
 	if (m_viewUpdated || m_projUpdated)
 	{
 		if (m_viewUpdated) {

@@ -149,6 +149,7 @@
     <ClCompile Include="Source\States\State.cpp" />
     <ClCompile Include="Source\States\StateStack.cpp" />
     <ClCompile Include="Source\States\StateTypes\CubeState.cpp" />
+    <ClCompile Include="Source\Utility\Input.cpp" />
     <ClCompile Include="Source\Utility\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -161,6 +162,7 @@
     <ClInclude Include="Source\States\State.h" />
     <ClInclude Include="Source\States\StateStack.h" />
     <ClInclude Include="Source\States\StateTypes\CubeState.h" />
+    <ClInclude Include="Source\Utility\Input.h" />
     <ClInclude Include="Source\Utility\Timer.h" />
   </ItemGroup>
   <ItemGroup>
@@ -181,7 +183,17 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="packages\directxtk12_desktop_2017.2021.1.10.1\build\native\directxtk12_desktop_2017.targets" Condition="Exists('packages\directxtk12_desktop_2017.2021.1.10.1\build\native\directxtk12_desktop_2017.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\directxtk12_desktop_2017.2021.1.10.1\build\native\directxtk12_desktop_2017.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\directxtk12_desktop_2017.2021.1.10.1\build\native\directxtk12_desktop_2017.targets'))" />
+  </Target>
 </Project>
