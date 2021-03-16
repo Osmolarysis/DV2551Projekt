@@ -10,16 +10,20 @@ void CubeState::copyRecord()
 	HANDLE handle = Renderer::getInstance()->getCopyThreadHandle();
 	UINT64 fenceValue = 0;
 
-	while (m_copyThread.isActive) {
-		//Wait for signal
-		fence->SetEventOnCompletion(fenceValue + 1, handle);
-		WaitForSingleObject(handle, INFINITE);
+	//Wait for signal
+	fence->SetEventOnCompletion(fenceValue + 1, handle);
+	WaitForSingleObject(handle, INFINITE);
 
+	while (m_copyThread.isActive) {
 		//Thread work
 
 		//Thread handling
 		fenceValue = Renderer::getInstance()->incAndGetCopyValue();
 		fence->Signal(fenceValue); //Done
+
+		//Wait for signal
+		fence->SetEventOnCompletion(fenceValue + 1, handle);
+		WaitForSingleObject(handle, INFINITE);
 	}
 }
 
@@ -29,16 +33,20 @@ void CubeState::computeRecord()
 	HANDLE handle = Renderer::getInstance()->getComputeThreadHandle();
 	UINT64 fenceValue = 0;
 
-	while (m_computeThread.isActive) {
-		//Wait for signal
-		fence->SetEventOnCompletion(fenceValue + 1, handle);
-		WaitForSingleObject(handle, INFINITE);
+	//Wait for signal
+	fence->SetEventOnCompletion(fenceValue + 1, handle);
+	WaitForSingleObject(handle, INFINITE);
 
+	while (m_computeThread.isActive) {
 		//Thread work
 
 		//Thread handling
 		fenceValue = Renderer::getInstance()->incAndGetComputeValue();
 		fence->Signal(fenceValue); //Done
+
+		//Wait for signal
+		fence->SetEventOnCompletion(fenceValue + 1, handle);
+		WaitForSingleObject(handle, INFINITE);
 	}
 }
 
@@ -50,11 +58,11 @@ void CubeState::directRecord()
 
 	HRESULT hr;
 
-	while (m_directThread.isActive) {
-		//Wait for signal
-		hr = fence->SetEventOnCompletion(fenceValue + 1, handle);
-		WaitForSingleObject(handle, INFINITE);
+	//Wait for signal
+	hr = fence->SetEventOnCompletion(fenceValue + 1, handle);
+	WaitForSingleObject(handle, INFINITE);
 
+	while (m_directThread.isActive) {
 		//Thread work
 		for (auto& meshG : m_scene)
 		{
@@ -64,6 +72,10 @@ void CubeState::directRecord()
 		//Thread handling
 		fenceValue = Renderer::getInstance()->incAndGetDirectValue();
 		fence->Signal(fenceValue); //Done
+
+		//Wait for signal
+		hr = fence->SetEventOnCompletion(fenceValue + 1, handle);
+		WaitForSingleObject(handle, INFINITE);
 	}
 }
 
@@ -172,6 +184,29 @@ void CubeState::initialise()
 
 	// Add VertexBuffer (or Mesh) to the MeshGroup. (Mesh transform default to (0,0,0))
 	m_scene[0]->addMesh(vertBuf);
+
+	////Floor
+	//VertexBuffer::Vertex floorVertices[] =
+	//{
+	//	{ XMFLOAT3(-10.0f, -3.0f, -10.0f), XMFLOAT4(0.6f,0.6f,0.6f,1) },
+	//	{ XMFLOAT3(-10.0f, -3.0f, +10.0f), XMFLOAT4(0.6f,0.6f,0.6f,1) },
+	//	{ XMFLOAT3(+10.0f, -3.0f, +10.0f), XMFLOAT4(0.6f,0.6f,0.6f,1) },
+	//	{ XMFLOAT3(+10.0f, -3.0f, -10.0f), XMFLOAT4(0.6f,0.6f,0.6f,1) }
+	//};
+
+	//UINT16 floorIndices[] =
+	//{
+	//	0, 1, 2,
+	//	0, 2, 3,
+	//};
+
+	//int floorSize = sizeof(floorVertices);
+	//int florrIndexSize = sizeof(floorIndices);
+	//std::shared_ptr<VertexBuffer> floorvertBuf = std::make_shared<VertexBuffer>();
+	//floorvertBuf->setData(floorVertices, floorSize, floorIndices, florrIndexSize);
+
+	//// Add VertexBuffer (or Mesh) to the MeshGroup. (Mesh transform default to (0,0,0))
+	//m_scene[0]->addMesh(floorvertBuf);
 
 	//Multithread
 	m_copyThread.m_mutex.lock();
