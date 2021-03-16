@@ -167,8 +167,8 @@ void CubeState::initialise()
 
 	int size = sizeof(meshVertices);
 	int indexSize = sizeof(indices);
-	std::shared_ptr<VertexBuffer> vertBuf = std::make_shared<VertexBuffer>(size, indexSize);
-	vertBuf->setData(meshVertices, indices); // note to self: offset and nrofVertices here is redundant if vertex struct is static
+	std::shared_ptr<VertexBuffer> vertBuf = std::make_shared<VertexBuffer>();
+	vertBuf->setData(meshVertices, size, indices, indexSize); 
 
 	// Add VertexBuffer (or Mesh) to the MeshGroup. (Mesh transform default to (0,0,0))
 	m_scene[0]->addMesh(vertBuf);
