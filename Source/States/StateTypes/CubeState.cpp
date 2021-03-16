@@ -10,16 +10,20 @@ void CubeState::copyRecord()
 	HANDLE handle = Renderer::getInstance()->getCopyThreadHandle();
 	UINT64 fenceValue = 0;
 
-	while (m_copyThread.isActive) {
-		//Wait for signal
-		fence->SetEventOnCompletion(fenceValue + 1, handle);
-		WaitForSingleObject(handle, INFINITE);
+	//Wait for signal
+	fence->SetEventOnCompletion(fenceValue + 1, handle);
+	WaitForSingleObject(handle, INFINITE);
 
+	while (m_copyThread.isActive) {
 		//Thread work
 
 		//Thread handling
 		fenceValue = Renderer::getInstance()->incAndGetCopyValue();
 		fence->Signal(fenceValue); //Done
+
+		//Wait for signal
+		fence->SetEventOnCompletion(fenceValue + 1, handle);
+		WaitForSingleObject(handle, INFINITE);
 	}
 }
 
@@ -29,16 +33,20 @@ void CubeState::computeRecord()
 	HANDLE handle = Renderer::getInstance()->getComputeThreadHandle();
 	UINT64 fenceValue = 0;
 
-	while (m_computeThread.isActive) {
-		//Wait for signal
-		fence->SetEventOnCompletion(fenceValue + 1, handle);
-		WaitForSingleObject(handle, INFINITE);
+	//Wait for signal
+	fence->SetEventOnCompletion(fenceValue + 1, handle);
+	WaitForSingleObject(handle, INFINITE);
 
+	while (m_computeThread.isActive) {
 		//Thread work
 
 		//Thread handling
 		fenceValue = Renderer::getInstance()->incAndGetComputeValue();
 		fence->Signal(fenceValue); //Done
+
+		//Wait for signal
+		fence->SetEventOnCompletion(fenceValue + 1, handle);
+		WaitForSingleObject(handle, INFINITE);
 	}
 }
 
@@ -50,11 +58,11 @@ void CubeState::directRecord()
 
 	HRESULT hr;
 
-	while (m_directThread.isActive) {
-		//Wait for signal
-		hr = fence->SetEventOnCompletion(fenceValue + 1, handle);
-		WaitForSingleObject(handle, INFINITE);
+	//Wait for signal
+	hr = fence->SetEventOnCompletion(fenceValue + 1, handle);
+	WaitForSingleObject(handle, INFINITE);
 
+	while (m_directThread.isActive) {
 		//Thread work
 		for (auto& meshG : m_scene)
 		{
@@ -64,6 +72,10 @@ void CubeState::directRecord()
 		//Thread handling
 		fenceValue = Renderer::getInstance()->incAndGetDirectValue();
 		fence->Signal(fenceValue); //Done
+
+		//Wait for signal
+		hr = fence->SetEventOnCompletion(fenceValue + 1, handle);
+		WaitForSingleObject(handle, INFINITE);
 	}
 }
 
@@ -78,10 +90,10 @@ CubeState::~CubeState()
 	printf("Destroying cubeState...\n");
 
 	//Multithreads
+	Renderer::getInstance()->getCopyFence()->Signal(Renderer::getInstance()->getCopyValue() + 1);
 	m_copyThread.m_mutex.lock();
 	m_copyThread.isRunning = false;
 	m_copyThread.isActive = false;
-	Renderer::getInstance()->getCopyFence()->Signal(Renderer::getInstance()->getCopyValue() + 1);
 	if (m_copyThread.m_thread != nullptr)
 	{
 		m_copyThread.m_thread->join();
@@ -89,10 +101,10 @@ CubeState::~CubeState()
 	}
 	m_copyThread.m_mutex.unlock();
 
+	Renderer::getInstance()->getComputeFence()->Signal(Renderer::getInstance()->getComputeValue() + 1);
 	m_computeThread.m_mutex.lock();
 	m_computeThread.isRunning = false;
 	m_computeThread.isActive = false;
-	Renderer::getInstance()->getComputeFence()->Signal(Renderer::getInstance()->getComputeValue() + 1);
 	if (m_computeThread.m_thread != nullptr)
 	{
 		m_computeThread.m_thread->join();
@@ -101,10 +113,10 @@ CubeState::~CubeState()
 	m_computeThread.m_mutex.unlock();
 
 
+	Renderer::getInstance()->getDirectFence()->Signal(Renderer::getInstance()->getDirectValue() + 1);
 	m_directThread.m_mutex.lock();
 	m_directThread.isRunning = false;
 	m_directThread.isActive = false;
-	Renderer::getInstance()->getDirectFence()->Signal(Renderer::getInstance()->getDirectValue() + 1);
 	if (m_directThread.m_thread != nullptr)
 	{
 		m_directThread.m_thread->join();
