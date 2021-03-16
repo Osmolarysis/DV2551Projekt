@@ -109,10 +109,10 @@ void VertexBuffer::setData(const void* data, size_t dataByteSize, const void* in
 	// TODO: signal copy fence and release upload heap when copy done
 	else
 	{
-		m_vertexBufferResource = CreateDefaultBuffer(Renderer::getInstance()->getDirectCommandList(), data, dataByteSize, m_VBUploadHeap, L"VB heap", D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+		m_vertexBufferResource = CreateDefaultBuffer(Renderer::getInstance()->getCopyCommandList(), data, dataByteSize, m_VBUploadHeap, L"VB heap", D3D12_RESOURCE_STATE_COMMON);
 		if (m_nrOfIndices > 0)
 		{
-			m_indexBufferResource = CreateDefaultBuffer(Renderer::getInstance()->getDirectCommandList(), indices, indexByteSize, m_IBUploadHeap, L"IB heap", D3D12_RESOURCE_STATE_INDEX_BUFFER);
+			m_indexBufferResource = CreateDefaultBuffer(Renderer::getInstance()->getCopyCommandList(), indices, indexByteSize, m_IBUploadHeap, L"IB heap", D3D12_RESOURCE_STATE_COMMON);
 		}
 	}
 
