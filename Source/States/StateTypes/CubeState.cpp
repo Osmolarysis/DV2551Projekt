@@ -185,28 +185,28 @@ void CubeState::initialise()
 	// Add VertexBuffer (or Mesh) to the MeshGroup. (Mesh transform default to (0,0,0))
 	m_scene[0]->addMesh(vertBuf);
 
-	//Floor
-	VertexBuffer::Vertex floorVertices[] =
-	{
-		{ XMFLOAT3(-10.0f, -3.0f, -10.0f), XMFLOAT4(0.6f,0.6f,0.6f,1) },
-		{ XMFLOAT3(-10.0f, -3.0f, +10.0f), XMFLOAT4(0.6f,0.6f,0.6f,1) },
-		{ XMFLOAT3(+10.0f, -3.0f, +10.0f), XMFLOAT4(0.6f,0.6f,0.6f,1) },
-		{ XMFLOAT3(+10.0f, -3.0f, -10.0f), XMFLOAT4(0.6f,0.6f,0.6f,1) }
-	};
+	////Floor
+	//VertexBuffer::Vertex floorVertices[] =
+	//{
+	//	{ XMFLOAT3(-10.0f, -3.0f, -10.0f), XMFLOAT4(0.6f,0.6f,0.6f,1) },
+	//	{ XMFLOAT3(-10.0f, -3.0f, +10.0f), XMFLOAT4(0.6f,0.6f,0.6f,1) },
+	//	{ XMFLOAT3(+10.0f, -3.0f, +10.0f), XMFLOAT4(0.6f,0.6f,0.6f,1) },
+	//	{ XMFLOAT3(+10.0f, -3.0f, -10.0f), XMFLOAT4(0.6f,0.6f,0.6f,1) }
+	//};
 
-	UINT16 floorIndices[] =
-	{
-		0, 1, 2,
-		0, 2, 3,
-	};
+	//UINT16 floorIndices[] =
+	//{
+	//	0, 1, 2,
+	//	0, 2, 3,
+	//};
 
-	int floorSize = sizeof(floorVertices);
-	int florrIndexSize = sizeof(floorIndices);
-	std::shared_ptr<VertexBuffer> floorvertBuf = std::make_shared<VertexBuffer>();
-	floorvertBuf->setData(floorVertices, floorSize, floorIndices, florrIndexSize);
+	//int floorSize = sizeof(floorVertices);
+	//int florrIndexSize = sizeof(floorIndices);
+	//std::shared_ptr<VertexBuffer> floorvertBuf = std::make_shared<VertexBuffer>();
+	//floorvertBuf->setData(floorVertices, floorSize, floorIndices, florrIndexSize);
 
-	// Add VertexBuffer (or Mesh) to the MeshGroup. (Mesh transform default to (0,0,0))
-	m_scene[0]->addMesh(floorvertBuf);
+	//// Add VertexBuffer (or Mesh) to the MeshGroup. (Mesh transform default to (0,0,0))
+	//m_scene[0]->addMesh(floorvertBuf);
 
 	//Multithread
 	m_copyThread.m_mutex.lock();
