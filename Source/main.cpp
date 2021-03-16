@@ -9,16 +9,17 @@ int CALLBACK main(_In_ HINSTANCE appInstance, _In_opt_ HINSTANCE preInstance, _I
 {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); // Check for memory leaks
 	
-	Input::initialise();
+	
 
 	//Timer
 	Timer* timer = Timer::getInstance();
 
-	//Input
-	Input* input = Input::getInstance();
-
 	//Renderer
 	Renderer* renderer = Renderer::getInstance();
+
+	//Input
+	Input::initialise(renderer->getWindowHandle());
+	Input* input = Input::getInstance();
 
 	//StateStack
 	StateStack* stateStack = StateStack::getInstance();
@@ -34,6 +35,11 @@ int CALLBACK main(_In_ HINSTANCE appInstance, _In_opt_ HINSTANCE preInstance, _I
 		timer->update();
 		input->update();
 		stateStack->update();
+
+		//Test mouse input
+		if (input->mousePressed(MouseButton::LEFT)) {
+			printf("Clicked x: %d, y: %d\n", input->mouseX(), input->mouseY());
+		}
 
 		//Begin frame
 		renderer->beginFrame();

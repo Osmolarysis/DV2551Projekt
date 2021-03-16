@@ -126,6 +126,7 @@ public:
 	ID3D12GraphicsCommandList* getGraphicsCommandList();
 	ID3D12RootSignature* getRootSignature();
 	IDXGISwapChain4* getSwapChain();
+	HWND getWindowHandle();
 
 
 	//Window functions
