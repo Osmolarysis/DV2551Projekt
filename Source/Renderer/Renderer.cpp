@@ -691,7 +691,9 @@ bool Renderer::createDirectQueue()
 			printf("Error creating direct allocataor");
 			exit(-1);
 		}
-		m_directAllocator[i].Get()->SetName(L"Direct Allocator");
+		std::wstring directAllocatorName = L"Direct Allocator ";
+		directAllocatorName.append(std::to_wstring(i));
+		m_directAllocator[i].Get()->SetName(directAllocatorName.c_str());
 
 		//Create command list.
 		hr = m_device->CreateCommandList(
@@ -741,7 +743,9 @@ bool Renderer::createCopyQueue()
 			printf("Error creating copy allocataor");
 			exit(-1);
 		}
-		m_copyAllocator[i].Get()->SetName(L"Copy allocator");
+		std::wstring copyAllocatorName = L"Copy Allocator ";
+		copyAllocatorName.append(std::to_wstring(i));
+		m_copyAllocator[i].Get()->SetName(copyAllocatorName.c_str());
 		//Create command list.
 		hr = m_device->CreateCommandList(
 			0,

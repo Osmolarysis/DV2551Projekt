@@ -90,35 +90,35 @@ CubeState::~CubeState()
 	printf("Destroying cubeState...\n");
 
 	//Multithreads
-	Renderer::getInstance()->getCopyFence()->Signal(Renderer::getInstance()->getCopyValue() + 1);
 	m_copyThread.m_mutex.lock();
 	m_copyThread.isRunning = false;
 	m_copyThread.isActive = false;
 	if (m_copyThread.m_thread != nullptr)
 	{
+		Renderer::getInstance()->getCopyFence()->Signal(Renderer::getInstance()->getCopyValue() + 1);
 		m_copyThread.m_thread->join();
 		delete m_copyThread.m_thread;
 	}
 	m_copyThread.m_mutex.unlock();
 
-	Renderer::getInstance()->getComputeFence()->Signal(Renderer::getInstance()->getComputeValue() + 1);
 	m_computeThread.m_mutex.lock();
 	m_computeThread.isRunning = false;
 	m_computeThread.isActive = false;
 	if (m_computeThread.m_thread != nullptr)
 	{
+		Renderer::getInstance()->getComputeFence()->Signal(Renderer::getInstance()->getComputeValue() + 1);
 		m_computeThread.m_thread->join();
 		delete m_computeThread.m_thread;
 	}
 	m_computeThread.m_mutex.unlock();
 
 
-	Renderer::getInstance()->getDirectFence()->Signal(Renderer::getInstance()->getDirectValue() + 1);
 	m_directThread.m_mutex.lock();
 	m_directThread.isRunning = false;
 	m_directThread.isActive = false;
 	if (m_directThread.m_thread != nullptr)
 	{
+		Renderer::getInstance()->getDirectFence()->Signal(Renderer::getInstance()->getDirectValue() + 1);
 		m_directThread.m_thread->join();
 		delete m_directThread.m_thread;
 	}
@@ -180,7 +180,7 @@ void CubeState::initialise()
 	int size = sizeof(meshVertices);
 	int indexSize = sizeof(indices);
 	std::shared_ptr<VertexBuffer> vertBuf = std::make_shared<VertexBuffer>();
-	vertBuf->setData(meshVertices, size, indices, indexSize); 
+	vertBuf->setData(meshVertices, size, indices, indexSize);
 
 	// Add VertexBuffer (or Mesh) to the MeshGroup. (Mesh transform default to (0,0,0))
 	m_scene[0]->addMesh(vertBuf);
