@@ -1,5 +1,6 @@
 #pragma once
 #include <windows.h>
+#include <initguid.h> //Is needed for d3dx12.h. Some things break if not included before d3d12.h
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <d3dcompiler.h>
@@ -12,7 +13,6 @@
 #include <iostream>
 #include <string>
 
-#include <initguid.h> //maybe needed for d3dx12.h
 #include "..\..\Include\d3dx12.h"
 
 using Microsoft::WRL::ComPtr;

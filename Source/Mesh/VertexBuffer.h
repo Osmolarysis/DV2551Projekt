@@ -8,6 +8,7 @@ private:
 	unsigned int refs = 0;
 
 	size_t m_totalSize = 0;
+	size_t m_totalSizeIndices = 0;
 	size_t m_nrOfVertices = 0;
 	size_t m_nrOfIndices = 0;
 	ComPtr<ID3D12Resource2> m_vertexBufferResource;
@@ -19,8 +20,7 @@ public:
 	~VertexBuffer();
 
 	// just taken from assignment 1
-	void setData(const void* data);	// vertex buffer only
-	void setData(const void* data, const void* indices);	// vertex and index buffer
+	void setData(const void* data, const void* indices = nullptr);	// vertex and index buffer
 	void bind();
 	void draw();
 	size_t getSize();
