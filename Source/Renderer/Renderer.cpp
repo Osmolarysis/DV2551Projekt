@@ -1,5 +1,6 @@
 ﻿#include "Renderer.h"
 #include "..\Utility\Timer.h"
+#include "..\Utility\Input.h"
 
 
 Renderer Renderer::m_this(1280, 720);
@@ -409,6 +410,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_DESTROY:
 		PostQuitMessage(0);
+		break;
+	case WM_KEYDOWN:
+	case WM_SYSKEYDOWN:
+	case WM_KEYUP:
+	case WM_SYSKEYUP:
+		DirectX::Keyboard::ProcessMessage(message, wParam, lParam);
 		break;
 	}
 
