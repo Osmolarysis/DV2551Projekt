@@ -40,7 +40,7 @@ void setUploadHeapData(ComPtr<ID3D12Resource2> resource, const void* data, size_
 
 // Returns default buffer and uploadBuffer in parameter output.
 // uploadBuffer needs to stay in memory until the copy is complete.
-ComPtr<ID3D12Resource2> CreateDefaultBuffer(ID3D12GraphicsCommandList* cmdList, const void* initData, UINT64 byteSize, ComPtr<ID3D12Resource2>& uploadBuffer, LPCWSTR name)
+ComPtr<ID3D12Resource2> CreateDefaultBuffer(ID3D12GraphicsCommandList* cmdList, const void* initData, UINT64 byteSize, ComPtr<ID3D12Resource2>& uploadBuffer, LPCWSTR name, D3D12_RESOURCE_STATES resourceStateAfter)
 {
 	// allocates memory
 	ComPtr<ID3D12Resource2> defaultHeap = makeBufferHeap(D3D12_HEAP_TYPE_DEFAULT, byteSize, name);
@@ -60,7 +60,7 @@ ComPtr<ID3D12Resource2> CreateDefaultBuffer(ID3D12GraphicsCommandList* cmdList, 
 	// transition resource for using;
 	CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(defaultHeap.Get(),
 		D3D12_RESOURCE_STATE_COPY_DEST,
-		D3D12_RESOURCE_STATE_GENERIC_READ);
+		resourceStateAfter);
 	cmdList->ResourceBarrier(1, &barrier);
 
 	return defaultHeap;
@@ -109,10 +109,10 @@ void VertexBuffer::setData(const void* data, size_t dataByteSize, const void* in
 	// TODO: signal copy fence and release upload heap when copy done
 	else
 	{
-		m_vertexBufferResource = CreateDefaultBuffer(Renderer::getInstance()->getGraphicsCommandList(), data, dataByteSize, m_VBUploadHeap, L"VB heap");
+		m_vertexBufferResource = CreateDefaultBuffer(Renderer::getInstance()->getGraphicsCommandList(), data, dataByteSize, m_VBUploadHeap, L"VB heap", D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 		if (m_nrOfIndices > 0)
 		{
-			m_indexBufferResource = CreateDefaultBuffer(Renderer::getInstance()->getGraphicsCommandList(), indices, indexByteSize, m_IBUploadHeap, L"IB heap");
+			m_indexBufferResource = CreateDefaultBuffer(Renderer::getInstance()->getGraphicsCommandList(), indices, indexByteSize, m_IBUploadHeap, L"IB heap", D3D12_RESOURCE_STATE_INDEX_BUFFER);
 		}
 	}
 
