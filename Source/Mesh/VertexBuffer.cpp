@@ -86,7 +86,7 @@ void VertexBuffer::setData(const void* data, size_t dataByteSize, const void* in
 	m_nrOfIndices = m_totalSizeIndices / sizeof(UINT16);
 
 
-	bool useOld = false;
+	bool useOld = true;
 
 	// old
 	if (useOld)
@@ -109,10 +109,10 @@ void VertexBuffer::setData(const void* data, size_t dataByteSize, const void* in
 	// TODO: signal copy fence and release upload heap when copy done
 	else
 	{
-		m_vertexBufferResource = CreateDefaultBuffer(Renderer::getInstance()->getGraphicsCommandList(), data, dataByteSize, m_VBUploadHeap, L"VB heap", D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+		m_vertexBufferResource = CreateDefaultBuffer(Renderer::getInstance()->getDirectCommandList(), data, dataByteSize, m_VBUploadHeap, L"VB heap", D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 		if (m_nrOfIndices > 0)
 		{
-			m_indexBufferResource = CreateDefaultBuffer(Renderer::getInstance()->getGraphicsCommandList(), indices, indexByteSize, m_IBUploadHeap, L"IB heap", D3D12_RESOURCE_STATE_INDEX_BUFFER);
+			m_indexBufferResource = CreateDefaultBuffer(Renderer::getInstance()->getDirectCommandList(), indices, indexByteSize, m_IBUploadHeap, L"IB heap", D3D12_RESOURCE_STATE_INDEX_BUFFER);
 		}
 	}
 
@@ -150,17 +150,17 @@ void VertexBuffer::setData(const void* data, size_t dataByteSize, const void* in
 void VertexBuffer::bind()
 {
 	//Location tells us which vertexbuffer we're setting
-	Renderer::getInstance()->getGraphicsCommandList()->IASetVertexBuffers(0, 1, &m_vertexBufferView);
+	Renderer::getInstance()->getDirectCommandList()->IASetVertexBuffers(0, 1, &m_vertexBufferView);
 	if (m_nrOfIndices > 0)
-		Renderer::getInstance()->getGraphicsCommandList()->IASetIndexBuffer(&m_indexBufferView);
+		Renderer::getInstance()->getDirectCommandList()->IASetIndexBuffer(&m_indexBufferView);
 }
 
 void VertexBuffer::draw()
 {
 	if (m_nrOfIndices == 0)
-		Renderer::getInstance()->getGraphicsCommandList()->DrawInstanced((UINT)m_nrOfVertices, 1, 0, 0);
+		Renderer::getInstance()->getDirectCommandList()->DrawInstanced((UINT)m_nrOfVertices, 1, 0, 0);
 	else
-		Renderer::getInstance()->getGraphicsCommandList()->DrawIndexedInstanced((UINT)m_nrOfIndices, 1, 0, 0, 0);
+		Renderer::getInstance()->getDirectCommandList()->DrawIndexedInstanced((UINT)m_nrOfIndices, 1, 0, 0, 0);
 
 }
 

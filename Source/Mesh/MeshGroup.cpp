@@ -30,7 +30,7 @@ void MeshGroup::addMesh(std::shared_ptr<VertexBuffer> vb)
 void MeshGroup::drawAll()
 {
 	// bind pipeline state object
-	Renderer::getInstance()->getGraphicsCommandList()->SetPipelineState(m_pipelineStateObject.Get());
+	Renderer::getInstance()->getDirectCommandList()->SetPipelineState(m_pipelineStateObject.Get());
 
 	// Theoreticly constantfuffer seems to bind automaticlly? (a least with 1 obj, probably)
 

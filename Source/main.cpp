@@ -30,6 +30,10 @@ int CALLBACK main(_In_ HINSTANCE appInstance, _In_opt_ HINSTANCE preInstance, _I
 	bool mainLoop = true;
 
 	timer->reset();
+
+	// Closes commandlists
+	//Renderer::getInstance()->getCopyCommandList()->Close();
+
 	while (mainLoop) { //TODO: exit while loop in a good way - statestacks if we feelin fancy
 		//Update
 		timer->update();

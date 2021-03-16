@@ -741,7 +741,7 @@ bool Renderer::createCopyQueue()
 			printf("Error creating copy allocataor");
 			exit(-1);
 		}
-		m_copyAllocator[i].Get()->SetName(L"Copy allocator");
+		m_copyAllocator[i].Get()->SetName(L"Copy cllocator");
 		//Create command list.
 		hr = m_device->CreateCommandList(
 			0,
@@ -788,7 +788,7 @@ bool Renderer::createComputeQueue()
 			printf("Error creating compute allocataor");
 			exit(-1);
 		}		
-		m_computeAllocator[i].Get()->SetName(L"Compute allocator");
+		m_computeAllocator[i].Get()->SetName(L"Compute Allocator");
 
 		//Create command list.
 		hr = m_device->CreateCommandList(
