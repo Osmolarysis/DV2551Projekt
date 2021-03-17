@@ -172,6 +172,7 @@ public:
 	HANDLE getDirectThreadHandle();
 	ID3D12GraphicsCommandList* getDirectCommandList();
 
+	void closeCommandLists();
 
 	//Window functions
 	unsigned int getScreenWidth() const;
