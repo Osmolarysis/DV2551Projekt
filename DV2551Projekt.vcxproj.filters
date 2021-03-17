@@ -37,6 +37,9 @@
     <Filter Include="Source Files\Shaders">
       <UniqueIdentifier>{4fe47ed5-27d4-4590-a746-889ceed5aa20}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\DXUtility">
+      <UniqueIdentifier>{ae4a24b2-c61e-4cf1-b5e2-70c2b38499aa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Renderer\Renderer.cpp">
@@ -75,6 +78,9 @@
     <ClCompile Include="Source\Utility\Input.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
+    <ClCompile Include="Source\DXUtility\DXUtility.cpp">
+      <Filter>Source Files\DXUtility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Renderer\Renderer.h">
@@ -109,6 +115,9 @@
     </ClInclude>
     <ClInclude Include="Source\Utility\Input.h">
       <Filter>Source Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\DXUtility\DXUtility.h">
+      <Filter>Source Files\DXUtility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
