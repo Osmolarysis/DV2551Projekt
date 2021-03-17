@@ -352,6 +352,10 @@ void Renderer::beginFrame()
 	ID3D12DescriptorHeap* descriptorHeaps[] = { m_cbDescriptorHeaps[backBufferIndex].Get() };
 	m_graphicsDirectList[backBufferIndex].Get()->SetDescriptorHeaps(ARRAYSIZE(descriptorHeaps), descriptorHeaps);
 	m_graphicsDirectList[backBufferIndex].Get()->SetGraphicsRootDescriptorTable(0, m_cbDescriptorHeaps[backBufferIndex].Get()->GetGPUDescriptorHandleForHeapStart());
+
+	//Set waiting criteria
+	m_renderingFence.Get()->Signal(101); //Start
+	m_directQueue.Get()->Wait(m_renderingFence.Get(), 102);
 }
 
 void Renderer::executeList()
@@ -372,7 +376,7 @@ void Renderer::executeList()
 
 	ID3D12CommandList* listsToExecuteCopy[] = { m_graphicsCopyList[backBufferIndex].Get() };
 	m_copyQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecuteCopy), listsToExecuteCopy);
-	
+	m_copyQueue->Signal(m_renderingFence.Get(), 102);
 
 
 	//Wait for Compute queue to finish recording
@@ -401,9 +405,13 @@ void Renderer::executeList()
 		exit(-1);
 	}
 
+	m_directQueue->Signal(m_renderingFence.Get(), 301); //Direct Starting
+
 	//Execute the commands!
 	ID3D12CommandList* listsToExecute[] = { m_graphicsDirectList[backBufferIndex].Get() };
 	m_directQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecute), listsToExecute);
+
+	m_directQueue->Signal(m_renderingFence.Get(), 302); //Direct finished
 
 	m_fenceValue++;
 
@@ -933,6 +941,14 @@ bool Renderer::createFenceAndEventHandle()
 	// Creation of an event handle to use in GPU synchronization
 	m_directHandle = CreateEvent(0, false, false, 0);
 	m_directThreadHandle = CreateEvent(0, false, false, 0);
+
+	hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_renderingFence.GetAddressOf()));
+	if (hr != S_OK) {
+		printf("Error creating rendering fence");
+		exit(-1);
+	}
+	// Creation of an event handle to use in GPU synchronization
+	m_renderingHandle = CreateEvent(0, false, false, 0);
 
 	return true;
 }

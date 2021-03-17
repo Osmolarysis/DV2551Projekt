@@ -92,20 +92,27 @@ private:
 	ComPtr<ID3D12GraphicsCommandList> m_graphicsComputeList[NUM_COMMANDLISTS];
 
 	//Fence and event handle
-	ComPtr<ID3D12Fence1> m_fence;
+	ComPtr<ID3D12Fence1> m_fence; //Fence for frame counting
 	UINT64 m_fenceValue = 0;
 	HANDLE m_eventHandle = nullptr;
 
+	ComPtr<ID3D12Fence1> m_renderingFence; //Fence for frame counting R£££ Unitialised!
+	UINT64 m_renderingFenceValue = 0; //Will be used to signal when copy/compute/direct queue is finished
+	HANDLE m_renderingHandle = nullptr; //Might not be needed
+
+	//Copy queue fence for recording
 	ComPtr<ID3D12Fence1> m_copyFence;
 	UINT64 m_copyFenceValue = 0;
 	HANDLE m_copyHandle = nullptr;
 	HANDLE m_copyThreadHandle = nullptr;
 
+	//Compute queue fence for recording
 	ComPtr<ID3D12Fence1> m_computeFence;
 	UINT64 m_computeFenceValue = 0;
 	HANDLE m_computeHandle = nullptr;
 	HANDLE m_computeThreadHandle = nullptr;
 	
+	//Direct queue fence for recording
 	ComPtr<ID3D12Fence1> m_directFence;
 	UINT64 m_directFenceValue = 0;
 	HANDLE m_directHandle = nullptr;
