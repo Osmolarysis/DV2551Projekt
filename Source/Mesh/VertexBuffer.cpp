@@ -86,7 +86,7 @@ void VertexBuffer::setData(const void* data, size_t dataByteSize, const void* in
 	m_nrOfIndices = m_totalSizeIndices / sizeof(UINT16);
 
 
-	bool useOld = true;
+	bool useOld = false;
 
 	// old
 	if (useOld)

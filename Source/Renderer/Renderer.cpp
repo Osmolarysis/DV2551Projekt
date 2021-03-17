@@ -210,6 +210,31 @@ ID3D12GraphicsCommandList* Renderer::getDirectCommandList()
 	return m_graphicsDirectList[index].Get();
 }
 
+void Renderer::closeCommandLists()
+{
+	HRESULT hr;
+
+	for (int i = 0; i < NUM_COMMANDLISTS; i++) {
+		hr = m_graphicsDirectList[i].Get()->Close();
+		if (hr != S_OK) {
+			printf("Error closing direct list at close");
+			exit(-1);
+		}
+
+		hr = m_graphicsCopyList[i].Get()->Close();
+		if (hr != S_OK) {
+			printf("Error closing copy list at close");
+			exit(-1);
+		}
+
+		hr = m_graphicsComputeList[i].Get()->Close();
+		if (hr != S_OK) {
+			printf("Error closing compute list at close");
+			exit(-1);
+		}
+	}
+}
+
 ID3D12RootSignature* Renderer::getRootSignature()
 {
 	return m_rootSignature.Get();
@@ -391,6 +416,8 @@ void Renderer::present()
 	//Swap front and back buffers
 	DXGI_PRESENT_PARAMETERS pp = {}; //Are these important?
 	m_swapChain->Present1(0, 0, &pp);
+
+	//waitForGPU();
 }
 
 void Renderer::SetResourceTransitionBarrier(ID3D12GraphicsCommandList* commandList, ID3D12Resource* resource, D3D12_RESOURCE_STATES StateBefore, D3D12_RESOURCE_STATES StateAfter)
@@ -710,7 +737,7 @@ bool Renderer::createDirectQueue()
 
 		//Command lists are created in the recording state. Since there is nothing to
 		//record right now and the main loop expects it to be closed, we close it.
-		hr = m_graphicsDirectList[i].Get()->Close();
+		//hr = m_graphicsDirectList[i].Get()->Close();
 
 		if (hr != S_OK) {
 			printf("Error closing direct list at initialisation");
@@ -761,7 +788,7 @@ bool Renderer::createCopyQueue()
 
 		//Command lists are created in the recording state. Since there is nothing to
 		//record right now and the main loop expects it to be closed, we close it.
-		hr = m_graphicsCopyList[i].Get()->Close();
+		//hr = m_graphicsCopyList[i].Get()->Close();
 
 		if (hr != S_OK) {
 			printf("Error closing copy list at initialisation");
@@ -809,7 +836,7 @@ bool Renderer::createComputeQueue()
 
 		//Command lists are created in the recording state. Since there is nothing to
 		//record right now and the main loop expects it to be closed, we close it.
-		hr = m_graphicsComputeList[i].Get()->Close();
+		//hr = m_graphicsComputeList[i].Get()->Close();
 
 		if (hr != S_OK) {
 			printf("Error closing compute list at initialisation");
