@@ -233,6 +233,18 @@ void Renderer::closeCommandLists()
 			exit(-1);
 		}
 	}
+
+	//Should maybe do some fencing here.
+	ID3D12CommandList* copyListsToExecute[] = { m_graphicsCopyList[0].Get(), m_graphicsCopyList[1].Get() };
+	m_copyQueue->ExecuteCommandLists(ARRAYSIZE(copyListsToExecute), copyListsToExecute);
+
+	/*ID3D12CommandList* computeListsToExecute[] = { m_graphicsComputeList[0].Get(), m_graphicsComputeList[1].Get() };
+	m_computeQueue->ExecuteCommandLists(ARRAYSIZE(computeListsToExecute), computeListsToExecute);
+
+	ID3D12CommandList* directListsToExecute[] = { m_graphicsDirectList[0].Get(), m_graphicsDirectList[1].Get() };
+	m_directQueue->ExecuteCommandLists(ARRAYSIZE(directListsToExecute), directListsToExecute);
+
+	waitForGPU();*/
 }
 
 ID3D12RootSignature* Renderer::getRootSignature()

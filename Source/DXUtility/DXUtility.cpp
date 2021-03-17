@@ -5,7 +5,7 @@ ComPtr<ID3D12Resource2> makeBufferHeap(D3D12_HEAP_TYPE type, UINT64 size, LPCWST
 	//Do initial stuff
 	auto hp = CD3DX12_HEAP_PROPERTIES(type);
 	auto rd = CD3DX12_RESOURCE_DESC::Buffer(size);
-	auto state = (type == D3D12_HEAP_TYPE_DEFAULT) ? D3D12_RESOURCE_STATE_COPY_DEST : D3D12_RESOURCE_STATE_GENERIC_READ;
+	auto state = (type == D3D12_HEAP_TYPE_DEFAULT) ? D3D12_RESOURCE_STATE_COMMON : D3D12_RESOURCE_STATE_GENERIC_READ;
 	ComPtr<ID3D12Resource2> resource;
 	// create heap
 	HRESULT hr = Renderer::getInstance()->getDevice()->CreateCommittedResource(
@@ -57,10 +57,10 @@ ComPtr<ID3D12Resource2> CreateDefaultBuffer(ID3D12GraphicsCommandList* cmdList, 
 	UpdateSubresources(cmdList, defaultHeap.Get(), uploadBuffer.Get(), 0, 0, 1, &vbData);
 
 	// transition resource for using;
-	CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(defaultHeap.Get(),
+	/*CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(defaultHeap.Get(),
 		D3D12_RESOURCE_STATE_COPY_DEST,
 		resourceStateAfter);
-	cmdList->ResourceBarrier(1, &barrier);
+	cmdList->ResourceBarrier(1, &barrier);*/
 
 	return defaultHeap;
 }

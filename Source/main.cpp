@@ -31,7 +31,7 @@ int CALLBACK main(_In_ HINSTANCE appInstance, _In_opt_ HINSTANCE preInstance, _I
 
 	timer->reset();
 
-	// Closes commandlists
+	// Closes and executes commandlists
 	Renderer::getInstance()->closeCommandLists();
 
 	while (mainLoop) { //TODO: exit while loop in a good way - statestacks if we feelin fancy
