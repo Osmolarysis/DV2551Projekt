@@ -238,13 +238,13 @@ void Renderer::closeCommandLists()
 	ID3D12CommandList* copyListsToExecute[] = { m_graphicsCopyList[0].Get(), m_graphicsCopyList[1].Get() };
 	m_copyQueue->ExecuteCommandLists(ARRAYSIZE(copyListsToExecute), copyListsToExecute);
 
-	/*ID3D12CommandList* computeListsToExecute[] = { m_graphicsComputeList[0].Get(), m_graphicsComputeList[1].Get() };
+	ID3D12CommandList* computeListsToExecute[] = { m_graphicsComputeList[0].Get(), m_graphicsComputeList[1].Get() };
 	m_computeQueue->ExecuteCommandLists(ARRAYSIZE(computeListsToExecute), computeListsToExecute);
 
 	ID3D12CommandList* directListsToExecute[] = { m_graphicsDirectList[0].Get(), m_graphicsDirectList[1].Get() };
 	m_directQueue->ExecuteCommandLists(ARRAYSIZE(directListsToExecute), directListsToExecute);
 
-	waitForGPU();*/
+	waitForGPU();
 }
 
 ID3D12RootSignature* Renderer::getRootSignature()
@@ -468,14 +468,38 @@ void Renderer::setWindowTitle(std::wstring newTitle)
 
 void Renderer::waitForGPU()
 {
-	const UINT64 fence = m_fenceValue;
-	m_directQueue->Signal(m_fence.Get(), fence);
+	//Wait for copy queue
+	const UINT64 fenceCopy = m_fenceValue;
+	m_copyQueue->Signal(m_fence.Get(), fenceCopy);
+	m_fenceValue++;
+
+	//Wait until copy queue is done.
+	if (m_fence->GetCompletedValue() < fenceCopy)
+	{
+		m_fence->SetEventOnCompletion(fenceCopy, m_eventHandle);
+		WaitForSingleObject(m_eventHandle, INFINITE);
+	}
+
+	//Wait for compute queue
+	const UINT64 fenceCompute = m_fenceValue;
+	m_copyQueue->Signal(m_fence.Get(), fenceCompute);
+	m_fenceValue++;
+
+	//Wait until compute queue is done.
+	if (m_fence->GetCompletedValue() < fenceCompute)
+	{
+		m_fence->SetEventOnCompletion(fenceCompute, m_eventHandle);
+		WaitForSingleObject(m_eventHandle, INFINITE);
+	}
+
+	const UINT64 fenceDirect = m_fenceValue;
+	m_directQueue->Signal(m_fence.Get(), fenceDirect);
 	m_fenceValue++;
 
 	//Wait until direct queue is done.
-	if (m_fence->GetCompletedValue() < fence)
+	if (m_fence->GetCompletedValue() < fenceDirect)
 	{
-		m_fence->SetEventOnCompletion(fence, m_eventHandle);
+		m_fence->SetEventOnCompletion(fenceDirect, m_eventHandle);
 		WaitForSingleObject(m_eventHandle, INFINITE);
 	}
 }
