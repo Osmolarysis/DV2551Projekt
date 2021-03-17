@@ -74,7 +74,6 @@ private:
 
 	//Constant Buffer Descriptor Heaps
 	ComPtr<ID3D12DescriptorHeap> m_cbDescriptorHeaps[NUM_SWAP_BUFFERS];
-	UINT m_cbDescriptorSize[NUM_CONSTANT_BUFFERS];
 
 	//Direct queue/list/allocator
 	ComPtr<ID3D12CommandQueue> m_directQueue;
@@ -192,8 +191,6 @@ public:
 
 	//Descriptor heap functions
 	ID3D12DescriptorHeap* getCBDescriptorHeap(UINT bufferIndex);
-	UINT getCBDescriptorSize(UINT location) const;
-	void setCBDescriptorSize(UINT location, UINT size);
 
 	//Fence functions
 	void setFence(int, int); //Unused, remove?
