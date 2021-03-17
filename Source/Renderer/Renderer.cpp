@@ -10,10 +10,6 @@ Renderer::Renderer(int width, int height)
 	m_screenWidth = width;
 	m_screenHeight = height;
 
-	for (int i = 0; i < NUM_CONSTANT_BUFFERS; i++) {
-		m_cbDescriptorSize[i] = 0;
-	}
-
 	//Set debug mode
 	if (!createDebugMode()) {
 		printf("error setting debug mode\n");
@@ -507,16 +503,6 @@ void Renderer::waitForGPU()
 ID3D12DescriptorHeap* Renderer::getCBDescriptorHeap(UINT bufferIndex)
 {
 	return m_cbDescriptorHeaps[bufferIndex].Get();
-}
-
-UINT Renderer::getCBDescriptorSize(UINT bufferIndex) const
-{
-	return m_cbDescriptorSize[bufferIndex];
-}
-
-void Renderer::setCBDescriptorSize(UINT location, UINT size)
-{
-	m_cbDescriptorSize[location] = size;
 }
 
 ID3D12Fence1* Renderer::getCopyFence()
