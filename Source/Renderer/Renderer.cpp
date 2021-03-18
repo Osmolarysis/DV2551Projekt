@@ -1081,29 +1081,33 @@ bool Renderer::createViewportAndScissorRect()
 bool Renderer::createRootSignature()
 {
 	//Constant Buffer Descriptor Range
-	D3D12_DESCRIPTOR_RANGE dtRangesCBV[1];
-	dtRangesCBV[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-	dtRangesCBV[0].NumDescriptors = NUM_CONSTANT_BUFFERS;
-	dtRangesCBV[0].BaseShaderRegister = 0;		// Base shader register b0
-	dtRangesCBV[0].RegisterSpace = 0;
-	dtRangesCBV[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	CD3DX12_DESCRIPTOR_RANGE dtRangesCBV;
+	dtRangesCBV.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, NUM_CONSTANT_BUFFERS, 0);
 
-	//Create descriptor table(s)
-	D3D12_ROOT_DESCRIPTOR_TABLE rdtCBV;
-	rdtCBV.NumDescriptorRanges = ARRAYSIZE(dtRangesCBV);
-	rdtCBV.pDescriptorRanges = dtRangesCBV;
+	//Texture SRV Descriptor range
+	CD3DX12_DESCRIPTOR_RANGE texTable;
+	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
 
 	//Create root parameter
-	D3D12_ROOT_PARAMETER rootParam[1];
-	rootParam[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParam[0].DescriptorTable = rdtCBV;
-	rootParam[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	CD3DX12_ROOT_PARAMETER rootParam[2];
+	rootParam[0].InitAsDescriptorTable(1, &dtRangesCBV, D3D12_SHADER_VISIBILITY_ALL);
+	rootParam[1].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_ALL);
 
-	D3D12_ROOT_SIGNATURE_DESC rsDesc;
-	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
-	rsDesc.NumParameters = ARRAYSIZE(rootParam);
-	rsDesc.pParameters = rootParam;
-	rsDesc.NumStaticSamplers = 0;
+	//Create static samplers. (One from GetStaticSamplers in Frank Luna(ch.9, Create). Might want to steal whole function later)
+	const CD3DX12_STATIC_SAMPLER_DESC linearWrap(
+		0, // shaderRegister
+		D3D12_FILTER_MIN_MAG_MIP_LINEAR,  // filter
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressU
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressV
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP); // addressW
+
+	CD3DX12_ROOT_SIGNATURE_DESC rsDesc = CD3DX12_ROOT_SIGNATURE_DESC(
+		ARRAYSIZE(rootParam),	// nr parameters
+		rootParam, 				// parameters
+		1, 						// nr static samplers
+		&linearWrap, 			// static samplers
+		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT); // flags
+
 
 	ID3DBlob* sBlob;
 	HRESULT hr = D3D12SerializeRootSignature(
