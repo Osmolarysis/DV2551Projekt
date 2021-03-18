@@ -1,6 +1,6 @@
 struct VS_in {
 	float3 pos : POSITION;
-	float4 colour : COLOR;
+	float2 uv: UV;
 };
 
 struct VS_out {
@@ -29,7 +29,7 @@ VS_out main( VS_in input )
 	output.posH = mul(transform, float4(input.pos, 1.0f));
 	output.posH = mul(viewMatrix, output.posH);
 	output.posH = mul(projMatrix, output.posH);
-	output.colour = input.colour;
+	output.colour = float4(input.uv, 0, 1);
 
 	return output;
 }
