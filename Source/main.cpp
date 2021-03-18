@@ -40,11 +40,6 @@ int CALLBACK main(_In_ HINSTANCE appInstance, _In_opt_ HINSTANCE preInstance, _I
 		input->update();
 		stateStack->update();
 
-		//Test mouse input
-		if (input->mousePressed(MouseButton::LEFT)) {
-			printf("Clicked x: %d, y: %d\n", input->mouseX(), input->mouseY());
-		}
-
 		//Begin frame
 		renderer->beginFrame();
 

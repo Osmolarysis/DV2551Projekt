@@ -18,13 +18,23 @@ private:
 	DirectX::XMVECTOR m_target;
 	DirectX::XMVECTOR m_up;
 
+	DirectX::XMVECTOR m_position;
+	DirectX::XMVECTOR m_forward;
+	DirectX::XMVECTOR m_right;
+
 	float m_fov;
 	float m_aspectRatio;
 	float m_nearPlane;
 	float m_farPlane;
 
+	float m_cameraYaw = 0.0f;
+	float m_cameraPitch = 0.0f; 
+
 	bool m_viewUpdated = false;
 	bool m_projUpdated = false;
+
+	void rotatePlayer();
+	void movePlayer();
 public:
 	Camera();
 	~Camera();
