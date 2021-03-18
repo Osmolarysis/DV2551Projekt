@@ -206,6 +206,11 @@ ID3D12GraphicsCommandList* Renderer::getDirectCommandList()
 	return m_graphicsDirectList[index].Get();
 }
 
+ID3D12GraphicsCommandList* Renderer::getDirectCommandList(int bufferIndex)
+{
+	return m_graphicsDirectList[bufferIndex].Get();
+}
+
 void Renderer::closeCommandLists()
 {
 	HRESULT hr;

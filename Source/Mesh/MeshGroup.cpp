@@ -38,7 +38,7 @@ void MeshGroup::drawAll()
 	int iFrame = Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex();
 	for (auto& mesh : m_meshes)
 	{
-		m_cbuffer->updateData((void*)mesh->getMatrix(), iFrame);
+		m_cbuffer->updateData((void*)mesh->getMatrix(), iFrame, Renderer::getInstance()->getDirectCommandList());
 		mesh->draw();
 	}
 }

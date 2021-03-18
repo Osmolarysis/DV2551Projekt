@@ -170,6 +170,7 @@ public:
 	HANDLE getDirectHandle();
 	HANDLE getDirectThreadHandle();
 	ID3D12GraphicsCommandList* getDirectCommandList();
+	ID3D12GraphicsCommandList* getDirectCommandList(int bufferIndex);
 
 	void closeCommandLists();
 
