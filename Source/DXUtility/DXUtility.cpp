@@ -27,6 +27,33 @@ ComPtr<ID3D12Resource2> makeBufferHeap(D3D12_HEAP_TYPE type, UINT64 size, LPCWST
 	return resource;
 }
 
+ComPtr<ID3D12Resource2> makeTextureHeap(D3D12_HEAP_TYPE type, UINT64 size, LPCWSTR heapName, UINT width, UINT height)
+{
+	//Do initial stuff
+	auto hp = CD3DX12_HEAP_PROPERTIES(type);
+	auto rd = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_UNKNOWN, width, height);
+	auto state = (type == D3D12_HEAP_TYPE_DEFAULT) ? D3D12_RESOURCE_STATE_COMMON : D3D12_RESOURCE_STATE_GENERIC_READ;
+	ComPtr<ID3D12Resource2> resource;
+	// create heap
+	HRESULT hr = Renderer::getInstance()->getDevice()->CreateCommittedResource(
+		&hp,
+		D3D12_HEAP_FLAG_NONE,
+		&rd,
+		state,
+		nullptr,
+		IID_PPV_ARGS(resource.GetAddressOf())
+	);
+	if (hr != S_OK) {
+		printf("Error creating ");
+		wprintf(heapName);
+		printf("\n");
+
+		exit(-1);
+	}
+	resource->SetName(heapName);
+	return resource;
+}
+
 void setUploadHeapData(ComPtr<ID3D12Resource2> resource, const void* data, size_t size)
 {
 	void* dataBegin = nullptr;
@@ -67,3 +94,25 @@ ComPtr<ID3D12Resource2> CreateDefaultBuffer(ID3D12GraphicsCommandList* cmdList, 
 
 	return defaultHeap;
 }
+
+ComPtr<ID3D12Resource2> CreateDefaultTexture(ID3D12GraphicsCommandList* cmdList, const void* initData, UINT64 byteSize, ComPtr<ID3D12Resource2>& uploadBuffer, LPCWSTR name, D3D12_RESOURCE_STATES resourceStateAfter, UINT width, UINT height)
+{
+	// allocates memory
+	ComPtr<ID3D12Resource2> defaultHeap = makeTextureHeap(D3D12_HEAP_TYPE_DEFAULT, byteSize, name, width, height);
+	size_t requiredSize = GetRequiredIntermediateSize(defaultHeap.Get(), 0, 1);
+	uploadBuffer = makeTextureHeap(D3D12_HEAP_TYPE_UPLOAD, requiredSize, L"uploadHeap", width, height);
+
+	// describe data
+	int texturePixelSize = 4;
+
+	D3D12_SUBRESOURCE_DATA vbData = {};
+	vbData.pData = initData;
+	vbData.RowPitch = width * texturePixelSize;
+	vbData.SlicePitch = vbData.RowPitch * height;
+
+	// transision resource is already set as COPY_DEST
+	// helper funcition to upload data to upload heap and copy to default heap
+	UpdateSubresources(cmdList, defaultHeap.Get(), uploadBuffer.Get(), 0, 0, 1, &vbData);
+	return defaultHeap;
+}
+

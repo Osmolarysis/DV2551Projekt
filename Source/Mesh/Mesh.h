@@ -1,6 +1,7 @@
 #pragma once
 #include <unordered_map>
 #include "VertexBuffer.h"
+#include "Texture.h"
 using namespace DirectX;
 
 struct Transform {
@@ -19,6 +20,9 @@ private:
 	// Transform matrix, will apear in constantbuffer
 	XMMATRIX m_matrix;
 	bool m_matrixUpdated = false;
+
+	// Texture related
+	Texture m_texture;
 
 	std::shared_ptr<VertexBuffer> m_vertexBuffer;
 	// helper functions

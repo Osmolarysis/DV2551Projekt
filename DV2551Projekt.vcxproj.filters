@@ -81,6 +81,9 @@
     <ClCompile Include="Source\DXUtility\DXUtility.cpp">
       <Filter>Source Files\DXUtility</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Mesh\Texture.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Renderer\Renderer.h">
@@ -118,6 +121,9 @@
     </ClInclude>
     <ClInclude Include="Source\DXUtility\DXUtility.h">
       <Filter>Source Files\DXUtility</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Mesh\Texture.h">
+      <Filter>Source Files\Mesh</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
