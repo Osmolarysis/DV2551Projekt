@@ -211,12 +211,6 @@ void Renderer::closeCommandLists()
 	HRESULT hr;
 
 	for (int i = 0; i < NUM_COMMANDLISTS; i++) {
-		hr = m_graphicsDirectList[i].Get()->Close();
-		if (hr != S_OK) {
-			printf("Error closing direct list at close");
-			exit(-1);
-		}
-
 		hr = m_graphicsCopyList[i].Get()->Close();
 		if (hr != S_OK) {
 			printf("Error closing copy list at close");
@@ -228,14 +222,20 @@ void Renderer::closeCommandLists()
 			printf("Error closing compute list at close");
 			exit(-1);
 		}
+
+		hr = m_graphicsDirectList[i].Get()->Close();
+		if (hr != S_OK) {
+			printf("Error closing direct list at close");
+			exit(-1);
+		}
 	}
 
 	//Should maybe do some fencing here.
 	ID3D12CommandList* copyListsToExecute[] = { m_graphicsCopyList[0].Get(), m_graphicsCopyList[1].Get() };
 	m_copyQueue->ExecuteCommandLists(ARRAYSIZE(copyListsToExecute), copyListsToExecute);
 
-	//ID3D12CommandList* computeListsToExecute[] = { m_graphicsComputeList[0].Get(), m_graphicsComputeList[1].Get() };
-	//m_computeQueue->ExecuteCommandLists(ARRAYSIZE(computeListsToExecute), computeListsToExecute);
+	ID3D12CommandList* computeListsToExecute[] = { m_graphicsComputeList[0].Get(), m_graphicsComputeList[1].Get() };
+	m_computeQueue->ExecuteCommandLists(ARRAYSIZE(computeListsToExecute), computeListsToExecute);
 
 	ID3D12CommandList* directListsToExecute[] = { m_graphicsDirectList[0].Get(), m_graphicsDirectList[1].Get() };
 	m_directQueue->ExecuteCommandLists(ARRAYSIZE(directListsToExecute), directListsToExecute);
@@ -289,31 +289,45 @@ void Renderer::beginFrame()
 	float clearColour[4] = { 0.3f, 0.3f, 0.0f, 1.0f };
 
 	//Clear
-	//Direct
-	HRESULT hr = m_directAllocator[backBufferIndex].Get()->Reset();
-	if (hr != S_OK) {
-		printf("Error reseting direct allocator\n");
-		exit(-1);
-	}
-
-	hr = m_graphicsDirectList[backBufferIndex].Get()->Reset(m_directAllocator[backBufferIndex].Get(), nullptr);
-	if (hr != S_OK) {
-		printf("Error reseting direct list\n");
-		exit(-1);
-	}
-
 	//Copy
-	hr = m_copyAllocator[backBufferIndex].Get()->Reset();
+	HRESULT hr = m_copyAllocator[backBufferIndex].Get()->Reset();
 	if (hr != S_OK) {
-		printf("Error reseting copy allocator\n");
+		printf("Error reseting copy allocator %i\n", backBufferIndex);
 		exit(-1);
 	}
 
 	hr = m_graphicsCopyList[backBufferIndex].Get()->Reset(m_copyAllocator[backBufferIndex].Get(), nullptr);
 	if (hr != S_OK) {
-		printf("Error reseting copy list\n");
+		printf("Error reseting copy list %i\n", backBufferIndex);
 		exit(-1);
 	}
+
+	////Compute
+	//hr = m_computeAllocator[backBufferIndex].Get()->Reset();
+	//if (hr != S_OK) {
+	//	printf("Error reseting compute allocator %i\n", backBufferIndex);
+	//	exit(-1);
+	//}
+
+	//hr = m_graphicsComputeList[backBufferIndex].Get()->Reset(m_computeAllocator[backBufferIndex].Get(), nullptr);
+	//if (hr != S_OK) {
+	//	printf("Error reseting compute list %i\n", backBufferIndex);
+	//	exit(-1);
+	//}
+
+	//Direct
+	hr = m_directAllocator[backBufferIndex].Get()->Reset();
+	if (hr != S_OK) {
+		printf("Error reseting direct allocator %i\n", backBufferIndex);
+		exit(-1);
+	}
+
+	hr = m_graphicsDirectList[backBufferIndex].Get()->Reset(m_directAllocator[backBufferIndex].Get(), nullptr);
+	if (hr != S_OK) {
+		printf("Error reseting direct list %i\n", backBufferIndex);
+		exit(-1);
+	}
+
 
 	//Set necessary states.
 	m_graphicsDirectList[backBufferIndex].Get()->RSSetViewports(1, &m_viewPort);
@@ -362,7 +376,8 @@ void Renderer::beginFrame()
 	m_graphicsDirectList[backBufferIndex].Get()->SetGraphicsRootDescriptorTable(0, m_cbDescriptorHeaps[backBufferIndex].Get()->GetGPUDescriptorHandleForHeapStart());
 
 	//Set waiting criteria
-	//m_renderingFence.Get()->Signal(101); //Start
+	//m_renderingFence.Get()->Signal(101);
+	//m_computeQueue.Get()->Wait(m_renderingFence.Get(), 102);
 	m_directQueue.Get()->Wait(m_renderingFence.Get(), 102);
 }
 
@@ -392,8 +407,11 @@ void Renderer::executeList()
 	WaitForSingleObject(m_computeHandle, INFINITE);
 
 	//Execute Compute queue
+	//m_computeQueue->Signal(m_renderingFence.Get(), 201); //Starting
+	
+	//Work
 
-	//TODO
+	//m_computeQueue->Signal(m_renderingFence.Get(), 202); //Done
 
 	//Wait for Direct queue to finish recording
 
@@ -432,8 +450,6 @@ void Renderer::present()
 	//Swap front and back buffers
 	DXGI_PRESENT_PARAMETERS pp = {}; //Are these important?
 	m_swapChain->Present1(0, 0, &pp);
-
-	//waitForGPU();
 }
 
 void Renderer::SetResourceTransitionBarrier(ID3D12GraphicsCommandList* commandList, ID3D12Resource* resource, D3D12_RESOURCE_STATES StateBefore, D3D12_RESOURCE_STATES StateAfter)
@@ -478,7 +494,7 @@ void Renderer::waitForGPU()
 
 	//Wait for compute queue
 	const UINT64 fenceCompute = m_fenceValue;
-	m_copyQueue->Signal(m_fence.Get(), fenceCompute);
+	m_computeQueue->Signal(m_fence.Get(), fenceCompute);
 	m_fenceValue++;
 
 	//Wait until compute queue is done.
