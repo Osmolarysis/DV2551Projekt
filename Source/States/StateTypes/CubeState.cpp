@@ -16,6 +16,8 @@ void CubeState::copyRecord()
 
 	while (m_copyThread.isActive) {
 		//Thread work
+		//Update camera
+		m_camera->update();
 
 		//Thread handling
 		fenceValue = Renderer::getInstance()->incAndGetCopyValue();
@@ -267,9 +269,6 @@ void CubeState::update()
 	timer += Timer::getInstance()->getDt();
 	int axis = (int)(timer * 0.5) % 3;
 	m_scene[0]->getMesh(0)->rotate((float)Timer::getInstance()->getDt(), axis);
-
-	//Update camera
-	m_camera->update();
 }
 
 void CubeState::record()

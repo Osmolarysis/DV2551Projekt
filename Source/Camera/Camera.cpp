@@ -33,8 +33,8 @@ void Camera::rotatePlayer()
 		XMMATRIX cameraRotationMatrix = XMMatrixRotationRollPitchYaw(m_cameraPitch, m_cameraYaw, 0.0f);
 		XMMATRIX rotateYTempMatrix = XMMatrixRotationY(m_cameraYaw);
 
-		XMVECTOR defaultForward = XMVectorSet(0.0f, 0.0f, -1.0f, 0.0f);
-		XMVECTOR defaultRight = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+		XMVECTOR defaultForward = XMVectorSet(0.0f, 0.0f, -1.0f, 1.0f);
+		XMVECTOR defaultRight = XMVectorSet(1.0f, 0.0f, 0.0f, 1.0f);
 
 		//Rotate movement vectors
 		m_forward = XMVector3TransformCoord(defaultForward, cameraRotationMatrix);
@@ -85,9 +85,9 @@ Camera::Camera(bool firstPersonCamera)
 	m_cameraBuffer = std::make_shared<ConstantBuffer>(ConstantBuffer(sizeof(m_matrices), LOCATION_CAMERA));
 
 	//View matrix
-	m_eye = XMVectorSet(0.0f, 0.0f, 5.0f, 0.0f);
-	m_target = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
-	m_up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	m_eye = XMVectorSet(0.0f, 0.0f, 5.0f, 1.0f);
+	m_target = XMVectorSet(0.0f, 0.0f, -1.0f, 1.0f);
+	m_up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 	m_matrices.m_view = XMMatrixLookAtRH(m_eye, m_target, m_up);
 
 	//Projection matrix
@@ -99,7 +99,7 @@ Camera::Camera(bool firstPersonCamera)
 
 	//Movement vectors
 	m_forward = m_target;
-	m_right = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+	m_right = XMVectorSet(1.0f, 0.0f, 0.0f, 1.0f);
 
 	m_firstPersonCamera = firstPersonCamera;
 
@@ -113,19 +113,19 @@ Camera::~Camera()
 
 void Camera::setEye(float x, float y, float z)
 {
-	m_eye = XMVectorSet(x, y, z, 0.0f);
+	m_eye = XMVectorSet(x, y, z, 1.0f);
 	m_viewUpdated = true;
 }
 
 void Camera::setTarget(float x, float y, float z)
 {
-	m_target = XMVectorSet(x, y, z, 0.0f);
+	m_target = XMVectorSet(x, y, z, 1.0f);
 	m_viewUpdated = true;
 }
 
 void Camera::setUp(float x, float y, float z)
 {
-	m_up = XMVectorSet(x, y, z, 0.0f);
+	m_up = XMVectorSet(x, y, z, 1.0f);
 	m_viewUpdated = true;
 }
 
@@ -171,6 +171,6 @@ void Camera::update()
 			m_projUpdated = false;
 		}
 
-		m_cameraBuffer->updateData(&m_matrices, Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex());
+		m_cameraBuffer->updateData(&m_matrices, Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex(), Renderer::getInstance()->getCopyCommandList());
 	}
 }
