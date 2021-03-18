@@ -233,14 +233,19 @@ void Renderer::closeCommandLists()
 	//Should maybe do some fencing here.
 	ID3D12CommandList* copyListsToExecute[] = { m_graphicsCopyList[0].Get(), m_graphicsCopyList[1].Get() };
 	m_copyQueue->ExecuteCommandLists(ARRAYSIZE(copyListsToExecute), copyListsToExecute);
+	m_copyQueue->Signal(m_renderingFence.Get(), 1);
 
+	m_computeQueue->Wait(m_renderingFence.Get(), 1);
 	ID3D12CommandList* computeListsToExecute[] = { m_graphicsComputeList[0].Get(), m_graphicsComputeList[1].Get() };
 	m_computeQueue->ExecuteCommandLists(ARRAYSIZE(computeListsToExecute), computeListsToExecute);
+	m_computeQueue->Signal(m_renderingFence.Get(), 2);
 
+	m_directQueue->Wait(m_renderingFence.Get(), 2);
 	ID3D12CommandList* directListsToExecute[] = { m_graphicsDirectList[0].Get(), m_graphicsDirectList[1].Get() };
 	m_directQueue->ExecuteCommandLists(ARRAYSIZE(directListsToExecute), directListsToExecute);
 
-	waitForGPU();
+	m_fenceValue += 2;
+	m_directQueue->Signal(m_fence.Get(), m_fenceValue);
 }
 
 ID3D12RootSignature* Renderer::getRootSignature()
@@ -378,7 +383,7 @@ void Renderer::beginFrame()
 	//Set waiting criteria
 	//m_renderingFence.Get()->Signal(101);
 	//m_computeQueue.Get()->Wait(m_renderingFence.Get(), 102);
-	m_directQueue.Get()->Wait(m_renderingFence.Get(), 102);
+	m_directQueue.Get()->Wait(m_renderingFence.Get(), UINT64(102) + UINT64(10*backBufferIndex));
 }
 
 void Renderer::executeList()
@@ -399,7 +404,7 @@ void Renderer::executeList()
 
 	ID3D12CommandList* listsToExecuteCopy[] = { m_graphicsCopyList[backBufferIndex].Get() };
 	m_copyQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecuteCopy), listsToExecuteCopy);
-	m_copyQueue->Signal(m_renderingFence.Get(), 102);
+	m_copyQueue->Signal(m_renderingFence.Get(), UINT64(102) + UINT64(10*backBufferIndex));
 
 
 	//Wait for Compute queue to finish recording
@@ -431,7 +436,7 @@ void Renderer::executeList()
 		exit(-1);
 	}
 
-	m_directQueue->Signal(m_renderingFence.Get(), 301); //Direct Starting
+	m_directQueue->Signal(m_renderingFence.Get(), UINT64(301) + UINT64(10 * backBufferIndex)); //Direct Starting
 
 	//Execute the commands!
 	ID3D12CommandList* listsToExecute[] = { m_graphicsDirectList[backBufferIndex].Get() };
