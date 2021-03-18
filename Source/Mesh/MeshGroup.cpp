@@ -35,9 +35,10 @@ void MeshGroup::drawAll()
 	// Theoreticly constantfuffer seems to bind automaticlly? (a least with 1 obj, probably)
 
 	// draw all meshes
+	int iFrame = Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex();
 	for (auto& mesh : m_meshes)
 	{
-		m_cbuffer->setData((void*)mesh->getMatrix());
+		m_cbuffer->updateData((void*)mesh->getMatrix(), iFrame);
 		mesh->draw();
 	}
 }
