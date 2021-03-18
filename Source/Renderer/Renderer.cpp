@@ -384,11 +384,6 @@ void Renderer::beginFrame()
 	ID3D12DescriptorHeap* descriptorHeaps[] = { m_cbDescriptorHeaps[backBufferIndex].Get() };
 	m_graphicsDirectList[backBufferIndex].Get()->SetDescriptorHeaps(ARRAYSIZE(descriptorHeaps), descriptorHeaps);
 	m_graphicsDirectList[backBufferIndex].Get()->SetGraphicsRootDescriptorTable(0, m_cbDescriptorHeaps[backBufferIndex].Get()->GetGPUDescriptorHandleForHeapStart());
-
-	//Set waiting criteria
-	//m_renderingFence.Get()->Signal(101);
-	//m_computeQueue.Get()->Wait(m_renderingFence.Get(), 102);
-	m_directQueue.Get()->Wait(m_renderingFence.Get(), UINT64(102) + UINT64(10*backBufferIndex));
 }
 
 void Renderer::executeList()
@@ -441,6 +436,7 @@ void Renderer::executeList()
 		exit(-1);
 	}
 
+	m_directQueue->Wait(m_renderingFence.Get(), UINT64(102) + UINT64(10 * backBufferIndex));
 	m_directQueue->Signal(m_renderingFence.Get(), UINT64(301) + UINT64(10 * backBufferIndex)); //Direct Starting
 
 	//Execute the commands!
