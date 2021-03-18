@@ -17,8 +17,6 @@ private:
 	DirectX::XMVECTOR m_eye;
 	DirectX::XMVECTOR m_target;
 	DirectX::XMVECTOR m_up;
-
-	DirectX::XMVECTOR m_position;
 	DirectX::XMVECTOR m_forward;
 	DirectX::XMVECTOR m_right;
 
@@ -33,10 +31,12 @@ private:
 	bool m_viewUpdated = false;
 	bool m_projUpdated = false;
 
+	bool m_firstPersonCamera = false;
+
 	void rotatePlayer();
 	void movePlayer();
 public:
-	Camera();
+	Camera(bool firstPersonCamera);
 	~Camera();
 
 	void setEye(float x, float y, float z);
