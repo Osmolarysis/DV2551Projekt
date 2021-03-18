@@ -17,7 +17,10 @@ ComPtr<ID3D12Resource2> makeBufferHeap(D3D12_HEAP_TYPE type, UINT64 size, LPCWST
 		IID_PPV_ARGS(resource.GetAddressOf())
 	);
 	if (hr != S_OK) {
-		printf("Error creating vertex buffer\n");
+		printf("Error creating ");
+		wprintf(heapName);
+		printf("\n");
+		
 		exit(-1);
 	}
 	resource->SetName(heapName);
@@ -30,7 +33,7 @@ void setUploadHeapData(ComPtr<ID3D12Resource2> resource, const void* data, size_
 	D3D12_RANGE range = { 0, 0 };	// We do not intend to read from this resource on the CPU.
 	HRESULT hr = resource->Map(0, &range, &dataBegin);
 	if (hr != S_OK) {
-		printf("Error mapping vertex buffer resources");
+		printf("Error mapping upload heap resources");
 		exit(-1);
 	}
 	memcpy((char*)dataBegin, (char*)data, size);

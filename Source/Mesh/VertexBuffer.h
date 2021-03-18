@@ -34,7 +34,25 @@ public:
 		
 	struct Vertex {
 		DirectX::XMFLOAT3 pos;
+		DirectX::XMFLOAT3 normal;
 		DirectX::XMFLOAT4 color;
+		DirectX::XMFLOAT2 uv;
+		Vertex() {};
+		Vertex(const DirectX::XMFLOAT3& p,
+			const DirectX::XMFLOAT3& n,
+			const DirectX::XMFLOAT4& c,
+			const DirectX::XMFLOAT2& texC) :
+			pos(p),
+			normal(n),
+			color(c),
+			uv(texC) {};
+		Vertex(float px, float py, float pz,
+			float nx, float ny, float nz,
+			float u, float v) :
+			pos(px, py, pz),
+			normal(nx, ny, nz),
+			color(0, 0, 0, 1),
+			uv(u, v) {};
 	};
 };
 
