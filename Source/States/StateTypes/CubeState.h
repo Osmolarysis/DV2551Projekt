@@ -26,6 +26,7 @@ private:
 	void computeRecord();
 	void directRecord();
 
+	std::shared_ptr<VertexBuffer> createBox(float width, float hight, float depth);
 public:
 	CubeState();
 	~CubeState();
