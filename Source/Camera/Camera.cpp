@@ -160,19 +160,16 @@ void Camera::update()
 		rotatePlayer();
 		movePlayer();
 	}
-	
-	if (m_viewUpdated || m_projUpdated)
-	{
-		if (m_viewUpdated) {
-			m_matrices.m_view = XMMatrixLookAtRH(m_eye, m_target, m_up);
-			m_viewUpdated = false;
-		}
-		if (m_projUpdated) {
-			m_matrices.m_proj = XMMatrixPerspectiveFovRH(m_fov, m_aspectRatio, m_nearPlane, m_farPlane);
-			m_projUpdated = false;
-		}
-		m_matrices.dt = (float)Timer::getInstance()->getDt();
 
-		m_cameraBuffer->updateData(&m_matrices, Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex(), Renderer::getInstance()->getCopyCommandList());
+	if (m_viewUpdated) {
+		m_matrices.m_view = XMMatrixLookAtRH(m_eye, m_target, m_up);
+		m_viewUpdated = false;
 	}
+	if (m_projUpdated) {
+		m_matrices.m_proj = XMMatrixPerspectiveFovRH(m_fov, m_aspectRatio, m_nearPlane, m_farPlane);
+		m_projUpdated = false;
+	}
+	m_matrices.dt = (float)Timer::getInstance()->getDt();
+
+	m_cameraBuffer->updateData(&m_matrices, Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex(), Renderer::getInstance()->getCopyCommandList());
 }
