@@ -6,7 +6,7 @@ struct VS_in {
 struct VS_out {
 	//float4 posW : POSITIONH; //Not needed right not, but might be in the future
 	float4 posH : SV_POSITION;
-	float4 colour : COLOR;
+	float2 uv : UV;
 };
 
 cbuffer matrixBuffer : register(b0)
@@ -29,7 +29,7 @@ VS_out main( VS_in input )
 	output.posH = mul(transform, float4(input.pos, 1.0f));
 	output.posH = mul(viewMatrix, output.posH);
 	output.posH = mul(projMatrix, output.posH);
-	output.colour = float4(input.uv, 0, 1);
+	output.uv = input.uv;
 
 	return output;
 }

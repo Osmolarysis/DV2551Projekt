@@ -31,7 +31,7 @@ ComPtr<ID3D12Resource2> makeTextureHeap(D3D12_HEAP_TYPE type, UINT64 size, LPCWS
 {
 	//Do initial stuff
 	auto hp = CD3DX12_HEAP_PROPERTIES(type);
-	auto rd = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_UNKNOWN, width, height);
+	auto rd = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, width, height);
 	auto state = (type == D3D12_HEAP_TYPE_DEFAULT) ? D3D12_RESOURCE_STATE_COMMON : D3D12_RESOURCE_STATE_GENERIC_READ;
 	ComPtr<ID3D12Resource2> resource;
 	// create heap
@@ -67,6 +67,11 @@ void setUploadHeapData(ComPtr<ID3D12Resource2> resource, const void* data, size_
 	resource->Unmap(0, nullptr);
 }
 
+void updateBufferHeap(ID3D12GraphicsCommandList* cmdList, const void* initData, UINT64 byteSize, ComPtr<ID3D12Resource2>& uploadBuffer, D3D12_RESOURCE_STATES resourceStateAfter)
+{
+	// TODO
+}
+
 // Returns defaultBuffer and uploadBuffer in parameter output.
 // uploadBuffer needs to stay in memory until the copy is complete.
 ComPtr<ID3D12Resource2> CreateDefaultBuffer(ID3D12GraphicsCommandList* cmdList, const void* initData, UINT64 byteSize, ComPtr<ID3D12Resource2>& uploadBuffer, LPCWSTR name, D3D12_RESOURCE_STATES resourceStateAfter)
@@ -100,7 +105,7 @@ ComPtr<ID3D12Resource2> CreateDefaultTexture(ID3D12GraphicsCommandList* cmdList,
 	// allocates memory
 	ComPtr<ID3D12Resource2> defaultHeap = makeTextureHeap(D3D12_HEAP_TYPE_DEFAULT, byteSize, name, width, height);
 	size_t requiredSize = GetRequiredIntermediateSize(defaultHeap.Get(), 0, 1);
-	uploadBuffer = makeTextureHeap(D3D12_HEAP_TYPE_UPLOAD, requiredSize, L"uploadHeap", width, height);
+	uploadBuffer = makeBufferHeap(D3D12_HEAP_TYPE_UPLOAD, requiredSize, L"uploadHeap");
 
 	// describe data
 	int texturePixelSize = 4;

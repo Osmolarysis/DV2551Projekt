@@ -6,6 +6,13 @@ Mesh::Mesh()
 	calculateMatrix();
 }
 
+Mesh::Mesh(std::shared_ptr<VertexBuffer> vb, std::string FileNames, int nrOfImages)
+	: m_texture(FileNames, nrOfImages)
+{
+	addIAVertexBufferBinding(vb);	
+	calculateMatrix();
+}
+
 Mesh::~Mesh()
 {
 

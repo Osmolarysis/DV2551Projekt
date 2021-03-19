@@ -32,6 +32,7 @@ private:
 	void calculateMatrix();
 public:
 	Mesh();
+	Mesh(std::shared_ptr<VertexBuffer> vb, std::string FileNames, int nrOfImages = 1);
 	~Mesh();
 
 	// array of buffers with locations (binding points in shaders)

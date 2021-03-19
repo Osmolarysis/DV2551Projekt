@@ -220,10 +220,10 @@ void CubeState::initialise()
 
 	//Create triangle (later cube) - from box example
 
-	std::shared_ptr<VertexBuffer> vertBuf = createBox(1,1,1);
+	std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>(createBox(1,1,1), "Assets/fatboy.png");
 
 	// Add VertexBuffer (or Mesh) to the MeshGroup. (Mesh transform default to (0,0,0))
-	m_scene[0]->addMesh(vertBuf);
+	m_scene[0]->addMesh(mesh);
 
 	////Floor
 	//VertexBuffer::Vertex floorVertices[] =

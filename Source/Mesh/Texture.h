@@ -14,8 +14,9 @@ private:
 	bool m_isAnimation = false;
 public:
 	Texture() {};
-	Texture(int texWidth, int texHeight, std::string FileNames, int nrOfImages = 1);
+	Texture(std::string FileNames, int nrOfImages = 1);
 	~Texture();
 
-	bool setTexture(int texWidth, int texHeight, std::string FileName);
+	bool setTexture(std::string FileName, int frameIndex);
+	void updateShaderResourceView(int frameIndex);
 };

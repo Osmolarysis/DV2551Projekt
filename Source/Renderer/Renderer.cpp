@@ -1017,7 +1017,7 @@ bool Renderer::createDescriptorHeap()
 	for (int i = 0; i < NUM_SWAP_BUFFERS; i++)
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC dhdCB = {};
-		dhdCB.NumDescriptors = NUM_CONSTANT_BUFFERS;
+		dhdCB.NumDescriptors = NUM_BUFFERS_IN_DESC_HEAP;		// Now CBV and SRV
 		dhdCB.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		dhdCB.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 		hr = m_device->CreateDescriptorHeap(&dhdCB, IID_PPV_ARGS(&m_cbDescriptorHeaps[i]));
@@ -1086,17 +1086,15 @@ bool Renderer::createViewportAndScissorRect()
 bool Renderer::createRootSignature()
 {
 	//Constant Buffer Descriptor Range
-	CD3DX12_DESCRIPTOR_RANGE dtRangesCBV;
-	dtRangesCBV.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, NUM_CONSTANT_BUFFERS, 0);
+	CD3DX12_DESCRIPTOR_RANGE dtRangesCBV_SRV[2];
+	dtRangesCBV_SRV[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, NUM_CONSTANT_BUFFERS, 0); // b0, b1
+	dtRangesCBV_SRV[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, NUM_TEXTURE_BUFFERS, 0);  // t0
 
-	//Texture SRV Descriptor range
-	CD3DX12_DESCRIPTOR_RANGE texTable;
-	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+
 
 	//Create root parameter
-	CD3DX12_ROOT_PARAMETER rootParam[2];
-	rootParam[0].InitAsDescriptorTable(1, &dtRangesCBV, D3D12_SHADER_VISIBILITY_ALL);
-	rootParam[1].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_ALL);
+	CD3DX12_ROOT_PARAMETER rootParam[1];
+	rootParam[0].InitAsDescriptorTable(ARRAYSIZE(dtRangesCBV_SRV), dtRangesCBV_SRV, D3D12_SHADER_VISIBILITY_ALL);
 
 	//Create static samplers. (One from GetStaticSamplers in Frank Luna(ch.9, Create). Might want to steal whole function later)
 	const CD3DX12_STATIC_SAMPLER_DESC linearWrap(
