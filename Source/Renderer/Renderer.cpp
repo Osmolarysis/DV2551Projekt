@@ -183,6 +183,10 @@ bool Renderer::createDepthStencil()
 			return false;
 		}
 
+		std::wstring name = L"Depth stencil buffer ";
+		name.append(std::to_wstring(i));
+		m_depthStencilBuffer[i].Get()->SetName(name.c_str());
+
 		D3D12_CPU_DESCRIPTOR_HANDLE cdh = m_dbDescriptorHeap.Get()->GetCPUDescriptorHandleForHeapStart();
 		cdh.ptr += (SIZE_T)m_depthBufferDescriptorSize * (SIZE_T)i;
 
@@ -315,19 +319,22 @@ void Renderer::beginFrame()
 		printf("Error reseting copy list %i\n", backBufferIndex);
 		exit(-1);
 	}
+	std::wstring name = L"Copy list ";
+	name.append(std::to_wstring(backBufferIndex));
+	m_graphicsCopyList[backBufferIndex].Get()->SetName(name.c_str());
 
 	////Compute
-	//hr = m_computeAllocator[backBufferIndex].Get()->Reset();
-	//if (hr != S_OK) {
-	//	printf("Error reseting compute allocator %i\n", backBufferIndex);
-	//	exit(-1);
-	//}
+	hr = m_computeAllocator[backBufferIndex].Get()->Reset();
+	if (hr != S_OK) {
+		printf("Error reseting compute allocator %i\n", backBufferIndex);
+		exit(-1);
+	}
 
-	//hr = m_graphicsComputeList[backBufferIndex].Get()->Reset(m_computeAllocator[backBufferIndex].Get(), nullptr);
-	//if (hr != S_OK) {
-	//	printf("Error reseting compute list %i\n", backBufferIndex);
-	//	exit(-1);
-	//}
+	hr = m_graphicsComputeList[backBufferIndex].Get()->Reset(m_computeAllocator[backBufferIndex].Get(), nullptr);
+	if (hr != S_OK) {
+		printf("Error reseting compute list %i\n", backBufferIndex);
+		exit(-1);
+	}
 
 	//Direct
 	hr = m_directAllocator[backBufferIndex].Get()->Reset();
@@ -420,11 +427,22 @@ void Renderer::executeList()
 	WaitForSingleObject(m_computeHandle, INFINITE);
 
 	//Execute Compute queue
-	//m_computeQueue->Signal(m_renderingFence.Get(), computeQueueStart); //Starting
 	
 	//Work
 
-	//m_computeQueue->Signal(m_renderingFence.Get(), computeQueueFinished); //Done
+	hr = m_graphicsComputeList[backBufferIndex].Get()->Close();
+	if (hr != S_OK) {
+		printf("Error closing compute list %i\n", backBufferIndex);
+		exit(-1);
+	}
+	ID3D12CommandList* listsToExecuteCompute[] = { m_graphicsComputeList[backBufferIndex].Get() };
+
+	m_computeQueue->Wait(m_fence[backBufferIndex].Get(), copyQueueFinished); //Starting
+	m_computeQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecuteCompute), listsToExecuteCompute);
+
+	m_fenceValue[backBufferIndex]++;
+	UINT64 computeQueueFinished = m_fenceValue[backBufferIndex];
+	m_computeQueue->Signal(m_fence[backBufferIndex].Get(), computeQueueFinished); //Done
 
 	//Wait for Direct queue to finish recording
 
@@ -444,11 +462,11 @@ void Renderer::executeList()
 		exit(-1);
 	}
 
-	m_directQueue->Wait(m_fence[backBufferIndex].Get(), copyQueueFinished); //Soon to be computeQueueFinished
 	//m_directQueue->Signal(m_renderingFence.Get(), directQueueStart); //Direct Starting
 
 	//Execute the commands!
 	ID3D12CommandList* listsToExecute[] = { m_graphicsDirectList[backBufferIndex].Get() };
+	m_directQueue->Wait(m_fence[backBufferIndex].Get(), computeQueueFinished);
 	m_directQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecute), listsToExecute);
 
 	m_fenceValue[backBufferIndex]++;
@@ -714,6 +732,7 @@ bool Renderer::createDevice() // DXR support is assumed... todo
 		if (hr != S_OK) {
 			return false;
 		}
+		m_device.Get()->SetName(L"Device");
 	}
 	else {
 		// No adapter with level 12.1
@@ -791,17 +810,9 @@ bool Renderer::createDirectQueue()
 			printf("Error creating direct list");
 			exit(-1);
 		}
-
-		//Command lists are created in the recording state. Since there is nothing to
-		//record right now and the main loop expects it to be closed, we close it.
-		//hr = m_graphicsDirectList[i].Get()->Close();
-
-		if (hr != S_OK) {
-			printf("Error closing direct list at initialisation");
-			exit(-1);
-		}
-
-		m_graphicsDirectList[i].Get()->SetName(L"Direct queue");
+		std::wstring name = L"Direct list ";
+		name.append(std::to_wstring(i));
+		m_graphicsDirectList[i].Get()->SetName(name.c_str());
 	}
 
 	return true;
@@ -842,16 +853,9 @@ bool Renderer::createCopyQueue()
 			printf("Error creating copy list");
 			exit(-1);
 		}
-
-		//Command lists are created in the recording state. Since there is nothing to
-		//record right now and the main loop expects it to be closed, we close it.
-		//hr = m_graphicsCopyList[i].Get()->Close();
-
-		if (hr != S_OK) {
-			printf("Error closing copy list at initialisation");
-			exit(-1);
-		}
-		m_graphicsCopyList[i].Get()->SetName(L"Copy queue");
+		std::wstring name = L"Copy list ";
+		name.append(std::to_wstring(i));
+		m_graphicsCopyList[i].Get()->SetName(name.c_str());
 	}
 
 	return true;
@@ -890,16 +894,9 @@ bool Renderer::createComputeQueue()
 			printf("Error creating compute list");
 			exit(-1);
 		}
-
-		//Command lists are created in the recording state. Since there is nothing to
-		//record right now and the main loop expects it to be closed, we close it.
-		//hr = m_graphicsComputeList[i].Get()->Close();
-
-		if (hr != S_OK) {
-			printf("Error closing compute list at initialisation");
-			exit(-1);
-		}
-		m_graphicsComputeList[i].Get()->SetName(L"Compute queue");
+		std::wstring name = L"Compute list ";
+		name.append(std::to_wstring(i));
+		m_graphicsComputeList[i].Get()->SetName(name.c_str());
 	}
 
 	return true;
@@ -1059,6 +1056,9 @@ bool Renderer::createRenderTargets()
 		hr = m_swapChain->GetBuffer(n, IID_PPV_ARGS(m_renderTargets[n].GetAddressOf()));
 		m_device->CreateRenderTargetView(m_renderTargets[n].Get(), nullptr, cdh);
 		cdh.ptr += m_renderTargetDescriptorSize;
+		std::wstring name = L"Render target ";
+		name.append(std::to_wstring(n));
+		m_renderTargets[n].Get()->SetName(name.c_str());
 	}
 
 	if (hr != S_OK)
@@ -1137,6 +1137,7 @@ bool Renderer::createRootSignature()
 	if (hr != S_OK) {
 		return false;
 	}
+	m_rootSignature.Get()->SetName(L"Root signature");
 
 	SafeRelease(&sBlob);
 
