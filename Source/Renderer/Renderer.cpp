@@ -128,7 +128,10 @@ Renderer::~Renderer()
 	}
 
 	//Fence and event handle
-	SafeRelease(m_fence.GetAddressOf());
+	for (size_t i = 0; i < NUM_SWAP_BUFFERS; i++)
+	{
+		SafeRelease(m_fence[i].GetAddressOf());
+	}
 }
 
 bool Renderer::createDepthStencil()
@@ -235,22 +238,25 @@ void Renderer::closeCommandLists()
 		}
 	}
 
-	//Should maybe do some fencing here.
-	ID3D12CommandList* copyListsToExecute[] = { m_graphicsCopyList[0].Get(), m_graphicsCopyList[1].Get() };
-	m_copyQueue->ExecuteCommandLists(ARRAYSIZE(copyListsToExecute), copyListsToExecute);
-	m_copyQueue->Signal(m_renderingFence.Get(), 1);
+	for (size_t i = 0; i < NUM_SWAP_BUFFERS; i++)
+	{
+		ID3D12CommandList* copyListsToExecute[] = { m_graphicsCopyList[i].Get() };
+		m_copyQueue->ExecuteCommandLists(ARRAYSIZE(copyListsToExecute), copyListsToExecute);
+		m_copyQueue->Signal(m_fence[i].Get(), 1);
 
-	m_computeQueue->Wait(m_renderingFence.Get(), 1);
-	ID3D12CommandList* computeListsToExecute[] = { m_graphicsComputeList[0].Get(), m_graphicsComputeList[1].Get() };
-	m_computeQueue->ExecuteCommandLists(ARRAYSIZE(computeListsToExecute), computeListsToExecute);
-	m_computeQueue->Signal(m_renderingFence.Get(), 2);
+		m_computeQueue->Wait(m_fence[i].Get(), 1);
+		ID3D12CommandList* computeListsToExecute[] = { m_graphicsComputeList[i].Get() };
+		m_computeQueue->ExecuteCommandLists(ARRAYSIZE(computeListsToExecute), computeListsToExecute);
+		m_computeQueue->Signal(m_fence[i].Get(), 2);
 
-	m_directQueue->Wait(m_renderingFence.Get(), 2);
-	ID3D12CommandList* directListsToExecute[] = { m_graphicsDirectList[0].Get(), m_graphicsDirectList[1].Get() };
-	m_directQueue->ExecuteCommandLists(ARRAYSIZE(directListsToExecute), directListsToExecute);
+		m_directQueue->Wait(m_fence[i].Get(), 2);
+		ID3D12CommandList* directListsToExecute[] = { m_graphicsDirectList[i].Get()};
+		m_directQueue->ExecuteCommandLists(ARRAYSIZE(directListsToExecute), directListsToExecute);
 
-	m_fenceValue += 2;
-	m_directQueue->Signal(m_fence.Get(), m_fenceValue);
+		m_fenceValue[i] = 3;
+		m_frameComplete[i] = 3;
+		m_directQueue->Signal(m_fence[i].Get(), m_fenceValue[i]);
+	}
 }
 
 ID3D12RootSignature* Renderer::getRootSignature()
@@ -285,20 +291,18 @@ void Renderer::beginFrame()
 
 	UINT backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
 
-	UINT64 lastFinishedQueue = m_fence.Get()->GetCompletedValue(); //Number of last finished queue
+	UINT64 lastFinishedQueue = m_fence[backBufferIndex].Get()->GetCompletedValue(); //Number of last finished queue
 
 	//Wait
-	/*while (m_fenceValue - lastFinishedQueue >= 2) {
-		lastFinishedQueue = m_fence.Get()->GetCompletedValue();
-	}*/
-	if (m_fenceValue - lastFinishedQueue >= 2) {
-		m_fence.Get()->SetEventOnCompletion(m_fenceValue - UINT64(1), m_eventHandle);
-		WaitForSingleObject(m_eventHandle, INFINITE);
+
+	if (m_frameComplete[backBufferIndex] > lastFinishedQueue) { 
+		HRESULT hr = m_fence[backBufferIndex].Get()->SetEventOnCompletion(m_frameComplete[backBufferIndex], m_eventHandle[backBufferIndex]);
+		WaitForSingleObject(m_eventHandle[backBufferIndex], INFINITE);
 	}
 
 	float clearColour[4] = { 0.3f, 0.3f, 0.0f, 1.0f };
 
-	//Clear
+	// -- Clear --
 	//Copy
 	HRESULT hr = m_copyAllocator[backBufferIndex].Get()->Reset();
 	if (hr != S_OK) {
@@ -404,7 +408,11 @@ void Renderer::executeList()
 
 	ID3D12CommandList* listsToExecuteCopy[] = { m_graphicsCopyList[backBufferIndex].Get() };
 	m_copyQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecuteCopy), listsToExecuteCopy);
-	m_copyQueue->Signal(m_renderingFence.Get(), UINT64(102) + UINT64(10*backBufferIndex));
+
+	m_fenceValue[backBufferIndex]++;
+	UINT64 copyQueueFinished = m_fenceValue[backBufferIndex];
+
+	m_copyQueue->Signal(m_fence[backBufferIndex].Get(), copyQueueFinished);
 
 
 	//Wait for Compute queue to finish recording
@@ -412,11 +420,11 @@ void Renderer::executeList()
 	WaitForSingleObject(m_computeHandle, INFINITE);
 
 	//Execute Compute queue
-	//m_computeQueue->Signal(m_renderingFence.Get(), 201); //Starting
+	//m_computeQueue->Signal(m_renderingFence.Get(), computeQueueStart); //Starting
 	
 	//Work
 
-	//m_computeQueue->Signal(m_renderingFence.Get(), 202); //Done
+	//m_computeQueue->Signal(m_renderingFence.Get(), computeQueueFinished); //Done
 
 	//Wait for Direct queue to finish recording
 
@@ -436,19 +444,18 @@ void Renderer::executeList()
 		exit(-1);
 	}
 
-	m_directQueue->Wait(m_renderingFence.Get(), UINT64(102) + UINT64(10 * backBufferIndex));
-	m_directQueue->Signal(m_renderingFence.Get(), UINT64(301) + UINT64(10 * backBufferIndex)); //Direct Starting
+	m_directQueue->Wait(m_fence[backBufferIndex].Get(), copyQueueFinished); //Soon to be computeQueueFinished
+	//m_directQueue->Signal(m_renderingFence.Get(), directQueueStart); //Direct Starting
 
 	//Execute the commands!
 	ID3D12CommandList* listsToExecute[] = { m_graphicsDirectList[backBufferIndex].Get() };
 	m_directQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecute), listsToExecute);
 
-	//m_directQueue->Signal(m_renderingFence.Get(), 302); //Direct finished
-
-	m_fenceValue++;
+	m_fenceValue[backBufferIndex]++;
+	m_frameComplete[backBufferIndex] = m_fenceValue[backBufferIndex]; //Direct finished
 
 	//Set finished rendering value
-	m_directQueue.Get()->Signal(m_fence.Get(), m_fenceValue);
+	m_directQueue.Get()->Signal(m_fence[backBufferIndex].Get(), m_frameComplete[backBufferIndex]);
 }
 
 void Renderer::present()
@@ -486,39 +493,42 @@ void Renderer::setWindowTitle(std::wstring newTitle)
 
 void Renderer::waitForGPU()
 {
-	//Wait for copy queue
-	const UINT64 fenceCopy = m_fenceValue;
-	m_copyQueue->Signal(m_fence.Get(), fenceCopy);
-	m_fenceValue++;
-
-	//Wait until copy queue is done.
-	if (m_fence->GetCompletedValue() < fenceCopy)
+	for (size_t i = 0; i < NUM_SWAP_BUFFERS; i++)
 	{
-		m_fence->SetEventOnCompletion(fenceCopy, m_eventHandle);
-		WaitForSingleObject(m_eventHandle, INFINITE);
-	}
+		//Wait for copy queue
+		const UINT64 fenceCopy = m_fenceValue[i];
+		m_copyQueue->Signal(m_fence[i].Get(), fenceCopy);
+		m_fenceValue[i]++;
 
-	//Wait for compute queue
-	const UINT64 fenceCompute = m_fenceValue;
-	m_computeQueue->Signal(m_fence.Get(), fenceCompute);
-	m_fenceValue++;
+		//Wait until copy queue is done.
+		if (m_fence[i]->GetCompletedValue() < fenceCopy)
+		{
+			m_fence[i]->SetEventOnCompletion(fenceCopy, m_eventHandle);
+			WaitForSingleObject(m_eventHandle, INFINITE);
+		}
 
-	//Wait until compute queue is done.
-	if (m_fence->GetCompletedValue() < fenceCompute)
-	{
-		m_fence->SetEventOnCompletion(fenceCompute, m_eventHandle);
-		WaitForSingleObject(m_eventHandle, INFINITE);
-	}
+		//Wait for compute queue
+		const UINT64 fenceCompute = m_fenceValue[i];
+		m_computeQueue->Signal(m_fence[i].Get(), fenceCompute);
+		m_fenceValue[i]++;
 
-	const UINT64 fenceDirect = m_fenceValue;
-	m_directQueue->Signal(m_fence.Get(), fenceDirect);
-	m_fenceValue++;
+		//Wait until compute queue is done.
+		if (m_fence[i]->GetCompletedValue() < fenceCompute)
+		{
+			m_fence[i]->SetEventOnCompletion(fenceCompute, m_eventHandle);
+			WaitForSingleObject(m_eventHandle, INFINITE);
+		}
 
-	//Wait until direct queue is done.
-	if (m_fence->GetCompletedValue() < fenceDirect)
-	{
-		m_fence->SetEventOnCompletion(fenceDirect, m_eventHandle);
-		WaitForSingleObject(m_eventHandle, INFINITE);
+		const UINT64 fenceDirect = m_fenceValue[i];
+		m_directQueue->Signal(m_fence[i].Get(), fenceDirect);
+		m_fenceValue[i]++;
+
+		//Wait until direct queue is done.
+		if (m_fence[i]->GetCompletedValue() < fenceDirect)
+		{
+			m_fence[i]->SetEventOnCompletion(fenceDirect, m_eventHandle);
+			WaitForSingleObject(m_eventHandle, INFINITE);
+		}
 	}
 }
 
@@ -615,11 +625,6 @@ HANDLE Renderer::getDirectHandle()
 HANDLE Renderer::getDirectThreadHandle()
 {
 	return m_directThreadHandle;
-}
-
-void Renderer::setFence(int fence, int value)
-{
-	m_directQueue.Get()->Signal(m_fence.Get(), value);
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -945,16 +950,22 @@ bool Renderer::createSwapChain()
 
 bool Renderer::createFenceAndEventHandle()
 {
+	HRESULT hr;
 	//Rendering fence
-	HRESULT hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_fence.GetAddressOf()));
-	if (hr != S_OK) {
-		printf("Error creating fence");
-		exit(-1);
+	for (size_t i = 0; i < NUM_SWAP_BUFFERS; i++)
+	{
+		HRESULT hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_fence[i].GetAddressOf()));
+		if (hr != S_OK) {
+			printf("Error creating fence");
+			exit(-1);
+		}
+		m_fenceValue[i] = 0;
+		// Creation of an event handle to use in GPU synchronization
+		m_eventHandle[i] = CreateEvent(0, false, false, 0);
+		std::wstring name = L"Frame fence ";
+		name.append(std::to_wstring(i));
+		m_fence[i].Get()->SetName(name.c_str());
 	}
-	m_fenceValue = 0;
-	// Creation of an event handle to use in GPU synchronization
-	m_eventHandle = CreateEvent(0, false, false, 0);
-	m_fence.Get()->SetName(L"Frame fence");
 
 
 	//Copy queue fence
@@ -989,15 +1000,6 @@ bool Renderer::createFenceAndEventHandle()
 	m_directHandle = CreateEvent(0, false, false, 0);
 	m_directThreadHandle = CreateEvent(0, false, false, 0);
 	m_directFence.Get()->SetName(L"Direct recording fence");
-
-	hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_renderingFence.GetAddressOf()));
-	if (hr != S_OK) {
-		printf("Error creating rendering fence");
-		exit(-1);
-	}
-	// Creation of an event handle to use in GPU synchronization
-	m_renderingHandle = CreateEvent(0, false, false, 0);
-	m_renderingFence.Get()->SetName(L"Rendering fence");
 
 	return true;
 }
