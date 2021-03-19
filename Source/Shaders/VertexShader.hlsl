@@ -13,13 +13,15 @@ cbuffer matrixBuffer : register(b0)
 {
 	float4x4 viewMatrix;
 	float4x4 projMatrix;
-	float4x4 padd1[2];
+	float dt;
+	float3 smallPadd;
+	float4 matrixPadd[7];
 }
 
 cbuffer transformBuffer : register(b1)
 {
 	float4x4 transform;
-	float4 padd2[12];
+	float4 transformPadd[12];
 }
 
 VS_out main( VS_in input )

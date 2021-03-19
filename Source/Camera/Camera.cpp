@@ -103,6 +103,7 @@ Camera::Camera(bool firstPersonCamera)
 
 	m_firstPersonCamera = firstPersonCamera;
 
+	m_matrices.dt = (float)Timer::getInstance()->getDt();
 	m_cameraBuffer->setData(&m_matrices);
 }
 
@@ -170,6 +171,7 @@ void Camera::update()
 			m_matrices.m_proj = XMMatrixPerspectiveFovRH(m_fov, m_aspectRatio, m_nearPlane, m_farPlane);
 			m_projUpdated = false;
 		}
+		m_matrices.dt = (float)Timer::getInstance()->getDt();
 
 		m_cameraBuffer->updateData(&m_matrices, Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex(), Renderer::getInstance()->getCopyCommandList());
 	}
