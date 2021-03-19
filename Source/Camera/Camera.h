@@ -9,6 +9,7 @@ private:
 	struct Matrices {
 		DirectX::XMMATRIX m_view;
 		DirectX::XMMATRIX m_proj;
+		float dt;
 	};
 
 	std::shared_ptr<ConstantBuffer> m_cameraBuffer;
