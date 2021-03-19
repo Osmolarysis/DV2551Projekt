@@ -329,7 +329,7 @@ void Renderer::beginFrame()
 		printf("Error reseting compute allocator %i\n", backBufferIndex);
 		exit(-1);
 	}
-
+	
 	hr = m_graphicsComputeList[backBufferIndex].Get()->Reset(m_computeAllocator[backBufferIndex].Get(), nullptr);
 	if (hr != S_OK) {
 		printf("Error reseting compute list %i\n", backBufferIndex);
