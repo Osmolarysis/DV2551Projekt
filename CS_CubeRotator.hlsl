@@ -1,42 +1,34 @@
-uint wang_hash(uint seed) //Random generator
+cbuffer matrixBuffer : register(b0)
 {
-    seed = (seed ^ 61) ^ (seed >> 16);
-    seed *= 9;
-    seed = seed ^ (seed >> 4);
-    seed *= 0x27d4eb2d;
-    seed = seed ^ (seed >> 15);
-    return seed;
+    float4x4 viewMatrix;
+    float4x4 projMatrix;
+    float dt;
+    float3 smallPadd;
+    float4 matrixPadd[7];
 }
 
-cbuffer dtBuffer {
-    float dt;
-    float padding[63];
+struct transformation {
+    float4 rotation;
+    float4 translation;
 };
 
-RWBuffer<float3> rotationBuffer;
+RWStructuredBuffer <transformation> transformBuffer_1 : register(u0);
+RWStructuredBuffer <transformation> transformBuffer_2 : register(u1);
 
 static const float PI = 3.14159265f;
 
 [numthreads(1, 1, 1)]
 void main( uint3 DTid : SV_DispatchThreadID )
 {
+    //Read data
     float delta = dt;
+    transformation transform = transformBuffer_1[DTid.x];
 
-    // Randomise
-    float randomx = wang_hash(DTid.x);
-    float randomy = wang_hash(randomx);
-    float randomz = wang_hash(randomy);
+    // Update
+    transform.rotation.x += PI * delta;
+    transform.rotation.y += PI * delta;
+    transform.rotation.z += PI * delta;
 
-    // Normalise
-    randomx = randomx * (1.0f / 4294967296.0f);
-    randomy = randomy * (1.0f / 4294967296.0f);
-    randomz = randomz * (1.0f / 4294967296.0f);
-
-    // Update-ise
-    float3 updatedCube = rotationBuffer[DTid.x];
-    updatedCube.x += randomx * PI * delta;
-    updatedCube.y += randomy * PI * delta;
-    updatedCube.z += randomz * PI * delta;
-
-    rotationBuffer[DTid.x] = updatedCube;
+   //Write data
+    transformBuffer_2[DTid.x] = transform;
 }

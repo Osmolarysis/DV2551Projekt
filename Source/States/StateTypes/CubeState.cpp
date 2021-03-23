@@ -2,6 +2,7 @@
 #include "..\..\Renderer\Renderer.h"
 #include "..\..\Utility\Timer.h"
 #include <iostream>
+#include "..\..\DXUtility\DXUtility.h"
 using namespace DirectX;
 
 void CubeState::copyRecord()
@@ -41,6 +42,7 @@ void CubeState::computeRecord()
 
 	while (m_computeThread.isActive) {
 		//Thread work
+
 
 		//Thread handling
 		fenceValue = Renderer::getInstance()->incAndGetComputeValue();
@@ -172,7 +174,6 @@ CubeState::~CubeState()
 
 	//Multithreads
 	m_copyThread.m_mutex.lock();
-	m_copyThread.isRunning = false;
 	m_copyThread.isActive = false;
 	if (m_copyThread.m_thread != nullptr)
 	{
@@ -183,7 +184,6 @@ CubeState::~CubeState()
 	m_copyThread.m_mutex.unlock();
 
 	m_computeThread.m_mutex.lock();
-	m_computeThread.isRunning = false;
 	m_computeThread.isActive = false;
 	if (m_computeThread.m_thread != nullptr)
 	{
@@ -195,7 +195,6 @@ CubeState::~CubeState()
 
 
 	m_directThread.m_mutex.lock();
-	m_directThread.isRunning = false;
 	m_directThread.isActive = false;
 	if (m_directThread.m_thread != nullptr)
 	{
@@ -242,6 +241,26 @@ void CubeState::initialise()
 	m_directThread.m_mutex.lock();
 	m_directThread.m_thread = new std::thread([this] {directRecord(); });
 	m_directThread.m_mutex.unlock();
+
+	//Transformation
+
+	L"Source/Shaders/CS_Initialisation.hlsl", L"Source/Shaders/CS_CubeRotator.hlsl";
+
+	D3D12_COMPUTE_PIPELINE_STATE_DESC cpsd;
+
+
+	ID3D12GraphicsCommandList* computeCommandList = renderer->getComputeCommandList();
+	m_ACHeap = makeBufferHeap(D3D12_HEAP_TYPE_DEFAULT, sizeof(m_transformationMatrix), L"transformation heap");
+	for (size_t i = 0; i < 2; i++)
+	{
+		std::wstring name = L"Append & consume buffer ";
+		name.append(std::to_wstring(i));
+		m_ACBuffer[i] = CreateDefaultBuffer(computeCommandList, m_transformationMatrix, sizeof(m_transformationMatrix), m_ACHeap, name.c_str(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	}
+	computeCommandList->SetComputeRootSignature(renderer->getRootSignature());
+	computeCommandList->SetComputeRootUnorderedAccessView(1, m_ACBuffer[0]->GetGPUVirtualAddress());
+	computeCommandList->SetComputeRootUnorderedAccessView(2, m_ACBuffer[1]->GetGPUVirtualAddress());
+	computeCommandList->Dispatch(1, 1, 1);
 }
 
 void CubeState::update()
