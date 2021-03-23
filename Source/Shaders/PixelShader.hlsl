@@ -9,5 +9,5 @@ SamplerState mySampler : register(s0);
 float4 main(PS_in input) : SV_TARGET
 {
 	float4 color = diffuseMap.Sample(mySampler, input.uv);
-	return float4(input.uv, 0, 1);
+	return color;
 }

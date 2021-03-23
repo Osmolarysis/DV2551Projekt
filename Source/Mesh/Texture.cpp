@@ -16,7 +16,7 @@ Texture::Texture(std::string FileNames, int nrOfImages)
 	}
 	for (int i = 0; i < 2; ++i)
 	{
-		m_resource[i] = CreateDefaultTexture(Renderer::getInstance()->getDirectCommandList(), &rgb[0], w * h * bpp, m_uploadHeap[i], L"", D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, w, h, bpp);
+		m_resource[i] = CreateDefaultTexture(Renderer::getInstance()->getCopyCommandList(), &rgb[0], w * h * bpp, m_uploadHeap[i], L"", D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, w, h, bpp);
 		updateShaderResourceView(i);
 	}
 	delete rgb;

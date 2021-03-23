@@ -116,8 +116,8 @@ ComPtr<ID3D12Resource2> CreateDefaultTexture(ID3D12GraphicsCommandList* cmdList,
 	// transision resource is already set as COPY_DEST
 	// helper funcition to upload data to upload heap and copy to default heap
 	UpdateSubresources(cmdList, defaultHeap.Get(), uploadBuffer.Get(), 0, 0, 1, &vbData);
-	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(defaultHeap.Get(), D3D12_RESOURCE_STATE_COPY_DEST, resourceStateAfter);
-	cmdList->ResourceBarrier(1, &barrier);
+	/*auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(defaultHeap.Get(), D3D12_RESOURCE_STATE_COPY_DEST, resourceStateAfter);
+	cmdList->ResourceBarrier(1, &barrier);*/
 
 
 
