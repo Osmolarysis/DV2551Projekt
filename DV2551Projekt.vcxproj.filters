@@ -40,9 +40,6 @@
     <Filter Include="Source Files\DXUtility">
       <UniqueIdentifier>{ae4a24b2-c61e-4cf1-b5e2-70c2b38499aa}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\ReadWriteBuffer">
-      <UniqueIdentifier>{4bd16ac8-dfff-441f-8256-f9f5c791c496}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Renderer\Renderer.cpp">
@@ -104,9 +101,6 @@
     <ClInclude Include="Source\ConstantBuffer\ConstantBuffer.h">
       <Filter>Source Files\ConstantBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Mesh\VertexBuffer.h">
-      <Filter>Source Files\Mesh</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Mesh\MeshGroup.h">
       <Filter>Source Files\Mesh</Filter>
     </ClInclude>
@@ -125,10 +119,10 @@
     <ClInclude Include="Source\DXUtility\DXUtility.h">
       <Filter>Source Files\DXUtility</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ReadWriteBuffer\ReadWriteBuffer.h">
-      <Filter>Source Files\ReadWriteBuffer</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Mesh\Texture.h">
+      <Filter>Source Files\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Mesh\VertexBuffer.h">
       <Filter>Source Files\Mesh</Filter>
     </ClInclude>
   </ItemGroup>
@@ -140,6 +134,9 @@
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="CS_CubeRotator.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Source\Shaders\CS_Initialisation.hlsl">
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

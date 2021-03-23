@@ -1121,12 +1121,12 @@ bool Renderer::createRootSignature()
 	//CD3DX12_DESCRIPTOR_RANGE dtRangesSRV[1];
 	//dtRangesSRV[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, NUM_TEXTURE_BUFFERS, 0);  // t0
 
-
-
 	//Create root parameter
-	CD3DX12_ROOT_PARAMETER rootParam[1];
+	CD3DX12_ROOT_PARAMETER rootParam[3];
 	rootParam[0].InitAsDescriptorTable(ARRAYSIZE(dtRangesCBV), dtRangesCBV, D3D12_SHADER_VISIBILITY_ALL);
 	//rootParam[1].InitAsDescriptorTable(ARRAYSIZE(dtRangesSRV), dtRangesSRV, D3D12_SHADER_VISIBILITY_ALL);
+	rootParam[1].InitAsUnorderedAccessView(0);
+	rootParam[2].InitAsUnorderedAccessView(1);
 
 	//Create static samplers. (One from GetStaticSamplers in Frank Luna(ch.9, Create). Might want to steal whole function later)
 	const CD3DX12_STATIC_SAMPLER_DESC linearWrap(
