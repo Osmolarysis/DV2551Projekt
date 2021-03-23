@@ -72,7 +72,7 @@ private:
 	ComPtr<ID3D12DescriptorHeap> m_dbDescriptorHeap;
 	ComPtr<ID3D12Resource> m_depthStencilBuffer[NUM_SWAP_BUFFERS];
 	UINT m_depthBufferDescriptorSize = 0;
-	bool dsvSetWrite[NUM_SWAP_BUFFERS] = {false, false};
+	bool dsvSetWrite[NUM_SWAP_BUFFERS] = { false, false };
 
 	//Constant Buffer Descriptor Heaps
 	ComPtr<ID3D12DescriptorHeap> m_cbDescriptorHeaps[NUM_SWAP_BUFFERS];
@@ -96,13 +96,10 @@ private:
 	ComPtr<ID3D12GraphicsCommandList> m_graphicsComputeList[NUM_COMMANDLISTS];
 
 	//Fence and event handle
-	ComPtr<ID3D12Fence1> m_fence; //Fence for frame counting
-	UINT64 m_fenceValue = 0;
-	HANDLE m_eventHandle = nullptr;
-
-	ComPtr<ID3D12Fence1> m_renderingFence; //Fence for frame counting R£££ Unitialised!
-	UINT64 m_renderingFenceValue = 0; //Will be used to signal when copy/compute/direct queue is finished
-	HANDLE m_renderingHandle = nullptr; //Might not be needed
+	ComPtr<ID3D12Fence1> m_fence[NUM_SWAP_BUFFERS]; //Fence for syncing queues
+	UINT64 m_fenceValue[NUM_SWAP_BUFFERS] = { 0, 0 };
+	HANDLE m_eventHandle[NUM_SWAP_BUFFERS] = { nullptr, nullptr };
+	UINT64 m_frameComplete[NUM_SWAP_BUFFERS] = { 0, 0 };
 
 	//Copy queue fence for recording
 	ComPtr<ID3D12Fence1> m_copyFence;
@@ -115,7 +112,7 @@ private:
 	UINT64 m_computeFenceValue = 0;
 	HANDLE m_computeHandle = nullptr;
 	HANDLE m_computeThreadHandle = nullptr;
-	
+
 	//Direct queue fence for recording
 	ComPtr<ID3D12Fence1> m_directFence;
 	UINT64 m_directFenceValue = 0;
@@ -198,8 +195,4 @@ public:
 	//Descriptor heap functions
 	ID3D12DescriptorHeap* getCBDescriptorHeap(UINT bufferIndex);
 	ID3D12DescriptorHeap* getSRVDescriptorHeap(UINT bufferIndex);
-
-
-	//Fence functions
-	void setFence(int, int); //Unused, remove?
 };

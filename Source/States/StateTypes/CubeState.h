@@ -12,6 +12,8 @@ private:
 	std::vector<std::unique_ptr<MeshGroup>> m_scene;
 	std::unique_ptr<Camera> m_camera;
 
+	std::unique_ptr<ID3D12Resource2> m_rwRotationBuffer;
+
 	struct recordingThread {
 		std::thread* m_thread = nullptr;
 		std::mutex m_mutex;

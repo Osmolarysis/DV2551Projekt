@@ -209,6 +209,7 @@ CubeState::~CubeState()
 void CubeState::initialise()
 {
 	printf("Initialising cubeState...\n"); //For debugging, remove when implementing
+	Renderer* renderer = Renderer::getInstance();
 
 	m_camera = std::make_unique<Camera>(true);
 
@@ -225,28 +226,9 @@ void CubeState::initialise()
 	// Add VertexBuffer (or Mesh) to the MeshGroup. (Mesh transform default to (0,0,0))
 	m_scene[0]->addMesh(mesh);
 
-	////Floor
-	//VertexBuffer::Vertex floorVertices[] =
-	//{
-	//	{ XMFLOAT3(-10.0f, -3.0f, -10.0f), XMFLOAT4(0.6f,0.6f,0.6f,1) },
-	//	{ XMFLOAT3(-10.0f, -3.0f, +10.0f), XMFLOAT4(0.6f,0.6f,0.6f,1) },
-	//	{ XMFLOAT3(+10.0f, -3.0f, +10.0f), XMFLOAT4(0.6f,0.6f,0.6f,1) },
-	//	{ XMFLOAT3(+10.0f, -3.0f, -10.0f), XMFLOAT4(0.6f,0.6f,0.6f,1) }
-	//};
-
-	//UINT16 floorIndices[] =
-	//{
-	//	0, 1, 2,
-	//	0, 2, 3,
-	//};
-
-	//int floorSize = sizeof(floorVertices);
-	//int florrIndexSize = sizeof(floorIndices);
-	//std::shared_ptr<VertexBuffer> floorvertBuf = std::make_shared<VertexBuffer>();
-	//floorvertBuf->setData(floorVertices, floorSize, floorIndices, florrIndexSize);
-
-	//// Add VertexBuffer (or Mesh) to the MeshGroup. (Mesh transform default to (0,0,0))
-	//m_scene[0]->addMesh(floorvertBuf);
+	//Rotation Buffer
+	ID3D12Device* device = renderer->getDevice();
+	//device->CreateCommittedResource();
 
 	//Multithread
 	m_copyThread.m_mutex.lock();
