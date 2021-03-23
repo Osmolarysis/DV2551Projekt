@@ -380,6 +380,10 @@ void Renderer::beginFrame()
 	m_graphicsDirectList[backBufferIndex].Get()->SetDescriptorHeaps(ARRAYSIZE(descriptorHeaps), descriptorHeaps);
 	m_graphicsDirectList[backBufferIndex].Get()->SetGraphicsRootDescriptorTable(0, m_cbDescriptorHeaps[backBufferIndex].Get()->GetGPUDescriptorHandleForHeapStart());
 
+	//descriptorHeaps[0] = m_SRVDescriptorHeaps[backBufferIndex].Get();
+	//m_graphicsDirectList[backBufferIndex].Get()->SetDescriptorHeaps(ARRAYSIZE(descriptorHeaps), descriptorHeaps);
+	//m_graphicsDirectList[backBufferIndex].Get()->SetGraphicsRootDescriptorTable(1, m_SRVDescriptorHeaps[backBufferIndex].Get()->GetGPUDescriptorHandleForHeapStart());
+
 	//Set waiting criteria
 	//m_renderingFence.Get()->Signal(101);
 	//m_computeQueue.Get()->Wait(m_renderingFence.Get(), 102);
@@ -524,6 +528,11 @@ void Renderer::waitForGPU()
 ID3D12DescriptorHeap* Renderer::getCBDescriptorHeap(UINT bufferIndex)
 {
 	return m_cbDescriptorHeaps[bufferIndex].Get();
+}
+
+ID3D12DescriptorHeap* Renderer::getSRVDescriptorHeap(UINT bufferIndex)
+{
+	return m_SRVDescriptorHeaps[bufferIndex].Get();
 }
 
 ID3D12Fence1* Renderer::getCopyFence()
@@ -1017,7 +1026,8 @@ bool Renderer::createDescriptorHeap()
 	for (int i = 0; i < NUM_SWAP_BUFFERS; i++)
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC dhdCB = {};
-		dhdCB.NumDescriptors = NUM_BUFFERS_IN_DESC_HEAP;		// Now CBV and SRV
+		//dhdCB.NumDescriptors = NUM_CONSTANT_BUFFERS;		
+		dhdCB.NumDescriptors = NUM_BUFFERS_IN_DESC_HEAP;
 		dhdCB.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		dhdCB.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 		hr = m_device->CreateDescriptorHeap(&dhdCB, IID_PPV_ARGS(&m_cbDescriptorHeaps[i]));
@@ -1028,6 +1038,22 @@ bool Renderer::createDescriptorHeap()
 		cbName.append(std::to_wstring(i));
 		m_cbDescriptorHeaps[i]->SetName(cbName.c_str());
 	}
+
+	//Create descriptor heaps for shader resource views.
+	//for (int i = 0; i < NUM_SWAP_BUFFERS; i++)
+	//{
+	//	D3D12_DESCRIPTOR_HEAP_DESC dhdCB = {};
+	//	dhdCB.NumDescriptors = NUM_TEXTURE_BUFFERS;		
+	//	dhdCB.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	//	dhdCB.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	//	hr = m_device->CreateDescriptorHeap(&dhdCB, IID_PPV_ARGS(&m_SRVDescriptorHeaps[i]));
+	//	if (hr != S_OK) {
+	//		return false;
+	//	}
+	//	std::wstring name = L"Shader resource buffer Heap ";
+	//	name.append(std::to_wstring(i));
+	//	m_SRVDescriptorHeaps[i]->SetName(name.c_str());
+	//}
 
 	//Create descriptor heaps for depth buffer view.
 	D3D12_DESCRIPTOR_HEAP_DESC dhdDB = {};
@@ -1086,15 +1112,18 @@ bool Renderer::createViewportAndScissorRect()
 bool Renderer::createRootSignature()
 {
 	//Constant Buffer Descriptor Range
-	CD3DX12_DESCRIPTOR_RANGE dtRangesCBV_SRV[2];
-	dtRangesCBV_SRV[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, NUM_CONSTANT_BUFFERS, 0); // b0, b1
-	dtRangesCBV_SRV[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, NUM_TEXTURE_BUFFERS, 0);  // t0
+	CD3DX12_DESCRIPTOR_RANGE dtRangesCBV[2];
+	dtRangesCBV[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, NUM_CONSTANT_BUFFERS, 0); // b0, b1
+	dtRangesCBV[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, NUM_TEXTURE_BUFFERS, 0);  // t0
+	//CD3DX12_DESCRIPTOR_RANGE dtRangesSRV[1];
+	//dtRangesSRV[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, NUM_TEXTURE_BUFFERS, 0);  // t0
 
 
 
 	//Create root parameter
 	CD3DX12_ROOT_PARAMETER rootParam[1];
-	rootParam[0].InitAsDescriptorTable(ARRAYSIZE(dtRangesCBV_SRV), dtRangesCBV_SRV, D3D12_SHADER_VISIBILITY_ALL);
+	rootParam[0].InitAsDescriptorTable(ARRAYSIZE(dtRangesCBV), dtRangesCBV, D3D12_SHADER_VISIBILITY_ALL);
+	//rootParam[1].InitAsDescriptorTable(ARRAYSIZE(dtRangesSRV), dtRangesSRV, D3D12_SHADER_VISIBILITY_ALL);
 
 	//Create static samplers. (One from GetStaticSamplers in Frank Luna(ch.9, Create). Might want to steal whole function later)
 	const CD3DX12_STATIC_SAMPLER_DESC linearWrap(

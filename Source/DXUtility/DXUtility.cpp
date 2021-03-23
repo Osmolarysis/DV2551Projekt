@@ -100,7 +100,7 @@ ComPtr<ID3D12Resource2> CreateDefaultBuffer(ID3D12GraphicsCommandList* cmdList, 
 	return defaultHeap;
 }
 
-ComPtr<ID3D12Resource2> CreateDefaultTexture(ID3D12GraphicsCommandList* cmdList, const void* initData, UINT64 byteSize, ComPtr<ID3D12Resource2>& uploadBuffer, LPCWSTR name, D3D12_RESOURCE_STATES resourceStateAfter, UINT width, UINT height)
+ComPtr<ID3D12Resource2> CreateDefaultTexture(ID3D12GraphicsCommandList* cmdList, const void* initData, UINT64 byteSize, ComPtr<ID3D12Resource2>& uploadBuffer, LPCWSTR name, D3D12_RESOURCE_STATES resourceStateAfter, UINT width, UINT height, UINT pixelSize)
 {
 	// allocates memory
 	ComPtr<ID3D12Resource2> defaultHeap = makeTextureHeap(D3D12_HEAP_TYPE_DEFAULT, byteSize, name, width, height);
@@ -108,16 +108,19 @@ ComPtr<ID3D12Resource2> CreateDefaultTexture(ID3D12GraphicsCommandList* cmdList,
 	uploadBuffer = makeBufferHeap(D3D12_HEAP_TYPE_UPLOAD, requiredSize, L"uploadHeap");
 
 	// describe data
-	int texturePixelSize = 4;
-
 	D3D12_SUBRESOURCE_DATA vbData = {};
 	vbData.pData = initData;
-	vbData.RowPitch = width * texturePixelSize;
+	vbData.RowPitch = width * pixelSize;
 	vbData.SlicePitch = vbData.RowPitch * height;
 
 	// transision resource is already set as COPY_DEST
 	// helper funcition to upload data to upload heap and copy to default heap
 	UpdateSubresources(cmdList, defaultHeap.Get(), uploadBuffer.Get(), 0, 0, 1, &vbData);
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(defaultHeap.Get(), D3D12_RESOURCE_STATE_COPY_DEST, resourceStateAfter);
+	cmdList->ResourceBarrier(1, &barrier);
+
+
+
 	return defaultHeap;
 }
 

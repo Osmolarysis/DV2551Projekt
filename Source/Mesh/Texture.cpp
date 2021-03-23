@@ -6,12 +6,17 @@
 Texture::Texture(std::string FileNames, int nrOfImages)
 {
 	m_fileName = FileNames;
+	m_nrOfImages = nrOfImages;
 
 	int w, h, bpp;
 	unsigned char* rgb = stbi_load(FileNames.c_str(), &w, &h, &bpp, STBI_rgb_alpha);
+	if (rgb == nullptr)
+	{
+		fprintf(stderr, "Error loading texture file: %s\n", FileNames.c_str());
+	}
 	for (int i = 0; i < 2; ++i)
 	{
-		m_resource[i] = CreateDefaultTexture(Renderer::getInstance()->getCopyCommandList(), rgb, w * h * sizeof(float) * bpp, m_uploadHeap[i], L"", D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, w, h);
+		m_resource[i] = CreateDefaultTexture(Renderer::getInstance()->getDirectCommandList(), &rgb[0], w * h * bpp, m_uploadHeap[i], L"", D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, w, h, bpp);
 		updateShaderResourceView(i);
 	}
 	delete rgb;
@@ -32,7 +37,10 @@ bool Texture::setTexture(std::string fileName, int frameIndex)
 		return false;
 	}
 
-	setUploadHeapData(m_uploadHeap[frameIndex], rgb, w * h * sizeof(float) * bpp);
+	setUploadHeapData(m_uploadHeap[frameIndex], rgb, w * h * sizeof(unsigned char) * bpp);
+
+
+	// not done, 
 
 	delete rgb;
 	return true;
@@ -50,9 +58,6 @@ void Texture::updateShaderResourceView(int frameIndex)
 	srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
 
 	auto renderer = Renderer::getInstance();
-	
-	// This buffer is after the constant buffers. Offset with NUM_CONSTANT_BUFFERS bufferSizes to reach SRV
-	// If we use different textures in the future, add an index to the offset
 
 	UINT offsetSize = renderer->getDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	CD3DX12_CPU_DESCRIPTOR_HANDLE hDescriptor(renderer->getCBDescriptorHeap(frameIndex)->GetCPUDescriptorHandleForHeapStart());

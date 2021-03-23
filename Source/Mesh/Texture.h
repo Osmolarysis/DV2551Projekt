@@ -7,6 +7,7 @@ class Texture
 private:
 	std::string m_name;
 	std::string m_fileName;
+	int m_nrOfImages;
 
 	ComPtr<ID3D12Resource2> m_resource[NUM_SWAP_BUFFERS];
 	ComPtr<ID3D12Resource2> m_uploadHeap[NUM_SWAP_BUFFERS];

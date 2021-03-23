@@ -77,6 +77,9 @@ private:
 	//Constant Buffer Descriptor Heaps
 	ComPtr<ID3D12DescriptorHeap> m_cbDescriptorHeaps[NUM_SWAP_BUFFERS];
 
+	//SRV descriptor heaps // TODO: make work or remove
+	ComPtr<ID3D12DescriptorHeap> m_SRVDescriptorHeaps[NUM_SWAP_BUFFERS];
+
 	//Direct queue/list/allocator
 	ComPtr<ID3D12CommandQueue> m_directQueue;
 	ComPtr<ID3D12CommandAllocator> m_directAllocator[NUM_COMMANDLISTS];
@@ -194,6 +197,8 @@ public:
 
 	//Descriptor heap functions
 	ID3D12DescriptorHeap* getCBDescriptorHeap(UINT bufferIndex);
+	ID3D12DescriptorHeap* getSRVDescriptorHeap(UINT bufferIndex);
+
 
 	//Fence functions
 	void setFence(int, int); //Unused, remove?
