@@ -222,6 +222,16 @@ void Renderer::closeCommandLists()
 {
 	HRESULT hr;
 
+	for (size_t i = 0; i < NUM_SWAP_BUFFERS; i++)
+	{
+		SetResourceTransitionBarrier(
+			m_graphicsDirectList[i].Get(),
+			m_depthStencilBuffer[i].Get(),
+			D3D12_RESOURCE_STATE_COMMON,		//state before
+			D3D12_RESOURCE_STATE_DEPTH_WRITE	//state after
+		);
+	}
+
 	for (int i = 0; i < NUM_COMMANDLISTS; i++) {
 		hr = m_graphicsCopyList[i].Get()->Close();
 		if (hr != S_OK) {
@@ -254,7 +264,7 @@ void Renderer::closeCommandLists()
 		m_computeQueue->Signal(m_fence[i].Get(), 2);
 
 		m_directQueue->Wait(m_fence[i].Get(), 2);
-		ID3D12CommandList* directListsToExecute[] = { m_graphicsDirectList[i].Get()};
+		ID3D12CommandList* directListsToExecute[] = { m_graphicsDirectList[i].Get() };
 		m_directQueue->ExecuteCommandLists(ARRAYSIZE(directListsToExecute), directListsToExecute);
 
 		m_fenceValue[i] = 3;
@@ -278,9 +288,9 @@ IDXGISwapChain4* Renderer::getSwapChain()
 	return m_swapChain.Get();
 }
 
-HWND Renderer::getWindowHandle() 
-{ 
-	return m_handle; 
+HWND Renderer::getWindowHandle()
+{
+	return m_handle;
 }
 
 unsigned int Renderer::getScreenHeight() const
@@ -299,7 +309,7 @@ void Renderer::beginFrame()
 
 	//Wait
 
-	if (m_frameComplete[backBufferIndex] > lastFinishedQueue) { 
+	if (m_frameComplete[backBufferIndex] > lastFinishedQueue) {
 		HRESULT hr = m_fence[backBufferIndex].Get()->SetEventOnCompletion(m_frameComplete[backBufferIndex], m_eventHandle[backBufferIndex]);
 		WaitForSingleObject(m_eventHandle[backBufferIndex], INFINITE);
 	}
@@ -329,7 +339,7 @@ void Renderer::beginFrame()
 		printf("Error reseting compute allocator %i\n", backBufferIndex);
 		exit(-1);
 	}
-	
+
 	hr = m_graphicsComputeList[backBufferIndex].Get()->Reset(m_computeAllocator[backBufferIndex].Get(), nullptr);
 	if (hr != S_OK) {
 		printf("Error reseting compute list %i\n", backBufferIndex);
@@ -367,16 +377,6 @@ void Renderer::beginFrame()
 
 	m_graphicsDirectList[backBufferIndex].Get()->ClearRenderTargetView(cdh,
 		clearColour, 0, nullptr);
-
-	if (!dsvSetWrite[backBufferIndex]) { //TODO: Find a better way than this, maybe "gpu warm up" function
-		SetResourceTransitionBarrier(
-			m_graphicsDirectList[backBufferIndex].Get(),
-			m_depthStencilBuffer[backBufferIndex].Get(),
-			D3D12_RESOURCE_STATE_COMMON,		//state before
-			D3D12_RESOURCE_STATE_DEPTH_WRITE	//state after
-		);
-		dsvSetWrite[backBufferIndex] = true;
-	}
 
 	D3D12_CPU_DESCRIPTOR_HANDLE DBcdh = m_dbDescriptorHeap.Get()->GetCPUDescriptorHandleForHeapStart();
 	DBcdh.ptr += (SIZE_T)m_depthBufferDescriptorSize * (SIZE_T)backBufferIndex;
@@ -427,7 +427,7 @@ void Renderer::executeList()
 	WaitForSingleObject(m_computeHandle, INFINITE);
 
 	//Execute Compute queue
-	
+
 	//Work
 
 	hr = m_graphicsComputeList[backBufferIndex].Get()->Close();
@@ -770,7 +770,7 @@ bool Renderer::createCommandQueues()
 	if (!createComputeQueue()) {
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -879,7 +879,7 @@ bool Renderer::createComputeQueue()
 		if (hr != S_OK) {
 			printf("Error creating compute allocataor");
 			exit(-1);
-		}		
+		}
 		m_computeAllocator[i].Get()->SetName(L"Compute allocator");
 
 		//Create command list.
