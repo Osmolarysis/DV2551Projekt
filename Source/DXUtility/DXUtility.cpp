@@ -69,7 +69,7 @@ void setUploadHeapData(ComPtr<ID3D12Resource2> resource, const void* data, size_
 
 void updateBufferHeap(ID3D12GraphicsCommandList* cmdList, const void* initData, UINT64 byteSize, ComPtr<ID3D12Resource2>& uploadBuffer, D3D12_RESOURCE_STATES resourceStateAfter)
 {
-	// TODO
+	// TODO, tror inte behövs med UpdateSubresources
 }
 
 // Returns defaultBuffer and uploadBuffer in parameter output.

@@ -13,11 +13,14 @@ void CubeState::copyRecord()
 	//Wait for signal
 	fence->SetEventOnCompletion(fenceValue + 1, handle);
 	WaitForSingleObject(handle, INFINITE);
-
+	
 	while (m_copyThread.isActive) {
 		//Thread work
 		//Update camera
 		m_camera->update();
+
+		//Update gif animation		
+		m_scene[0]->getMesh(0)->getTexture()->updateAnimation(Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex(), Timer::getInstance()->getDt());
 
 		//Thread handling
 		fenceValue = Renderer::getInstance()->incAndGetCopyValue();
@@ -221,7 +224,7 @@ void CubeState::initialise()
 
 	//Create triangle (later cube) - from box example
 
-	std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>(createBox(1,1,1), "Assets/fatboy.png");
+	std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>(createBox(1,1,1), "Assets/Images/frame_", ".png", 186);
 
 	// Add VertexBuffer (or Mesh) to the MeshGroup. (Mesh transform default to (0,0,0))
 	m_scene[0]->addMesh(mesh);

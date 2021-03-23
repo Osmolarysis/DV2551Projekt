@@ -32,7 +32,7 @@ private:
 	void calculateMatrix();
 public:
 	Mesh();
-	Mesh(std::shared_ptr<VertexBuffer> vb, std::string FileNames, int nrOfImages = 1);
+	Mesh(std::shared_ptr<VertexBuffer> vb, std::string FileNames, std::string fileEnding = ".png", int nrOfImages = 1);
 	~Mesh();
 
 	// array of buffers with locations (binding points in shaders)
@@ -41,6 +41,7 @@ public:
 	void draw();
 	const Transform* getTransform();
 	const XMMATRIX* getMatrix();
+	Texture* getTexture();
 	void setPosition(XMFLOAT3 pos);
 	void setRotation(XMFLOAT3 rot);
 	void move(float length, int axis = 0);

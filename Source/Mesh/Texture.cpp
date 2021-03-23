@@ -3,20 +3,28 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "..\..\Include\stb_image.h"
 
-Texture::Texture(std::string FileNames, int nrOfImages)
+const int pixelSize = 4;
+
+Texture::Texture(std::string FileNames, std::string fileEnding, int nrOfImages)
 {
 	m_fileName = FileNames;
 	m_nrOfImages = nrOfImages;
+	m_fileEnding = fileEnding;
 
+	std::string filename = FileNames;
+	if (nrOfImages > 1)
+	{
+		filename = m_fileName + std::to_string(0) + m_fileEnding;
+	}
 	int w, h, bpp;
-	unsigned char* rgb = stbi_load(FileNames.c_str(), &w, &h, &bpp, STBI_rgb_alpha);
+	unsigned char* rgb = stbi_load(filename.c_str(), &w, &h, &bpp, STBI_rgb_alpha);
 	if (rgb == nullptr)
 	{
-		fprintf(stderr, "Error loading texture file: %s\n", FileNames.c_str());
+		printf("Error loading texture file: %s\n", filename.c_str());
 	}
 	for (int i = 0; i < 2; ++i)
 	{
-		m_resource[i] = CreateDefaultTexture(Renderer::getInstance()->getCopyCommandList(), &rgb[0], w * h * bpp, m_uploadHeap[i], L"Texture resource", D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, w, h, bpp);
+		m_resource[i] = CreateDefaultTexture(Renderer::getInstance()->getCopyCommandList(), &rgb[0], w * h * pixelSize, m_uploadHeap[i], L"Texture resource", D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, w, h, pixelSize);
 		updateShaderResourceView(i);
 	}
 	delete rgb;
@@ -37,9 +45,15 @@ bool Texture::setTexture(std::string fileName, int frameIndex)
 		return false;
 	}
 
-	setUploadHeapData(m_uploadHeap[frameIndex], rgb, w * h * sizeof(unsigned char) * bpp);
+	// Update data in default heap
+	// describe data
+	D3D12_SUBRESOURCE_DATA sData = {};
+	sData.pData = rgb;
+	sData.RowPitch = w * pixelSize;
+	sData.SlicePitch = sData.RowPitch * h;
 
-
+	// helper function to upload data to upload heap and copy to default heap
+	UpdateSubresources(Renderer::getInstance()->getCopyCommandList(), m_resource[frameIndex].Get(), m_uploadHeap[frameIndex].Get(), 0, 0, 1, &sData);
 	// not done, 
 
 	delete rgb;
@@ -63,4 +77,32 @@ void Texture::updateShaderResourceView(int frameIndex)
 	hDescriptor.Offset(NUM_CONSTANT_BUFFERS, offsetSize);
 
 	Renderer::getInstance()->getDevice()->CreateShaderResourceView(m_resource[frameIndex].Get(), &srvDesc, hDescriptor);
+}
+
+void Texture::updateAnimation(int frameIndex, float dt)
+{
+	float updateFrequency = 1.f / 30;
+
+	m_animationTimer += dt;
+	if (m_animationTimer > updateFrequency)
+	{
+		m_animatedLastFrame = true;
+		m_animationTimer -= updateFrequency;
+
+		m_currentAnimationFrame++;
+		m_currentAnimationFrame %= m_nrOfImages;
+
+		std::string filename = m_fileName + std::to_string(m_currentAnimationFrame) + m_fileEnding;
+		setTexture(filename, frameIndex);
+		updateShaderResourceView(frameIndex);
+
+	}
+	else if (m_animatedLastFrame)
+	{
+		m_animatedLastFrame = false;
+
+		std::string filename = m_fileName + std::to_string(m_currentAnimationFrame) + m_fileEnding;
+		setTexture(filename, frameIndex);
+		updateShaderResourceView(frameIndex);
+	}
 }
