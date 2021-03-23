@@ -104,9 +104,6 @@
     <ClInclude Include="Source\ConstantBuffer\ConstantBuffer.h">
       <Filter>Source Files\ConstantBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Mesh\VertexBuffer.h">
-      <Filter>Source Files\Mesh</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Mesh\MeshGroup.h">
       <Filter>Source Files\Mesh</Filter>
     </ClInclude>
@@ -129,6 +126,9 @@
       <Filter>Source Files\ReadWriteBuffer</Filter>
     </ClInclude>
     <ClInclude Include="Source\Mesh\Texture.h">
+      <Filter>Source Files\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Mesh\VertexBuffer.h">
       <Filter>Source Files\Mesh</Filter>
     </ClInclude>
   </ItemGroup>
