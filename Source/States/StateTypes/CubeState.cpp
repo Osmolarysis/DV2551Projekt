@@ -244,7 +244,8 @@ void CubeState::initialise()
 
 	//Transformation
 
-	L"Source/Shaders/CS_Initialisation.hlsl", L"Source/Shaders/CS_CubeRotator.hlsl";
+	std::wstring initialisationShader = L"Source/Shaders/CS_Initialisation.hlsl";
+	std::wstring rotationShader = L"Source/Shaders/CS_CubeRotator.hlsl";
 
 	D3D12_COMPUTE_PIPELINE_STATE_DESC cpsd;
 
@@ -257,10 +258,10 @@ void CubeState::initialise()
 		name.append(std::to_wstring(i));
 		m_ACBuffer[i] = CreateDefaultBuffer(computeCommandList, m_transformationMatrix, sizeof(m_transformationMatrix), m_ACHeap, name.c_str(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 	}
-	computeCommandList->SetComputeRootSignature(renderer->getRootSignature());
+	/*computeCommandList->SetComputeRootSignature(renderer->getRootSignature());
 	computeCommandList->SetComputeRootUnorderedAccessView(1, m_ACBuffer[0]->GetGPUVirtualAddress());
 	computeCommandList->SetComputeRootUnorderedAccessView(2, m_ACBuffer[1]->GetGPUVirtualAddress());
-	computeCommandList->Dispatch(1, 1, 1);
+	computeCommandList->Dispatch(1, 1, 1);*/
 }
 
 void CubeState::update()
