@@ -16,7 +16,7 @@ Texture::Texture(std::string FileNames, int nrOfImages)
 	}
 	for (int i = 0; i < 2; ++i)
 	{
-		m_resource[i] = CreateDefaultTexture(Renderer::getInstance()->getCopyCommandList(), &rgb[0], w * h * bpp, m_uploadHeap[i], L"", D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, w, h, bpp);
+		m_resource[i] = CreateDefaultTexture(Renderer::getInstance()->getCopyCommandList(), &rgb[0], w * h * bpp, m_uploadHeap[i], L"Texture resource", D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, w, h, bpp);
 		updateShaderResourceView(i);
 	}
 	delete rgb;
@@ -54,7 +54,6 @@ void Texture::updateShaderResourceView(int frameIndex)
 	srvDesc.Format = m_resource[frameIndex].Get()->GetDesc().Format;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = 1;
-	srvDesc.Texture2D.MostDetailedMip = 1;
 	srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
 
 	auto renderer = Renderer::getInstance();
