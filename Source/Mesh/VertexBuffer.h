@@ -17,12 +17,19 @@ private:
 	ComPtr<ID3D12Resource2> m_IBUploadHeap;
 	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView = {};
 	D3D12_INDEX_BUFFER_VIEW m_indexBufferView = {};
+
+	//Instancing
+	bool m_instancing = false;
+	UINT m_nrOfInstances = 1;
+	ComPtr<ID3D12Resource2> m_instanceBufferResource;
+	ComPtr<ID3D12Resource2> m_instanceUploadHeap;
+	D3D12_VERTEX_BUFFER_VIEW m_instanceBufferView = {};
 public:
 	VertexBuffer();
 	~VertexBuffer();
 
 	// just taken from assignment 1
-	void setData(const void* data, size_t dataByteSize, const void* indices = nullptr, size_t indexByteSize = 0);	// vertex and index buffer
+	void setData(const void* data, size_t dataByteSize, const void* indices = nullptr, size_t indexByteSize = 0, bool instanceing = false);	// vertex and index buffer
 	void bind();
 	void draw();
 	size_t getSize();
