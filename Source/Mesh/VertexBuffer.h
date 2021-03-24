@@ -24,6 +24,8 @@ private:
 	ComPtr<ID3D12Resource2> m_instanceBufferResource;
 	ComPtr<ID3D12Resource2> m_instanceUploadHeap;
 	D3D12_VERTEX_BUFFER_VIEW m_instanceBufferView = {};
+
+	DirectX::XMFLOAT3* createInstances(int width, int height, int depth);
 public:
 	VertexBuffer();
 	~VertexBuffer();

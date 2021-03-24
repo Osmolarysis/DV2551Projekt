@@ -1,6 +1,29 @@
 #include "VertexBuffer.h"
 #include "..\DXUtility\DXUtility.h"
 
+DirectX::XMFLOAT3* VertexBuffer::createInstances(int width, int height, int depth)
+{
+	m_nrOfInstances = width * height * depth;
+	DirectX::XMFLOAT3* instancePositions = new DirectX::XMFLOAT3[m_nrOfInstances];
+
+	for (int x = 0; x < width; x++)
+	{
+		for (int y = 0; y < height; y++)
+		{
+			for (int z = 0; z < depth; z++)
+			{
+				int index = x + width * (y + depth * z);
+				float posX = x * 2.0f - width + 1;
+				float posY = y * 2.0f - height + 1;
+				float posZ = z * 2.0f - depth + 1;
+				instancePositions[index] = DirectX::XMFLOAT3(posX, posY, posZ);
+			}
+		}
+	}
+
+	return instancePositions;
+}
+
 // Member functions
 VertexBuffer::VertexBuffer() // may move content to own function that is called in setData
 {
@@ -86,43 +109,18 @@ void VertexBuffer::setData(const void* data, size_t dataByteSize, const void* in
 	if (m_instancing)
 	{
 		//Buffer
-		DirectX::XMFLOAT3 instancePositions[] =
-		{
-			DirectX::XMFLOAT3(2.0f, -2.0f, -2.0f),
-			DirectX::XMFLOAT3(0.0f, -2.0f, -2.0f),
-			DirectX::XMFLOAT3(-2.0f, -2.0f, -2.0f),
-			DirectX::XMFLOAT3(2.0f, 0.0f, -2.0f),
-			DirectX::XMFLOAT3(0.0f, 0.0f, -2.0f),
-			DirectX::XMFLOAT3(-2.0f, 0.0f, -2.0f),
-			DirectX::XMFLOAT3(2.0f, 2.0f, -2.0f),
-			DirectX::XMFLOAT3(0.0f, 2.0f, -2.0f),
-			DirectX::XMFLOAT3(-2.0f, 2.0f, -2.0f),
-			DirectX::XMFLOAT3(2.0f, -2.0f, 0.0f),
-			DirectX::XMFLOAT3(0.0f, -2.0f, 0.0f),
-			DirectX::XMFLOAT3(-2.0f, -2.0f, 0.0f),
-			DirectX::XMFLOAT3(2.0f, 0.0f, 0.0f),
-			DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
-			DirectX::XMFLOAT3(-2.0f, 0.0f, 0.0f),
-			DirectX::XMFLOAT3(2.0f, 2.0f, 0.0f),
-			DirectX::XMFLOAT3(0.0f, 2.0f, 0.0f),
-			DirectX::XMFLOAT3(-2.0f, 2.0f, 0.0f),
-			DirectX::XMFLOAT3(2.0f, -2.0f, 2.0f),
-			DirectX::XMFLOAT3(0.0f, -2.0f, 2.0f),
-			DirectX::XMFLOAT3(-2.0f, -2.0f, 2.0f),
-			DirectX::XMFLOAT3(2.0f, 0.0f, 2.0f),
-			DirectX::XMFLOAT3(0.0f, 0.0f, 2.0f),
-			DirectX::XMFLOAT3(-2.0f, 0.0f, 2.0f),
-			DirectX::XMFLOAT3(2.0f, 2.0f, 2.0f),
-			DirectX::XMFLOAT3(0.0f, 2.0f, 2.0f),
-			DirectX::XMFLOAT3(-2.0f, 2.0f, 2.0f),
-		};
-		m_nrOfInstances = ARRAYSIZE(instancePositions);
-		m_instanceBufferResource = CreateDefaultBuffer(Renderer::getInstance()->getCopyCommandList(), instancePositions, sizeof(instancePositions), m_instanceUploadHeap, L"Instance heap", D3D12_RESOURCE_STATE_COMMON);
+		int xInstances = 16;
+		int yInstances = xInstances;
+		int zInstances = xInstances;
+		DirectX::XMFLOAT3* instancePositions = createInstances(xInstances, yInstances, zInstances);
+		m_instanceBufferResource = CreateDefaultBuffer(Renderer::getInstance()->getCopyCommandList(), instancePositions, sizeof(DirectX::XMFLOAT3) * m_nrOfInstances, m_instanceUploadHeap, L"Instance heap", D3D12_RESOURCE_STATE_COMMON);
 
 		//View
 		m_instanceBufferView.BufferLocation = m_instanceBufferResource->GetGPUVirtualAddress();
 		m_instanceBufferView.StrideInBytes = sizeof(DirectX::XMFLOAT3);
-		m_instanceBufferView.SizeInBytes = sizeof(instancePositions);
+		m_instanceBufferView.SizeInBytes = sizeof(DirectX::XMFLOAT3) * m_nrOfInstances;
+
+		delete[] instancePositions;
 	}
 }
 
