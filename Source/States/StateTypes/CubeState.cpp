@@ -9,7 +9,16 @@ void CubeState::copyRecord()
 {
 	ID3D12Fence1* fence = Renderer::getInstance()->getCopyFence();
 	HANDLE handle = Renderer::getInstance()->getCopyThreadHandle();
+	ID3D12CommandAllocator* commandAllocator[2] = { nullptr, nullptr };
+	commandAllocator[0] = Renderer::getInstance()->getCopyCommandAllocator(0);
+	commandAllocator[1] = Renderer::getInstance()->getCopyCommandAllocator(1);
+	ID3D12GraphicsCommandList* commandList[2] = { nullptr, nullptr };
+	commandList[0] = Renderer::getInstance()->getCopyCommandList(0);
+	commandList[1] = Renderer::getInstance()->getCopyCommandList(1);
 	UINT64 fenceValue = 0;
+	int bbIndex = 0;
+
+	HRESULT hr;
 
 	//Wait for signal
 	fence->SetEventOnCompletion(fenceValue + 1, handle);
@@ -17,13 +26,24 @@ void CubeState::copyRecord()
 
 	while (m_copyThread.isActive) {
 		//Thread work
+		commandAllocator[bbIndex]->Reset();
+		commandList[bbIndex]->Reset(commandAllocator[bbIndex], nullptr);
+
 		//Update camera
 		m_camera->update();
 
 		//Update gif animation		
-		m_scene[0]->getMesh(0)->getTexture()->updateAnimation(Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex(), Timer::getInstance()->getDt()); //R£££ Warning
+		m_scene[0]->getMesh(0)->getTexture()->updateAnimation(Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex(), float(Timer::getInstance()->getDt())); //R£££ Warning
+
+		//Close list
+		hr = commandList[bbIndex]->Close();
+		if (hr != S_OK) {
+			printf("Error closing copy list %i\n", bbIndex);
+			exit(-1);
+		}
 
 		//Thread handling
+		bbIndex = 1 - bbIndex;
 		fenceValue = Renderer::getInstance()->incAndGetCopyValue();
 		fence->Signal(fenceValue); //Done
 
@@ -38,6 +58,9 @@ void CubeState::computeRecord()
 	ID3D12Fence1* fence = Renderer::getInstance()->getComputeFence();
 	HANDLE handle = Renderer::getInstance()->getComputeThreadHandle();
 	ID3D12RootSignature* rootSignature = Renderer::getInstance()->getRootSignature();
+	ID3D12CommandAllocator* commandAllocator[2] = { nullptr, nullptr };
+	commandAllocator[0] = Renderer::getInstance()->getComputeCommandAllocator(0);
+	commandAllocator[1] = Renderer::getInstance()->getComputeCommandAllocator(1);
 	ID3D12DescriptorHeap* cbDescriptorHeap[2] = { nullptr, nullptr };
 	cbDescriptorHeap[0] = Renderer::getInstance()->getCBDescriptorHeap(0);
 	cbDescriptorHeap[1] = Renderer::getInstance()->getCBDescriptorHeap(1);
@@ -47,12 +70,17 @@ void CubeState::computeRecord()
 	UINT64 fenceValue = 0;
 	int bbIndex = 0;
 
+	HRESULT hr;
+
 	//Wait for signal
 	fence->SetEventOnCompletion(fenceValue + 1, handle);
 	WaitForSingleObject(handle, INFINITE);
 
 	while (m_computeThread.isActive) {
 		//Initial work
+		commandAllocator[bbIndex]->Reset();
+		commandList[bbIndex]->Reset(commandAllocator[bbIndex], nullptr);
+
 		commandList[bbIndex]->SetComputeRootSignature(rootSignature);
 		commandList[bbIndex]->SetPipelineState(m_computeStateObject.Get());
 		commandList[bbIndex]->SetDescriptorHeaps(1, &cbDescriptorHeap[bbIndex]);
@@ -62,6 +90,13 @@ void CubeState::computeRecord()
 
 		//Thread work
 		commandList[bbIndex]->Dispatch(1, 1, 1);
+
+		//Close list
+		hr = commandList[bbIndex]->Close();
+		if (hr != S_OK) {
+			printf("Error closing compute list %i\n", bbIndex);
+			exit(-1);
+		}
 
 		//Thread handling
 		bbIndex = 1 - bbIndex;
@@ -78,7 +113,28 @@ void CubeState::directRecord()
 {
 	ID3D12Fence1* fence = Renderer::getInstance()->getDirectFence();
 	HANDLE handle = Renderer::getInstance()->getDirectThreadHandle();
+	ID3D12CommandAllocator* commandAllocator[2] = { nullptr, nullptr };
+	commandAllocator[0] = Renderer::getInstance()->getDirectCommandAllocator(0);
+	commandAllocator[1] = Renderer::getInstance()->getDirectCommandAllocator(1);
+	ID3D12GraphicsCommandList* commandList[2] = { nullptr, nullptr };
+	commandList[0] = Renderer::getInstance()->getDirectCommandList(0);
+	commandList[1] = Renderer::getInstance()->getDirectCommandList(1);
+	D3D12_VIEWPORT* viewPort = Renderer::getInstance()->getViewPort();
+	D3D12_RECT* scissorRect = Renderer::getInstance()->getScissorRect();
+	ID3D12Resource1* renderTarget[2] = { nullptr, nullptr };
+	renderTarget[0] = Renderer::getInstance()->getRenderTarget(0);
+	renderTarget[1] = Renderer::getInstance()->getRenderTarget(1);
+	ID3D12DescriptorHeap* renderTargetHeap = Renderer::getInstance()->getRenderTargetHeap();
+	size_t renderTargetDescriptorSize = Renderer::getInstance()->getRenderTargetHeapSize();
+	ID3D12DescriptorHeap* depthBufferHeap = Renderer::getInstance()->getDepthBufferHeap();
+	size_t depthBufferDescriptorSize = Renderer::getInstance()->getDepthBufferHeapSize();
+	ID3D12RootSignature* rootSignature = Renderer::getInstance()->getRootSignature();
+	ID3D12DescriptorHeap* constantBufferHeap[2] = { nullptr, nullptr };
+	constantBufferHeap[0] = Renderer::getInstance()->getConstantBufferHeap(0);
+	constantBufferHeap[1] = Renderer::getInstance()->getConstantBufferHeap(1);
 	UINT64 fenceValue = 0;
+	size_t bbIndex = 0;
+	float clearColour[4] = { 0.3f, 0.3f, 0.0f, 1.0f };
 
 	HRESULT hr;
 
@@ -87,13 +143,70 @@ void CubeState::directRecord()
 	WaitForSingleObject(handle, INFINITE);
 
 	while (m_directThread.isActive) {
+		//Initial work
+		hr = commandAllocator[bbIndex]->Reset();
+		if (hr != S_OK) {
+			printf("Error reseting direct allocator %i\n", (int)bbIndex);
+			exit(-1);
+		}
+		hr = commandList[bbIndex]->Reset(commandAllocator[bbIndex], nullptr);
+		if (hr != S_OK) {
+			printf("Error reseting direct list %i\n", (int)bbIndex);
+			exit(-1);
+		}
+
+		commandList[bbIndex]->RSSetViewports(1, viewPort);
+		commandList[bbIndex]->RSSetScissorRects(1, scissorRect);
+
+		Renderer::getInstance()->SetResourceTransitionBarrier(
+			commandList[bbIndex],
+			renderTarget[bbIndex],
+			D3D12_RESOURCE_STATE_PRESENT,		//state before
+			D3D12_RESOURCE_STATE_RENDER_TARGET	//state after
+		);
+
+		D3D12_CPU_DESCRIPTOR_HANDLE cdh = renderTargetHeap->GetCPUDescriptorHandleForHeapStart();
+		cdh.ptr += renderTargetDescriptorSize * bbIndex;
+
+		commandList[bbIndex]->ClearRenderTargetView(cdh, clearColour, 0, nullptr);
+
+		D3D12_CPU_DESCRIPTOR_HANDLE DBcdh = depthBufferHeap->GetCPUDescriptorHandleForHeapStart();
+		DBcdh.ptr += (SIZE_T)depthBufferDescriptorSize * (SIZE_T)bbIndex;
+
+		commandList[bbIndex]->ClearDepthStencilView(DBcdh, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 1, scissorRect);
+
+		commandList[bbIndex]->OMSetRenderTargets(1, &cdh, true, &DBcdh);
+
+		commandList[bbIndex]->SetGraphicsRootSignature(rootSignature);
+
+		commandList[bbIndex]->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		ID3D12DescriptorHeap* descriptorHeaps[] = { constantBufferHeap[bbIndex] };
+		commandList[bbIndex]->SetDescriptorHeaps(ARRAYSIZE(descriptorHeaps), descriptorHeaps);
+		commandList[bbIndex]->SetGraphicsRootDescriptorTable(0, constantBufferHeap[bbIndex]->GetGPUDescriptorHandleForHeapStart());
+		
 		//Thread work
 		for (auto& meshG : m_scene)
 		{
 			meshG->drawAll();
 		}
 
+		Renderer::getInstance()->SetResourceTransitionBarrier(
+			commandList[bbIndex],
+			renderTarget[bbIndex],
+			D3D12_RESOURCE_STATE_RENDER_TARGET,		//state before
+			D3D12_RESOURCE_STATE_PRESENT	//state after
+		);
+
+		//Close list
+		hr = commandList[bbIndex]->Close();
+		if (hr != S_OK) {
+			printf("Error closing direct list %i\n", (int)bbIndex);
+			exit(-1);
+		}
+
 		//Thread handling
+		bbIndex = 1 - bbIndex;
 		fenceValue = Renderer::getInstance()->incAndGetDirectValue();
 		fence->Signal(fenceValue); //Done
 
@@ -182,6 +295,19 @@ std::shared_ptr<VertexBuffer> CubeState::createBox(float width, float height, fl
 	return vertBuf;
 }
 
+void CubeState::initiateTransformMatrices()
+{
+	srand(unsigned int(time(NULL)));
+
+	for (size_t i = 0; i < NUM_BOXES; i++)
+	{
+		m_transformationMatrix[i].rotation.x = float((rand() % 1000) / 1000.f);
+		m_transformationMatrix[i].rotation.y = float((rand() % 1000) / 1000.f);
+		m_transformationMatrix[i].rotation.z = float((rand() % 1000) / 1000.f);
+		m_transformationMatrix[i].rotation.w = float((rand() % 1000) / 1000.f);
+	}
+}
+
 CubeState::CubeState()
 {
 	printf("Constructing cubeState...\n"); //For debugging, remove when implementing
@@ -263,8 +389,8 @@ void CubeState::initialise()
 	m_directThread.m_mutex.unlock();
 
 	//Transformation
+	initiateTransformMatrices();
 
-	std::wstring initialisationShader = L"Source/Shaders/CS_Initialisation.hlsl";
 	std::wstring rotationShader = L"Source/Shaders/CS_CubeRotator.hlsl";
 	ComPtr<ID3DBlob> byteCode = nullptr;
 	ComPtr<ID3DBlob> errors = nullptr;

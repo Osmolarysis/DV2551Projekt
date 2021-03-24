@@ -218,6 +218,51 @@ ID3D12GraphicsCommandList* Renderer::getDirectCommandList(int bufferIndex)
 	return m_graphicsDirectList[bufferIndex].Get();
 }
 
+ID3D12CommandAllocator* Renderer::getDirectCommandAllocator(int index)
+{
+	return m_directAllocator[index].Get();
+}
+
+D3D12_VIEWPORT* Renderer::getViewPort()
+{
+	return &m_viewPort;
+}
+
+D3D12_RECT* Renderer::getScissorRect()
+{
+	return &m_scissorRect;
+}
+
+ID3D12Resource1* Renderer::getRenderTarget(int index)
+{
+	return m_renderTargets[index].Get();
+}
+
+ID3D12DescriptorHeap* Renderer::getRenderTargetHeap()
+{
+	return m_renderTargetHeap.Get();
+}
+
+size_t Renderer::getRenderTargetHeapSize()
+{
+	return m_renderTargetDescriptorSize;
+}
+
+ID3D12DescriptorHeap* Renderer::getDepthBufferHeap()
+{
+	return m_dbDescriptorHeap.Get();
+}
+
+size_t Renderer::getDepthBufferHeapSize()
+{
+	return m_depthBufferDescriptorSize;
+}
+
+ID3D12DescriptorHeap* Renderer::getConstantBufferHeap(int index)
+{
+	return m_cbDescriptorHeaps[index].Get();
+}
+
 void Renderer::closeCommandLists()
 {
 	HRESULT hr;
@@ -300,7 +345,6 @@ unsigned int Renderer::getScreenHeight() const
 
 void Renderer::beginFrame()
 {
-
 	setWindowTitle(L"Projekt");
 
 	UINT backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
@@ -313,95 +357,6 @@ void Renderer::beginFrame()
 		HRESULT hr = m_fence[backBufferIndex].Get()->SetEventOnCompletion(m_frameComplete[backBufferIndex], m_eventHandle[backBufferIndex]);
 		WaitForSingleObject(m_eventHandle[backBufferIndex], INFINITE);
 	}
-
-	float clearColour[4] = { 0.3f, 0.3f, 0.0f, 1.0f };
-
-	// -- Clear --
-	//Copy
-	HRESULT hr = m_copyAllocator[backBufferIndex].Get()->Reset();
-	if (hr != S_OK) {
-		printf("Error reseting copy allocator %i\n", backBufferIndex);
-		exit(-1);
-	}
-
-	hr = m_graphicsCopyList[backBufferIndex].Get()->Reset(m_copyAllocator[backBufferIndex].Get(), nullptr);
-	if (hr != S_OK) {
-		printf("Error reseting copy list %i\n", backBufferIndex);
-		exit(-1);
-	}
-	/*std::wstring name = L"Copy list ";
-	name.append(std::to_wstring(backBufferIndex));
-	m_graphicsCopyList[backBufferIndex].Get()->SetName(name.c_str());*/
-
-	////Compute
-	hr = m_computeAllocator[backBufferIndex].Get()->Reset();
-	if (hr != S_OK) {
-		printf("Error reseting compute allocator %i\n", backBufferIndex);
-		exit(-1);
-	}
-
-	hr = m_graphicsComputeList[backBufferIndex].Get()->Reset(m_computeAllocator[backBufferIndex].Get(), nullptr);
-	if (hr != S_OK) {
-		printf("Error reseting compute list %i\n", backBufferIndex);
-		exit(-1);
-	}
-
-	//Direct
-	hr = m_directAllocator[backBufferIndex].Get()->Reset();
-	if (hr != S_OK) {
-		printf("Error reseting direct allocator %i\n", backBufferIndex);
-		exit(-1);
-	}
-
-	hr = m_graphicsDirectList[backBufferIndex].Get()->Reset(m_directAllocator[backBufferIndex].Get(), nullptr);
-	if (hr != S_OK) {
-		printf("Error reseting direct list %i\n", backBufferIndex);
-		exit(-1);
-	}
-
-
-	//Set necessary states.
-	m_graphicsDirectList[backBufferIndex].Get()->RSSetViewports(1, &m_viewPort);
-	m_graphicsDirectList[backBufferIndex].Get()->RSSetScissorRects(1, &m_scissorRect);
-
-	// Indicate that the back buffer will be used as render target.
-	SetResourceTransitionBarrier(
-		m_graphicsDirectList[backBufferIndex].Get(),
-		m_renderTargets[backBufferIndex].Get(),
-		D3D12_RESOURCE_STATE_PRESENT,		//state before
-		D3D12_RESOURCE_STATE_RENDER_TARGET	//state after
-	);
-
-	D3D12_CPU_DESCRIPTOR_HANDLE cdh = m_renderTargetHeap.Get()->GetCPUDescriptorHandleForHeapStart();
-	cdh.ptr += (SIZE_T)m_renderTargetDescriptorSize * (SIZE_T)backBufferIndex;
-
-	m_graphicsDirectList[backBufferIndex].Get()->ClearRenderTargetView(cdh,
-		clearColour, 0, nullptr);
-
-	D3D12_CPU_DESCRIPTOR_HANDLE DBcdh = m_dbDescriptorHeap.Get()->GetCPUDescriptorHandleForHeapStart();
-	DBcdh.ptr += (SIZE_T)m_depthBufferDescriptorSize * (SIZE_T)backBufferIndex;
-
-	m_graphicsDirectList[backBufferIndex].Get()->ClearDepthStencilView(DBcdh, D3D12_CLEAR_FLAG_DEPTH /*| D3D12_CLEAR_FLAG_STENCIL*/, 1.0f, 0, 1, &m_scissorRect);
-
-	// Specify the buffers we are going to render to. Correct render target?
-	m_graphicsDirectList[backBufferIndex].Get()->OMSetRenderTargets(1, &cdh, true, &DBcdh);
-
-	//Set root signature
-	m_graphicsDirectList[backBufferIndex].Get()->SetGraphicsRootSignature(m_rootSignature.Get());
-
-	m_graphicsDirectList[backBufferIndex].Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	//Set constant buffer descriptor heaps
-	ID3D12DescriptorHeap* descriptorHeaps[] = { m_cbDescriptorHeaps[backBufferIndex].Get() };
-	m_graphicsDirectList[backBufferIndex].Get()->SetDescriptorHeaps(ARRAYSIZE(descriptorHeaps), descriptorHeaps);
-	m_graphicsDirectList[backBufferIndex].Get()->SetGraphicsRootDescriptorTable(0, m_cbDescriptorHeaps[backBufferIndex].Get()->GetGPUDescriptorHandleForHeapStart());
-
-	//descriptorHeaps[0] = m_SRVDescriptorHeaps[backBufferIndex].Get();
-	//m_graphicsDirectList[backBufferIndex].Get()->SetDescriptorHeaps(ARRAYSIZE(descriptorHeaps), descriptorHeaps);
-	//m_graphicsDirectList[backBufferIndex].Get()->SetGraphicsRootDescriptorTable(1, m_SRVDescriptorHeaps[backBufferIndex].Get()->GetGPUDescriptorHandleForHeapStart());
-	
-
-	
 }
 
 void Renderer::executeList()
@@ -413,13 +368,6 @@ void Renderer::executeList()
 	WaitForSingleObject(m_copyHandle, INFINITE);
 
 	//Execute Copy queue
-
-	HRESULT hr = m_graphicsCopyList[backBufferIndex].Get()->Close();
-	if (hr != S_OK) {
-		printf("Error closing copy list %i\n", backBufferIndex);
-		exit(-1);
-	}
-
 	ID3D12CommandList* listsToExecuteCopy[] = { m_graphicsCopyList[backBufferIndex].Get() };
 	m_copyQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecuteCopy), listsToExecuteCopy);
 
@@ -428,48 +376,20 @@ void Renderer::executeList()
 
 	m_copyQueue->Signal(m_fence[backBufferIndex].Get(), copyQueueFinished);
 
-
 	//Wait for Compute queue to finish recording
-
 	WaitForSingleObject(m_computeHandle, INFINITE);
 
 	//Execute Compute queue
-
-	//Work
-
-	hr = m_graphicsComputeList[backBufferIndex].Get()->Close();
-	if (hr != S_OK) {
-		printf("Error closing compute list %i\n", backBufferIndex);
-		exit(-1);
-	}
 	ID3D12CommandList* listsToExecuteCompute[] = { m_graphicsComputeList[backBufferIndex].Get() };
-
-	m_computeQueue->Wait(m_fence[backBufferIndex].Get(), copyQueueFinished); //Starting
 	m_computeQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecuteCompute), listsToExecuteCompute);
+	m_computeQueue->Wait(m_fence[backBufferIndex].Get(), copyQueueFinished); // Wait for copy to finished to signal finishing compute
 
 	m_fenceValue[backBufferIndex]++;
 	UINT64 computeQueueFinished = m_fenceValue[backBufferIndex];
 	m_computeQueue->Signal(m_fence[backBufferIndex].Get(), computeQueueFinished); //Done
 
 	//Wait for Direct queue to finish recording
-
 	WaitForSingleObject(m_directHandle, INFINITE);
-
-	//Execute Direct queue
-
-	SetResourceTransitionBarrier(m_graphicsDirectList[backBufferIndex].Get(),
-		m_renderTargets[backBufferIndex].Get(),
-		D3D12_RESOURCE_STATE_RENDER_TARGET,	//state before
-		D3D12_RESOURCE_STATE_PRESENT		//state after
-	);
-
-	hr = m_graphicsDirectList[backBufferIndex].Get()->Close();
-	if (hr != S_OK) {
-		printf("Error closing direct list %i\n", backBufferIndex);
-		exit(-1);
-	}
-
-	//m_directQueue->Signal(m_renderingFence.Get(), directQueueStart); //Direct Starting
 
 	//Execute the commands!
 	ID3D12CommandList* listsToExecute[] = { m_graphicsDirectList[backBufferIndex].Get() };
@@ -588,6 +508,16 @@ ID3D12GraphicsCommandList* Renderer::getCopyCommandList()
 	return m_graphicsCopyList[index].Get();
 }
 
+ID3D12GraphicsCommandList* Renderer::getCopyCommandList(int index)
+{
+	return m_graphicsCopyList[index].Get();
+}
+
+ID3D12CommandAllocator* Renderer::getCopyCommandAllocator(int index)
+{
+	return m_copyAllocator[index].Get();
+}
+
 UINT64 Renderer::getCopyValue()
 {
 	return m_copyFenceValue;
@@ -634,6 +564,11 @@ ID3D12GraphicsCommandList* Renderer::getComputeCommandList()
 ID3D12GraphicsCommandList* Renderer::getComputeCommandList(int index)
 {
 	return m_graphicsComputeList[index].Get();
+}
+
+ID3D12CommandAllocator* Renderer::getComputeCommandAllocator(int index)
+{
+	return m_computeAllocator[index].Get();
 }
 
 ID3D12Fence1* Renderer::getDirectFence()

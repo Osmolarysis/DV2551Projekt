@@ -25,17 +25,9 @@ void main( uint3 DTid : SV_DispatchThreadID )
     transformation transform = transformBuffer_1[DTid.x];
 
     // Update
-    /*transform.rotation.x += PI * delta;
+    transform.rotation.x += PI * delta;
     transform.rotation.y += PI * delta;
-    transform.rotation.z += PI * delta;*/
-    transform.rotation.x = 1;
-    transform.rotation.y = 2;
-    transform.rotation.z = 3;
-    transform.rotation.w = 4;
-    transform.translation.x = 5;
-    transform.translation.y = 6;
-    transform.translation.z = 7;
-    transform.translation.w = 8;
+    transform.rotation.z += PI * delta;
 
    //Write data
     transformBuffer_2[DTid.x] = transform;

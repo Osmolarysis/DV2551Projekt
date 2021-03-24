@@ -156,6 +156,8 @@ public:
 	HANDLE getCopyHandle();
 	HANDLE getCopyThreadHandle();
 	ID3D12GraphicsCommandList* getCopyCommandList();
+	ID3D12GraphicsCommandList* getCopyCommandList(int);
+	ID3D12CommandAllocator* getCopyCommandAllocator(int);
 
 	ID3D12Fence1* getComputeFence();
 	UINT64 incAndGetComputeValue();
@@ -164,6 +166,7 @@ public:
 	HANDLE getComputeThreadHandle();
 	ID3D12GraphicsCommandList* getComputeCommandList();
 	ID3D12GraphicsCommandList* getComputeCommandList(int);
+	ID3D12CommandAllocator* getComputeCommandAllocator(int);
 
 	ID3D12Fence1* getDirectFence();
 	UINT64 incAndGetDirectValue();
@@ -172,6 +175,16 @@ public:
 	HANDLE getDirectThreadHandle();
 	ID3D12GraphicsCommandList* getDirectCommandList();
 	ID3D12GraphicsCommandList* getDirectCommandList(int bufferIndex);
+	ID3D12CommandAllocator* getDirectCommandAllocator(int);
+
+	D3D12_VIEWPORT* getViewPort();
+	D3D12_RECT* getScissorRect();
+	ID3D12Resource1* getRenderTarget(int);
+	ID3D12DescriptorHeap* getRenderTargetHeap();
+	size_t getRenderTargetHeapSize();
+	ID3D12DescriptorHeap* getDepthBufferHeap();
+	size_t getDepthBufferHeapSize();
+	ID3D12DescriptorHeap* getConstantBufferHeap(int);
 
 	void closeCommandLists();
 
