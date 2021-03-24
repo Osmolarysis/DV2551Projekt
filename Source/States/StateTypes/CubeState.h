@@ -39,6 +39,7 @@ private:
 	void directRecord();
 
 	std::shared_ptr<VertexBuffer> createBox(float width, float hight, float depth);
+	void initiateTransformMatrices();
 public:
 	CubeState();
 	~CubeState();
