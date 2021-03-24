@@ -41,7 +41,7 @@ int CALLBACK main(_In_ HINSTANCE appInstance, _In_opt_ HINSTANCE preInstance, _I
 		//Begin frame
 		renderer->beginFrame();
 
-		//Record (TODO: multithread)
+		//Record
 		stateStack->record();
 
 		//Execute list(s)
