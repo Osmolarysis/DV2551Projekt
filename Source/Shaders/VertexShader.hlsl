@@ -1,6 +1,8 @@
 struct VS_in {
 	float3 pos : POSITION;
 	float2 uv: UV;
+	float3 instancePos : INSTANCEPOS;
+	uint instanceID : SV_InstanceID;
 };
 
 struct VS_out {
@@ -28,7 +30,9 @@ VS_out main( VS_in input )
 {
 	VS_out output;
 
-	output.posH = mul(transform, float4(input.pos, 1.0f));
+	float4 pos = float4(input.pos + input.instancePos, 1.0f);
+
+	output.posH = mul(transform, pos);
 	output.posH = mul(viewMatrix, output.posH);
 	output.posH = mul(projMatrix, output.posH);
 	output.uv = input.uv;

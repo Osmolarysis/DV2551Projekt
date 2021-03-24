@@ -177,7 +177,7 @@ std::shared_ptr<VertexBuffer> CubeState::createBox(float width, float height, fl
 	int size = sizeof(v);
 	int indexSize = sizeof(i);
 	std::shared_ptr<VertexBuffer> vertBuf = std::make_shared<VertexBuffer>();
-	vertBuf->setData(v, size, i, indexSize);
+	vertBuf->setData(v, size, i, indexSize, true);
 
 	return vertBuf;
 }
