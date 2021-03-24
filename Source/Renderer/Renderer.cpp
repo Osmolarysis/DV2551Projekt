@@ -329,9 +329,9 @@ void Renderer::beginFrame()
 		printf("Error reseting copy list %i\n", backBufferIndex);
 		exit(-1);
 	}
-	std::wstring name = L"Copy list ";
+	/*std::wstring name = L"Copy list ";
 	name.append(std::to_wstring(backBufferIndex));
-	m_graphicsCopyList[backBufferIndex].Get()->SetName(name.c_str());
+	m_graphicsCopyList[backBufferIndex].Get()->SetName(name.c_str());*/
 
 	////Compute
 	hr = m_computeAllocator[backBufferIndex].Get()->Reset();
@@ -399,6 +399,9 @@ void Renderer::beginFrame()
 	//descriptorHeaps[0] = m_SRVDescriptorHeaps[backBufferIndex].Get();
 	//m_graphicsDirectList[backBufferIndex].Get()->SetDescriptorHeaps(ARRAYSIZE(descriptorHeaps), descriptorHeaps);
 	//m_graphicsDirectList[backBufferIndex].Get()->SetGraphicsRootDescriptorTable(1, m_SRVDescriptorHeaps[backBufferIndex].Get()->GetGPUDescriptorHandleForHeapStart());
+	
+
+	
 }
 
 void Renderer::executeList()
@@ -625,6 +628,11 @@ HANDLE Renderer::getComputeThreadHandle()
 ID3D12GraphicsCommandList* Renderer::getComputeCommandList()
 {
 	int index = m_swapChain->GetCurrentBackBufferIndex();
+	return m_graphicsComputeList[index].Get();
+}
+
+ID3D12GraphicsCommandList* Renderer::getComputeCommandList(int index)
+{
 	return m_graphicsComputeList[index].Get();
 }
 

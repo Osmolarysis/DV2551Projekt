@@ -20,7 +20,7 @@ private:
 		XMFLOAT4 translation;
 	} m_transformationMatrix[NUM_BOXES];
 
-	ComPtr<ID3D12Resource2> m_ACHeap; //Do we need a seperate heap?
+	ComPtr<ID3D12Resource2> m_ACHeap[2];
 	ComPtr<ID3D12Resource2> m_ACBuffer[2]; //One for consuming and one for appending
 
 	ComPtr<ID3D12PipelineState> m_computeStateObject;

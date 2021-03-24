@@ -79,7 +79,9 @@ ComPtr<ID3D12Resource2> CreateDefaultBuffer(ID3D12GraphicsCommandList* cmdList, 
 	// allocates memory
 	ComPtr<ID3D12Resource2> defaultHeap = makeBufferHeap(D3D12_HEAP_TYPE_DEFAULT, byteSize, name);
 	size_t requiredSize = GetRequiredIntermediateSize(defaultHeap.Get(), 0, 1);
-	uploadBuffer = makeBufferHeap(D3D12_HEAP_TYPE_UPLOAD, requiredSize, L"uploadHeap");
+	std::wstring heapName = L"Upload heap ";
+	heapName.append(name);
+	uploadBuffer = makeBufferHeap(D3D12_HEAP_TYPE_UPLOAD, requiredSize, heapName.c_str());
 
 	// describe data
 	D3D12_SUBRESOURCE_DATA vbData = {};

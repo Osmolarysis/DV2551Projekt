@@ -157,14 +157,13 @@ public:
 	HANDLE getCopyThreadHandle();
 	ID3D12GraphicsCommandList* getCopyCommandList();
 
-
 	ID3D12Fence1* getComputeFence();
 	UINT64 incAndGetComputeValue();
 	UINT64 getComputeValue();
 	HANDLE getComputeHandle();
 	HANDLE getComputeThreadHandle();
 	ID3D12GraphicsCommandList* getComputeCommandList();
-
+	ID3D12GraphicsCommandList* getComputeCommandList(int);
 
 	ID3D12Fence1* getDirectFence();
 	UINT64 incAndGetDirectValue();

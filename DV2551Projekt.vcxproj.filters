@@ -133,10 +133,10 @@
     <FxCompile Include="Source\Shaders\PixelShader.hlsl">
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="CS_CubeRotator.hlsl">
+    <FxCompile Include="Source\Shaders\CS_Initialisation.hlsl">
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Source\Shaders\CS_Initialisation.hlsl">
+    <FxCompile Include="Source\Shaders\CS_CubeRotator.hlsl">
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

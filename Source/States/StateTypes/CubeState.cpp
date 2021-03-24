@@ -14,14 +14,14 @@ void CubeState::copyRecord()
 	//Wait for signal
 	fence->SetEventOnCompletion(fenceValue + 1, handle);
 	WaitForSingleObject(handle, INFINITE);
-	
+
 	while (m_copyThread.isActive) {
 		//Thread work
 		//Update camera
 		m_camera->update();
 
 		//Update gif animation		
-		m_scene[0]->getMesh(0)->getTexture()->updateAnimation(Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex(), Timer::getInstance()->getDt());
+		m_scene[0]->getMesh(0)->getTexture()->updateAnimation(Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex(), Timer::getInstance()->getDt()); //R£££ Warning
 
 		//Thread handling
 		fenceValue = Renderer::getInstance()->incAndGetCopyValue();
@@ -37,17 +37,34 @@ void CubeState::computeRecord()
 {
 	ID3D12Fence1* fence = Renderer::getInstance()->getComputeFence();
 	HANDLE handle = Renderer::getInstance()->getComputeThreadHandle();
+	ID3D12RootSignature* rootSignature = Renderer::getInstance()->getRootSignature();
+	ID3D12DescriptorHeap* cbDescriptorHeap[2] = { nullptr, nullptr };
+	cbDescriptorHeap[0] = Renderer::getInstance()->getCBDescriptorHeap(0);
+	cbDescriptorHeap[1] = Renderer::getInstance()->getCBDescriptorHeap(1);
+	ID3D12GraphicsCommandList* commandList[2] = { nullptr, nullptr };
+	commandList[0] = Renderer::getInstance()->getComputeCommandList(0);
+	commandList[1] = Renderer::getInstance()->getComputeCommandList(1);
 	UINT64 fenceValue = 0;
+	int bbIndex = 0;
 
 	//Wait for signal
 	fence->SetEventOnCompletion(fenceValue + 1, handle);
 	WaitForSingleObject(handle, INFINITE);
 
 	while (m_computeThread.isActive) {
-		//Thread work
+		//Initial work
+		commandList[bbIndex]->SetComputeRootSignature(rootSignature);
+		commandList[bbIndex]->SetPipelineState(m_computeStateObject.Get());
+		commandList[bbIndex]->SetDescriptorHeaps(1, &cbDescriptorHeap[bbIndex]);
+		commandList[bbIndex]->SetComputeRootDescriptorTable(0, cbDescriptorHeap[bbIndex]->GetGPUDescriptorHandleForHeapStart());
+		commandList[bbIndex]->SetComputeRootUnorderedAccessView(1, m_ACBuffer[0]->GetGPUVirtualAddress());
+		commandList[bbIndex]->SetComputeRootUnorderedAccessView(2, m_ACBuffer[1]->GetGPUVirtualAddress());
 
+		//Thread work
+		commandList[bbIndex]->Dispatch(1, 1, 1);
 
 		//Thread handling
+		bbIndex = 1 - bbIndex;
 		fenceValue = Renderer::getInstance()->incAndGetComputeValue();
 		fence->Signal(fenceValue); //Done
 
@@ -107,8 +124,8 @@ std::shared_ptr<VertexBuffer> CubeState::createBox(float width, float height, fl
 	v[7] = VertexBuffer::Vertex(-w2, +h2, +d2, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
 
 	// Fill in the top face vertex data.
-	v[8]  = VertexBuffer::Vertex(-w2, +h2, -d2, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f);
-	v[9]  = VertexBuffer::Vertex(-w2, +h2, +d2, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
+	v[8] = VertexBuffer::Vertex(-w2, +h2, -d2, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f);
+	v[9] = VertexBuffer::Vertex(-w2, +h2, +d2, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
 	v[10] = VertexBuffer::Vertex(+w2, +h2, +d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f);
 	v[11] = VertexBuffer::Vertex(+w2, +h2, -d2, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f);
 
@@ -223,7 +240,7 @@ void CubeState::initialise()
 
 	//Create triangle (later cube) - from box example
 
-	std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>(createBox(1,1,1), "Assets/Images/frame_", ".png", 186);
+	std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>(createBox(1, 1, 1), "Assets/Images/frame_", ".png", 186);
 
 	// Add VertexBuffer (or Mesh) to the MeshGroup. (Mesh transform default to (0,0,0))
 	m_scene[0]->addMesh(mesh);
@@ -249,22 +266,48 @@ void CubeState::initialise()
 
 	std::wstring initialisationShader = L"Source/Shaders/CS_Initialisation.hlsl";
 	std::wstring rotationShader = L"Source/Shaders/CS_CubeRotator.hlsl";
+	ComPtr<ID3DBlob> byteCode = nullptr;
+	ComPtr<ID3DBlob> errors = nullptr;
 
-	D3D12_COMPUTE_PIPELINE_STATE_DESC cpsd;
+	//	Compile shader
+	HRESULT hr = D3DCompileFromFile(
+		rotationShader.c_str(),
+		nullptr,
+		nullptr,
+		"main",
+		"cs_5_0",
+		0,
+		0,
+		byteCode.GetAddressOf(),
+		errors.GetAddressOf()
+	);
+	if (errors != nullptr || hr != S_OK)
+	{
+		printf("Error compiling compute shader\n");
+		OutputDebugStringA((char*)errors->GetBufferPointer());
+		exit(-1);
+	}
 
+	D3D12_COMPUTE_PIPELINE_STATE_DESC cpsd = {};
+	cpsd.pRootSignature = renderer->getRootSignature();
+	cpsd.CS.pShaderBytecode = reinterpret_cast<BYTE*>(byteCode->GetBufferPointer());
+	cpsd.CS.BytecodeLength = byteCode->GetBufferSize();
+	cpsd.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	cpsd.NodeMask = 0;
 
-	ID3D12GraphicsCommandList* computeCommandList = renderer->getComputeCommandList();
-	m_ACHeap = makeBufferHeap(D3D12_HEAP_TYPE_DEFAULT, sizeof(m_transformationMatrix), L"transformation heap");
+	hr = renderer->getDevice()->CreateComputePipelineState(&cpsd, IID_PPV_ARGS(m_computeStateObject.GetAddressOf()));
+	if (hr != S_OK) {
+		printf("Error creating compute pipeline state object\n");
+		exit(-1);
+	}
+	m_computeStateObject->SetName(L"Compute pipeline state object");
+
 	for (size_t i = 0; i < 2; i++)
 	{
 		std::wstring name = L"Append & consume buffer ";
 		name.append(std::to_wstring(i));
-		m_ACBuffer[i] = CreateDefaultBuffer(computeCommandList, m_transformationMatrix, sizeof(m_transformationMatrix), m_ACHeap, name.c_str(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		m_ACBuffer[i] = CreateDefaultBuffer(renderer->getCopyCommandList(), m_transformationMatrix, sizeof(m_transformationMatrix), m_ACHeap[i], name.c_str(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 	}
-	/*computeCommandList->SetComputeRootSignature(renderer->getRootSignature());
-	computeCommandList->SetComputeRootUnorderedAccessView(1, m_ACBuffer[0]->GetGPUVirtualAddress());
-	computeCommandList->SetComputeRootUnorderedAccessView(2, m_ACBuffer[1]->GetGPUVirtualAddress());
-	computeCommandList->Dispatch(1, 1, 1);*/
 }
 
 void CubeState::update()
