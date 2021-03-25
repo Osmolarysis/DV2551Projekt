@@ -14,7 +14,7 @@ private:
 	std::vector<std::unique_ptr<MeshGroup>> m_scene;
 	std::unique_ptr<Camera> m_camera;
 
-	XMMATRIX m_transformationMatrix[NUM_BOXES];
+	XMMATRIX m_transformationMatrix[NUM_BOXES] = { XMMatrixIdentity() };
 
 	ComPtr<ID3D12Resource2> m_ComputeGameLogicUpdateHeap;
 	ComPtr<ID3D12Resource2> m_ComputeGameLogicUpdateBuffer;
