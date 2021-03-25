@@ -38,9 +38,10 @@ VS_out main( VS_in input )
 {
 	VS_out output;
 
-	float4 pos = float4(input.pos + input.instancePos, 1.0f);
+	float4 pos = float4(input.pos, 1.0f);
 
 	output.posH = mul(transform, pos);
+	output.posH += float4(input.instancePos, 1.0f);
 	output.posH = mul(viewMatrix, output.posH);
 	output.posH = mul(projMatrix, output.posH);
 	output.uv = input.uv;
