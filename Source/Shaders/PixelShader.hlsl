@@ -12,7 +12,7 @@ float4 main(PS_in input) : SV_TARGET
 	float4 color = diffuseMap.Sample(mySampler, input.uv);
 	float4 filter = input.normal;
 	if (filter.x < 0.0f || filter.y < 0.0f || filter.z < 0.0f)
-		filter += float4(1.0f, 1,1,0);
+		filter += float4(1.0f, 1.0f , 1.0f, 1.0f);
 	color *= filter;
 	return color;
 }
