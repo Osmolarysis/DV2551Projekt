@@ -5,7 +5,7 @@ DirectX::XMFLOAT3* VertexBuffer::createInstances(int width, int height, int dept
 {
 	m_nrOfInstances = width * height * depth;
 	DirectX::XMFLOAT3* instancePositions = new DirectX::XMFLOAT3[m_nrOfInstances];
-	srand(time(NULL));
+	srand(unsigned int(time(NULL)));
 	int index = 0;
 	float averageDistanceBetweenCubes = 4.0f;
 	float posX, posY, posZ = 0.0f;

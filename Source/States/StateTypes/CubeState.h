@@ -6,7 +6,7 @@
 #include "../../Camera/Camera.h"
 #include "../../Mesh/MeshGroup.h"
 
-const int NUM_BOXES = 1;
+const int NUM_BOXES = 4096;
 
 class CubeState : public State {
 private:
@@ -14,14 +14,12 @@ private:
 	std::vector<std::unique_ptr<MeshGroup>> m_scene;
 	std::unique_ptr<Camera> m_camera;
 
-	//Transformation
-	struct Transformation {
-		XMFLOAT4 rotation;
-		XMFLOAT4 translation;
-	} m_transformationMatrix[NUM_BOXES];
+	XMMATRIX m_transformationMatrix[NUM_BOXES];
 
-	ComPtr<ID3D12Resource2> m_ACHeap[2];
-	ComPtr<ID3D12Resource2> m_ACBuffer[2]; //One for consuming and one for appending
+	ComPtr<ID3D12Resource2> m_ComputeGameLogicUpdateHeap;
+	ComPtr<ID3D12Resource2> m_ComputeGameLogicUpdateBuffer;
+	ComPtr<ID3D12Resource2> m_ComputeGameLogicReadHeap[2];
+	ComPtr<ID3D12Resource2> m_ComputeGameLogicReadBuffer[2];
 
 	ComPtr<ID3D12PipelineState> m_computeStateObject;
 

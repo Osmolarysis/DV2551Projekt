@@ -1,34 +1,51 @@
 cbuffer matrixBuffer : register(b0)
 {
-    float4x4 viewMatrix;
-    float4x4 projMatrix;
-    float dt;
-    float3 smallPadd;
-    float4 matrixPadd[7];
+	float4x4 viewMatrix;
+	float4x4 projMatrix;
+	float dt;
+	float3 smallPadd;
+	float4 matrixPadd[7];
 }
 
-struct transformation {
-    float4 rotation;
-    float4 translation;
-};
+RWStructuredBuffer <float4x4> transformUpdateBuffer : register(u0);
+RWStructuredBuffer <float4x4> transformReadBuffer : register(u1);
 
-RWStructuredBuffer <transformation> transformBuffer_1 : register(u0);
-RWStructuredBuffer <transformation> transformBuffer_2 : register(u1);
+static const float PI = 3.14159265358979f;
 
-static const float PI = 3.14159265f;
-
-[numthreads(1, 1, 1)]
-void main( uint3 DTid : SV_DispatchThreadID )
+[numthreads(1024, 1, 1)]
+void main(uint3 DTid : SV_DispatchThreadID)
 {
-    //Read data
-    float delta = dt;
-    transformation transform = transformBuffer_1[DTid.x];
+	float rotValue = dt;
 
-    // Update
-    transform.rotation.x += PI * delta;
-    transform.rotation.y += PI * delta;
-    transform.rotation.z += PI * delta;
+	//Read data
+	float4x4 transform = transformUpdateBuffer[DTid.x];
 
-   //Write data
-    transformBuffer_2[DTid.x] = transform;
+	// Update
+	float4x4 rotationX = {
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, cos(rotValue), -sin(rotValue), 0.0f,
+		0.0f, sin(rotValue), cos(rotValue), 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
+	float4x4 rotationY = {
+		cos(rotValue), 0.0f, sin(rotValue), 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		-sin(rotValue), 0, cos(rotValue), 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
+	float4x4 rotationZ = {
+		cos(rotValue), -sin(rotValue), 0.0f, 0.0f,
+		sin(rotValue), cos(rotValue), 0.0, 0.0f,
+		0.0f, 0.0f, 1, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
+
+	transform = mul(transform, rotationX);
+	transform = mul(transform, rotationX);
+	transform = mul(transform, rotationZ);
+
+
+	//Write data
+	transformUpdateBuffer[DTid.x] = transform;
+	transformReadBuffer[DTid.x] = transform;
 }

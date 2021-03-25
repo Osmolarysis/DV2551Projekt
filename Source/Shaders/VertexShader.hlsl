@@ -26,13 +26,7 @@ cbuffer transformBuffer : register(b1)
 	float4 transformPadd[12];
 }
 
-struct transformation {
-	float4 rotation;
-	float4 translation;
-};
-
-RWStructuredBuffer <transformation> transformBuffer_1 : register(u0);
-RWStructuredBuffer <transformation> transformBuffer_2 : register(u1);
+RWStructuredBuffer <float4x4> transformBuffer : register(u0);
 
 VS_out main( VS_in input )
 {
@@ -40,7 +34,9 @@ VS_out main( VS_in input )
 
 	float4 pos = float4(input.pos, 1.0f);
 
-	output.posH = mul(transform, pos);
+
+
+	output.posH = mul(transformBuffer[input.instanceID], pos);
 	output.posH += float4(input.instancePos, 1.0f);
 	output.posH = mul(viewMatrix, output.posH);
 	output.posH = mul(projMatrix, output.posH);

@@ -85,11 +85,11 @@ void CubeState::computeRecord()
 		commandList[bbIndex]->SetPipelineState(m_computeStateObject.Get());
 		commandList[bbIndex]->SetDescriptorHeaps(1, &cbDescriptorHeap[bbIndex]);
 		commandList[bbIndex]->SetComputeRootDescriptorTable(0, cbDescriptorHeap[bbIndex]->GetGPUDescriptorHandleForHeapStart());
-		commandList[bbIndex]->SetComputeRootUnorderedAccessView(1, m_ACBuffer[0]->GetGPUVirtualAddress());
-		commandList[bbIndex]->SetComputeRootUnorderedAccessView(2, m_ACBuffer[1]->GetGPUVirtualAddress());
+		commandList[bbIndex]->SetComputeRootUnorderedAccessView(1, m_ComputeGameLogicUpdateBuffer->GetGPUVirtualAddress());
+		commandList[bbIndex]->SetComputeRootUnorderedAccessView(2, m_ComputeGameLogicReadBuffer[bbIndex]->GetGPUVirtualAddress());
 
 		//Thread work
-		commandList[bbIndex]->Dispatch(1, 1, 1);
+		commandList[bbIndex]->Dispatch(4, 1, 1);
 
 		//Close list
 		hr = commandList[bbIndex]->Close();
@@ -134,7 +134,7 @@ void CubeState::directRecord()
 	constantBufferHeap[1] = Renderer::getInstance()->getConstantBufferHeap(1);
 	UINT64 fenceValue = 0;
 	size_t bbIndex = 0;
-	float clearColour[4] = { 0.3f, 0.3f, 0.0f, 1.0f };
+	float clearColour[4] = { 0.17f, 0.23f, 0.38f, 1.0f };
 
 	HRESULT hr;
 
@@ -185,8 +185,7 @@ void CubeState::directRecord()
 		commandList[bbIndex]->SetDescriptorHeaps(ARRAYSIZE(descriptorHeaps), descriptorHeaps);
 		commandList[bbIndex]->SetGraphicsRootDescriptorTable(0, constantBufferHeap[bbIndex]->GetGPUDescriptorHandleForHeapStart());
 		
-		commandList[bbIndex]->SetGraphicsRootUnorderedAccessView(1, m_ACBuffer[0]->GetGPUVirtualAddress());
-		commandList[bbIndex]->SetGraphicsRootUnorderedAccessView(2, m_ACBuffer[1]->GetGPUVirtualAddress());
+		commandList[bbIndex]->SetGraphicsRootUnorderedAccessView(1, m_ComputeGameLogicReadBuffer[bbIndex]->GetGPUVirtualAddress());
 
 		//Thread work
 		for (auto& meshG : m_scene)
@@ -304,10 +303,10 @@ void CubeState::initiateTransformMatrices()
 
 	for (size_t i = 0; i < NUM_BOXES; i++)
 	{
-		m_transformationMatrix[i].rotation.x = float((rand() % 1000) / 1000.f);
-		m_transformationMatrix[i].rotation.y = float((rand() % 1000) / 1000.f);
-		m_transformationMatrix[i].rotation.z = float((rand() % 1000) / 1000.f);
-		m_transformationMatrix[i].rotation.w = float((rand() % 1000) / 1000.f);
+		m_transformationMatrix[i] = XMMatrixIdentity();
+		m_transformationMatrix[i] = XMMatrixMultiply(XMMatrixRotationRollPitchYaw(
+			float(((rand() % 2000) - 1000.f) / 1000.f), float(((rand() % 2000) - 1000.f) / 1000.f),
+			float(((rand() % 2000) - 1000.f) / 1000.f)), m_transformationMatrix[i]);
 	}
 }
 
@@ -433,10 +432,11 @@ void CubeState::initialise()
 
 	for (size_t i = 0; i < 2; i++)
 	{
-		std::wstring name = L"Append & consume buffer ";
+		std::wstring name = L"Game data buffer ";
 		name.append(std::to_wstring(i));
-		m_ACBuffer[i] = CreateDefaultBuffer(renderer->getCopyCommandList(), m_transformationMatrix, sizeof(m_transformationMatrix), m_ACHeap[i], name.c_str(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		m_ComputeGameLogicReadBuffer[i] = CreateDefaultBuffer(renderer->getCopyCommandList(), m_transformationMatrix, sizeof(m_transformationMatrix), m_ComputeGameLogicReadHeap[i], name.c_str(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 	}
+	m_ComputeGameLogicUpdateBuffer = CreateDefaultBuffer(renderer->getCopyCommandList(), m_transformationMatrix, sizeof(m_transformationMatrix), m_ComputeGameLogicUpdateHeap, L"Game logic update buffer", D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 }
 
 void CubeState::update()

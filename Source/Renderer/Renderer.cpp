@@ -380,8 +380,11 @@ void Renderer::executeList()
 	WaitForSingleObject(m_computeHandle, INFINITE);
 
 	//Execute Compute queue
+	m_computeQueue->Wait(m_gameLogicFence.Get(), m_lastFinishedGameLogicUpdate);
 	ID3D12CommandList* listsToExecuteCompute[] = { m_graphicsComputeList[backBufferIndex].Get() };
 	m_computeQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecuteCompute), listsToExecuteCompute);
+	m_lastFinishedGameLogicUpdate++;
+	m_computeQueue->Signal(m_gameLogicFence.Get(), m_lastFinishedGameLogicUpdate);
 	m_computeQueue->Wait(m_fence[backBufferIndex].Get(), copyQueueFinished); // Wait for copy to finished to signal finishing compute
 
 	m_fenceValue[backBufferIndex]++;
@@ -949,6 +952,16 @@ bool Renderer::createFenceAndEventHandle()
 	m_directHandle = CreateEvent(0, false, false, 0);
 	m_directThreadHandle = CreateEvent(0, false, false, 0);
 	m_directFence.Get()->SetName(L"Direct recording fence");
+
+	//Direct queue fence
+	hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_gameLogicFence.GetAddressOf()));
+	if (hr != S_OK) {
+		printf("Error creating direct fence");
+		exit(-1);
+	}
+	// Creation of an event handle to use in GPU synchronization
+	m_directFence.Get()->SetName(L"Game logic fence");
+	m_lastFinishedGameLogicUpdate = 0;
 
 	return true;
 }
