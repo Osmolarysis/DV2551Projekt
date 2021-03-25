@@ -33,7 +33,7 @@ inline void SafeRelease(
 #define SCREEN_WIDTH Renderer::getInstance()->getScreenWidth()
 
 const unsigned int NUM_SWAP_BUFFERS = 2; //Number of buffers
-const unsigned int NUM_CONSTANT_BUFFERS = 2;
+const unsigned int NUM_CONSTANT_BUFFERS = 1;
 const unsigned int NUM_TEXTURE_BUFFERS = 1;
 const unsigned int NUM_BUFFERS_IN_DESC_HEAP = NUM_CONSTANT_BUFFERS + NUM_TEXTURE_BUFFERS;
 const unsigned int NUM_COMMANDLISTS = 2;

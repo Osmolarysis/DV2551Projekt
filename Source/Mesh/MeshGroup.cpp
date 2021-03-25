@@ -5,7 +5,6 @@ MeshGroup::MeshGroup(LPCWSTR shaderFiles[], UINT cbufferSize, UINT cbufferLocati
 	std::string errorStr;
 	m_vsBlob = compileShader(shaderFiles[0], errorStr, ShaderType::VS);
 	m_psBlob = compileShader(shaderFiles[1], errorStr, ShaderType::PS);
-	m_cbuffer = std::make_unique<ConstantBuffer>(ConstantBuffer(cbufferSize, cbufferLocation));
 	makePipelineStateObject();
 }
 
@@ -38,7 +37,6 @@ void MeshGroup::drawAll()
 	int iFrame = Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex();
 	for (auto& mesh : m_meshes)
 	{
-		m_cbuffer->updateData((void*)mesh->getMatrix(), iFrame, Renderer::getInstance()->getDirectCommandList());
 		mesh->draw();
 	}
 }

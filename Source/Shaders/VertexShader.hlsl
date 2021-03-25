@@ -22,12 +22,6 @@ cbuffer matrixBuffer : register(b0)
 	float4 matrixPadd[7];
 }
 
-cbuffer transformBuffer : register(b1)
-{
-	float4x4 transform;
-	float4 transformPadd[12];
-}
-
 RWStructuredBuffer <float4x4> transformBuffer : register(u0);
 
 VS_out main( VS_in input )
