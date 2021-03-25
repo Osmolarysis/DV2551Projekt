@@ -26,6 +26,14 @@ cbuffer transformBuffer : register(b1)
 	float4 transformPadd[12];
 }
 
+struct transformation {
+	float4 rotation;
+	float4 translation;
+};
+
+RWStructuredBuffer <transformation> transformBuffer_1 : register(u0);
+RWStructuredBuffer <transformation> transformBuffer_2 : register(u1);
+
 VS_out main( VS_in input )
 {
 	VS_out output;

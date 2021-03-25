@@ -185,6 +185,9 @@ void CubeState::directRecord()
 		commandList[bbIndex]->SetDescriptorHeaps(ARRAYSIZE(descriptorHeaps), descriptorHeaps);
 		commandList[bbIndex]->SetGraphicsRootDescriptorTable(0, constantBufferHeap[bbIndex]->GetGPUDescriptorHandleForHeapStart());
 		
+		commandList[bbIndex]->SetGraphicsRootUnorderedAccessView(1, m_ACBuffer[0]->GetGPUVirtualAddress());
+		commandList[bbIndex]->SetGraphicsRootUnorderedAccessView(2, m_ACBuffer[1]->GetGPUVirtualAddress());
+
 		//Thread work
 		for (auto& meshG : m_scene)
 		{
