@@ -18,7 +18,6 @@ private:
 
 	ComPtr<ID3D12Resource2> m_ComputeGameLogicUpdateHeap;
 	ComPtr<ID3D12Resource2> m_ComputeGameLogicUpdateBuffer;
-	ComPtr<ID3D12Resource2> m_ComputeGameLogicReadHeap[2];
 	ComPtr<ID3D12Resource2> m_ComputeGameLogicReadBuffer[2];
 
 	ComPtr<ID3D12PipelineState> m_computeStateObject;

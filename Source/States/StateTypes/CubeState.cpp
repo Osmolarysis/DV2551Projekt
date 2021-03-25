@@ -434,7 +434,7 @@ void CubeState::initialise()
 	{
 		std::wstring name = L"Game data buffer ";
 		name.append(std::to_wstring(i));
-		m_ComputeGameLogicReadBuffer[i] = CreateDefaultBuffer(renderer->getCopyCommandList(), m_transformationMatrix, sizeof(m_transformationMatrix), m_ComputeGameLogicReadHeap[i], name.c_str(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		m_ComputeGameLogicReadBuffer[i] = makeBufferHeap(D3D12_HEAP_TYPE_DEFAULT, sizeof(m_transformationMatrix), name.c_str());
 	}
 	m_ComputeGameLogicUpdateBuffer = CreateDefaultBuffer(renderer->getCopyCommandList(), m_transformationMatrix, sizeof(m_transformationMatrix), m_ComputeGameLogicUpdateHeap, L"Game logic update buffer", D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 }
