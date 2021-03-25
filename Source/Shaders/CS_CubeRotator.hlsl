@@ -41,7 +41,7 @@ void main(uint3 DTid : SV_DispatchThreadID)
 	};
 
 	transform = mul(transform, rotationX);
-	transform = mul(transform, rotationX);
+	transform = mul(transform, rotationY);
 	transform = mul(transform, rotationZ);
 
 
