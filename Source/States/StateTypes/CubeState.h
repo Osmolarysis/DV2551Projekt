@@ -6,7 +6,7 @@
 #include "../../Camera/Camera.h"
 #include "../../Mesh/MeshGroup.h"
 
-const int NUM_BOXES = 4096;
+const int NUM_BOXES = 64*64*64;
 
 class CubeState : public State {
 private:

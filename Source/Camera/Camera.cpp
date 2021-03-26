@@ -56,7 +56,10 @@ void Camera::movePlayer()
 {
 	Input* input = Input::getInstance();
 	Timer* timer = Timer::getInstance();
-	float speed = 3.0f * (float)timer->getDt();
+	float speed = 5.0f * (float)timer->getDt();
+	
+	if (input->keyDown(Keyboard::Keys::LeftShift))
+		speed *= 4.0f;
 
 	if (input->keyDown(Keyboard::Keys::W)) {
 		m_eye += m_forward * speed;
@@ -94,7 +97,7 @@ Camera::Camera(bool firstPersonCamera)
 	m_aspectRatio = (float)renderer->getScreenWidth() / (float)renderer->getScreenHeight();
 	m_fov = 60.0f * XM_PI / 180.0f;
 	m_nearPlane = 0.1f;
-	m_farPlane = 100.0f;
+	m_farPlane = 200.0f;
 	m_matrices.m_proj = XMMatrixPerspectiveFovRH(m_fov, m_aspectRatio, m_nearPlane, m_farPlane);
 
 	//Movement vectors

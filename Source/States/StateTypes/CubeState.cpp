@@ -89,7 +89,7 @@ void CubeState::computeRecord()
 		commandList[bbIndex]->SetComputeRootUnorderedAccessView(2, m_ComputeGameLogicReadBuffer[bbIndex]->GetGPUVirtualAddress());
 
 		//Thread work
-		commandList[bbIndex]->Dispatch(4, 1, 1);
+		commandList[bbIndex]->Dispatch(256, 1, 1);
 
 		//Close list
 		hr = commandList[bbIndex]->Close();

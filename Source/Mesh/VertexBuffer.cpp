@@ -113,7 +113,7 @@ void VertexBuffer::setData(const void* data, size_t dataByteSize, const void* in
 	if (m_instancing)
 	{
 		//Buffer
-		int xInstances = 16;
+		int xInstances = 64;
 		int yInstances = xInstances;
 		int zInstances = xInstances;
 		DirectX::XMFLOAT3* instancePositions = createInstances(xInstances, yInstances, zInstances);
