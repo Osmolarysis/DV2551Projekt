@@ -98,9 +98,9 @@ void ConstantBuffer::setData(const void* data)
 	vbData.RowPitch = m_bufferSize;
 	vbData.SlicePitch = vbData.RowPitch;
 
-	//Uses direct lists to set initial values. Use updateData() to set specific buffer and command list
+	//Uses copy lists to set initial values. Use updateData() to set specific buffer and command list
 	for (int i = 0; i < NUM_CONSTANT_BUFFERS; i++) {
-		UpdateSubresources(renderer->getDirectCommandList(i), m_constantBufferResource[i].Get(), m_uploadBufferResource[i].Get(), 0, 0, 1, &vbData);
+		UpdateSubresources(renderer->getCopyCommandList(i), m_constantBufferResource[i].Get(), m_uploadBufferResource[i].Get(), 0, 0, 1, &vbData);
 	}
 }
 
