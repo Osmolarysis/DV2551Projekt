@@ -54,7 +54,7 @@ ConstantBuffer::ConstantBuffer(UINT bufferSize, UINT location)
 			&heapPropertiesDefault,
 			D3D12_HEAP_FLAG_NONE,
 			&resourceDesc,
-			D3D12_RESOURCE_STATE_COPY_DEST,
+			D3D12_RESOURCE_STATE_COMMON,
 			nullptr,
 			IID_PPV_ARGS(&m_constantBufferResource[i])
 		);
@@ -101,10 +101,6 @@ void ConstantBuffer::setData(const void* data)
 	//Uses direct lists to set initial values. Use updateData() to set specific buffer and command list
 	for (int i = 0; i < NUM_CONSTANT_BUFFERS; i++) {
 		UpdateSubresources(renderer->getDirectCommandList(i), m_constantBufferResource[i].Get(), m_uploadBufferResource[i].Get(), 0, 0, 1, &vbData);
-		CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_constantBufferResource[i].Get(),
-			D3D12_RESOURCE_STATE_COPY_DEST,
-			D3D12_RESOURCE_STATE_COMMON);
-		renderer->getDirectCommandList(i)->ResourceBarrier(1, &barrier);
 	}
 }
 
@@ -120,8 +116,4 @@ void ConstantBuffer::updateData(const void* data, UINT currentBackBufferIndex, I
 	vbData.SlicePitch = vbData.RowPitch;
 
 	UpdateSubresources(cmdList, m_constantBufferResource[currentBackBufferIndex].Get(), m_uploadBufferResource[currentBackBufferIndex].Get(), 0, 0, 1, &vbData);
-	CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_constantBufferResource[currentBackBufferIndex].Get(),
-		D3D12_RESOURCE_STATE_COPY_DEST,
-		D3D12_RESOURCE_STATE_COMMON);
-	cmdList->ResourceBarrier(1, &barrier);
 }
