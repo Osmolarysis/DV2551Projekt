@@ -6,7 +6,7 @@
 #include "../../Camera/Camera.h"
 #include "../../Mesh/MeshGroup.h"
 
-const int NUM_BOXES = 4096;
+//const int NUM_BOXES = 64*64*64;
 
 class CubeState : public State {
 private:
@@ -14,7 +14,7 @@ private:
 	std::vector<std::unique_ptr<MeshGroup>> m_scene;
 	std::unique_ptr<Camera> m_camera;
 
-	XMMATRIX m_transformationMatrix[NUM_BOXES] = { XMMatrixIdentity() };
+	XMMATRIX m_transformationMatrix[NUM_INSTANCE_CUBES] = { XMMatrixIdentity() };
 
 	ComPtr<ID3D12Resource2> m_ComputeGameLogicUpdateHeap;
 	ComPtr<ID3D12Resource2> m_ComputeGameLogicUpdateBuffer;
