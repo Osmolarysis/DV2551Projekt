@@ -89,7 +89,7 @@ void CubeState::computeRecord()
 		commandList[bbIndex]->SetComputeRootUnorderedAccessView(2, m_ComputeGameLogicReadBuffer[bbIndex]->GetGPUVirtualAddress());
 
 		//Thread work
-		commandList[bbIndex]->Dispatch(256, 1, 1);
+		commandList[bbIndex]->Dispatch(NUM_INSTANCE_CUBES / 1024, 1, 1);
 
 		//Close list
 		hr = commandList[bbIndex]->Close();
@@ -301,7 +301,7 @@ void CubeState::initiateTransformMatrices()
 {
 	srand(unsigned int(time(NULL)));
 
-	for (size_t i = 0; i < NUM_BOXES; i++)
+	for (size_t i = 0; i < NUM_INSTANCE_CUBES; i++)
 	{
 		m_transformationMatrix[i] = XMMatrixIdentity();
 		m_transformationMatrix[i] = XMMatrixMultiply(XMMatrixRotationRollPitchYaw(

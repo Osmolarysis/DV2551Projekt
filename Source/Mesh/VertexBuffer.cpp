@@ -48,7 +48,6 @@ void VertexBuffer::setData(const void* data, size_t dataByteSize, const void* in
 	m_nrOfIndices = m_totalSizeIndices / sizeof(UINT16);
 	m_instancing = instancing;
 
-
 	bool useOld = false;
 
 	// old
@@ -66,10 +65,6 @@ void VertexBuffer::setData(const void* data, size_t dataByteSize, const void* in
 	}
 
 	// new
-
-	// allocate and copy data to default heaps
-	// TODO: change to copy list
-	// TODO: signal copy fence and release upload heap when copy done
 	else
 	{
 		m_vertexBufferResource = CreateDefaultBuffer(Renderer::getInstance()->getCopyCommandList(), data, dataByteSize, m_VBUploadHeap, L"VB heap", D3D12_RESOURCE_STATE_COMMON);
@@ -78,8 +73,6 @@ void VertexBuffer::setData(const void* data, size_t dataByteSize, const void* in
 			m_indexBufferResource = CreateDefaultBuffer(Renderer::getInstance()->getCopyCommandList(), indices, indexByteSize, m_IBUploadHeap, L"IB heap", D3D12_RESOURCE_STATE_COMMON);
 		}
 	}
-
-
 
 	//Prepare VB view to be used in bind.
 	m_vertexBufferView.BufferLocation = m_vertexBufferResource->GetGPUVirtualAddress();
@@ -94,26 +87,11 @@ void VertexBuffer::setData(const void* data, size_t dataByteSize, const void* in
 		m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
 	}
 
-
-	//// close commandlist and execute list. (maybe move to after all meshes if we have more?)
-	//auto hr = Renderer::getInstance()->getGraphicsCommandList()->Close();
-	//if (FAILED(hr))
-	//{
-	//	fprintf(stderr, "Error closing commandlist in vertexbuffer creating");
-	//}
-	//Renderer::getInstance()->executeList();
-
-
-
-	////// wait for GPU to be done. Otherwise need to keep upload heap in memory outside function untill done.
-	//Renderer::getInstance()->waitForGPU();
-
-
 	// -------------------INSTANCING--------------------------
 	if (m_instancing)
 	{
 		//Buffer
-		int xInstances = 64;
+		int xInstances = (int)cbrt(NUM_INSTANCE_CUBES);
 		int yInstances = xInstances;
 		int zInstances = xInstances;
 		DirectX::XMFLOAT3* instancePositions = createInstances(xInstances, yInstances, zInstances);
