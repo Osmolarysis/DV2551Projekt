@@ -223,6 +223,11 @@ ID3D12CommandAllocator* Renderer::getDirectCommandAllocator(int index)
 	return m_directAllocator[index].Get();
 }
 
+ID3D12CommandQueue* Renderer::getDirectCommandQueue()
+{
+	return m_directQueue.Get();
+}
+
 D3D12_VIEWPORT* Renderer::getViewPort()
 {
 	return &m_viewPort;
@@ -261,6 +266,16 @@ size_t Renderer::getDepthBufferHeapSize()
 ID3D12DescriptorHeap* Renderer::getConstantBufferHeap(int index)
 {
 	return m_cbDescriptorHeaps[index].Get();
+}
+
+ID3D12Fence1* Renderer::getFrameFence(int index)
+{
+	return m_fence[index].Get();
+}
+
+UINT64* Renderer::getFrameCounter(int index)
+{
+	return &m_frameComplete[index];
 }
 
 void Renderer::closeCommandLists()
@@ -347,70 +362,73 @@ void Renderer::beginFrame()
 {
 	setWindowTitle(L"Projekt");
 
-	UINT backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
+	//UINT backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
 
-	UINT64 lastFinishedQueue = m_fence[backBufferIndex].Get()->GetCompletedValue(); //Number of last finished queue
+	UINT64 lastFinishedQueue = m_fence[m_backBufferIndex].Get()->GetCompletedValue(); //Number of last finished queue
 
 	//Wait
-
-	if (m_frameComplete[backBufferIndex] > lastFinishedQueue) {
-		HRESULT hr = m_fence[backBufferIndex].Get()->SetEventOnCompletion(m_frameComplete[backBufferIndex], m_eventHandle[backBufferIndex]);
-		WaitForSingleObject(m_eventHandle[backBufferIndex], INFINITE);
+	printf("last completed frame: %i, current sent value: %i\n", lastFinishedQueue, m_frameComplete[m_backBufferIndex]);
+	if (m_frameComplete[m_backBufferIndex] > lastFinishedQueue) {
+		HRESULT hr = m_fence[m_backBufferIndex].Get()->SetEventOnCompletion(m_frameComplete[m_backBufferIndex], 
+			m_eventHandle[m_backBufferIndex]);
+		printf("Waiting for previous backBuffer\n");
+		WaitForSingleObject(m_eventHandle[m_backBufferIndex], INFINITE);
 	}
 }
 
 void Renderer::executeList()
 {
-	UINT backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
+	//UINT backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
 
-	//Wait for Copy queue to finish recording
+	////Wait for Copy queue to finish recording
 
-	WaitForSingleObject(m_copyHandle, INFINITE);
+	//WaitForSingleObject(m_copyHandle, INFINITE);
 
-	//Execute Copy queue
-	ID3D12CommandList* listsToExecuteCopy[] = { m_graphicsCopyList[backBufferIndex].Get() };
-	m_copyQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecuteCopy), listsToExecuteCopy);
+	////Execute Copy queue
+	//ID3D12CommandList* listsToExecuteCopy[] = { m_graphicsCopyList[backBufferIndex].Get() };
+	//m_copyQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecuteCopy), listsToExecuteCopy);
 
-	m_fenceValue[backBufferIndex]++;
-	UINT64 copyQueueFinished = m_fenceValue[backBufferIndex];
+	//m_fenceValue[backBufferIndex]++;
+	//UINT64 copyQueueFinished = m_fenceValue[backBufferIndex];
 
-	m_copyQueue->Signal(m_fence[backBufferIndex].Get(), copyQueueFinished);
+	//m_copyQueue->Signal(m_fence[backBufferIndex].Get(), copyQueueFinished);
 
-	//Wait for Compute queue to finish recording
-	WaitForSingleObject(m_computeHandle, INFINITE);
+	////Wait for Compute queue to finish recording
+	//WaitForSingleObject(m_computeHandle, INFINITE);
 
-	//Execute Compute queue
-	m_computeQueue->Wait(m_gameLogicFence.Get(), m_lastFinishedGameLogicUpdate);
-	ID3D12CommandList* listsToExecuteCompute[] = { m_graphicsComputeList[backBufferIndex].Get() };
-	m_computeQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecuteCompute), listsToExecuteCompute);
-	m_lastFinishedGameLogicUpdate++;
-	m_computeQueue->Signal(m_gameLogicFence.Get(), m_lastFinishedGameLogicUpdate);
-	m_computeQueue->Wait(m_fence[backBufferIndex].Get(), copyQueueFinished); // Wait for copy to finished to signal finishing compute
+	////Execute Compute queue
+	//m_computeQueue->Wait(m_gameLogicFence.Get(), m_lastFinishedGameLogicUpdate);
+	//m_computeQueue->Wait(m_fence[backBufferIndex].Get(), copyQueueFinished); // Wait for copy to finished to signal finishing compute
+	//ID3D12CommandList* listsToExecuteCompute[] = { m_graphicsComputeList[backBufferIndex].Get() };
+	//m_computeQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecuteCompute), listsToExecuteCompute);
+	//m_lastFinishedGameLogicUpdate++;
+	//m_computeQueue->Signal(m_gameLogicFence.Get(), m_lastFinishedGameLogicUpdate);
 
-	m_fenceValue[backBufferIndex]++;
-	UINT64 computeQueueFinished = m_fenceValue[backBufferIndex];
-	m_computeQueue->Signal(m_fence[backBufferIndex].Get(), computeQueueFinished); //Done
+	//m_fenceValue[backBufferIndex]++;
+	//UINT64 computeQueueFinished = m_fenceValue[backBufferIndex];
+	//m_computeQueue->Signal(m_fence[backBufferIndex].Get(), computeQueueFinished); //Done
 
-	//Wait for Direct queue to finish recording
-	WaitForSingleObject(m_directHandle, INFINITE);
+	////Wait for Direct queue to finish recording
+	//WaitForSingleObject(m_directHandle, INFINITE);
 
-	//Execute the commands!
-	ID3D12CommandList* listsToExecute[] = { m_graphicsDirectList[backBufferIndex].Get() };
-	m_directQueue->Wait(m_fence[backBufferIndex].Get(), computeQueueFinished);
-	m_directQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecute), listsToExecute);
+	////Execute the commands!
+	//ID3D12CommandList* listsToExecute[] = { m_graphicsDirectList[backBufferIndex].Get() };
+	//m_directQueue->Wait(m_fence[backBufferIndex].Get(), computeQueueFinished);
+	//m_directQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecute), listsToExecute);
 
-	m_fenceValue[backBufferIndex]++;
-	m_frameComplete[backBufferIndex] = m_fenceValue[backBufferIndex]; //Direct finished
+	//m_fenceValue[backBufferIndex]++;
+	//m_frameComplete[backBufferIndex] = m_fenceValue[backBufferIndex]; //Direct finished
 
-	//Set finished rendering value
-	m_directQueue.Get()->Signal(m_fence[backBufferIndex].Get(), m_frameComplete[backBufferIndex]);
+	////Set finished rendering value
+	//m_directQueue.Get()->Signal(m_fence[backBufferIndex].Get(), m_frameComplete[backBufferIndex]);
 }
 
 void Renderer::present()
 {
-	//Swap front and back buffers
-	DXGI_PRESENT_PARAMETERS pp = {}; //Are these important?
-	m_swapChain->Present1(0, 0, &pp);
+	////Swap front and back buffers
+	//DXGI_PRESENT_PARAMETERS pp = {}; //Are these important?
+	//m_swapChain->Present1(0, 0, &pp);
+	m_backBufferIndex = 1 - m_backBufferIndex;
 }
 
 void Renderer::SetResourceTransitionBarrier(ID3D12GraphicsCommandList* commandList, ID3D12Resource* resource, D3D12_RESOURCE_STATES StateBefore, D3D12_RESOURCE_STATES StateAfter)
@@ -521,6 +539,11 @@ ID3D12CommandAllocator* Renderer::getCopyCommandAllocator(int index)
 	return m_copyAllocator[index].Get();
 }
 
+ID3D12CommandQueue* Renderer::getCopyCommandQueue()
+{
+	return m_copyQueue.Get();
+}
+
 UINT64 Renderer::getCopyValue()
 {
 	return m_copyFenceValue;
@@ -535,6 +558,11 @@ UINT64 Renderer::incAndGetCopyValue()
 ID3D12Fence1* Renderer::getComputeFence()
 {
 	return m_computeFence.Get();
+}
+
+ID3D12Fence1* Renderer::getGameLogicFence()
+{
+	return m_gameLogicFence.Get();
 }
 
 UINT64 Renderer::getComputeValue()
@@ -572,6 +600,11 @@ ID3D12GraphicsCommandList* Renderer::getComputeCommandList(int index)
 ID3D12CommandAllocator* Renderer::getComputeCommandAllocator(int index)
 {
 	return m_computeAllocator[index].Get();
+}
+
+ID3D12CommandQueue* Renderer::getComputeCommandQueue()
+{
+	return m_computeQueue.Get();
 }
 
 ID3D12Fence1* Renderer::getDirectFence()
@@ -953,14 +986,14 @@ bool Renderer::createFenceAndEventHandle()
 	m_directThreadHandle = CreateEvent(0, false, false, 0);
 	m_directFence.Get()->SetName(L"Direct recording fence");
 
-	//Direct queue fence
+	//Game logic fence
 	hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_gameLogicFence.GetAddressOf()));
 	if (hr != S_OK) {
 		printf("Error creating direct fence");
 		exit(-1);
 	}
 	// Creation of an event handle to use in GPU synchronization
-	m_directFence.Get()->SetName(L"Game logic fence");
+	m_gameLogicFence.Get()->SetName(L"Game logic fence");
 	m_lastFinishedGameLogicUpdate = 0;
 
 	return true;

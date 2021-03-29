@@ -7,7 +7,9 @@ using namespace DirectX;
 
 void CubeState::copyRecord()
 {
-	ID3D12Fence1* fence = Renderer::getInstance()->getCopyFence();
+	ID3D12Fence1* fence[2] = { nullptr, nullptr };
+	fence[0] = m_threadFence[0].Get();
+	fence[1] = m_threadFence[1].Get();
 	HANDLE handle = Renderer::getInstance()->getCopyThreadHandle();
 	ID3D12CommandAllocator* commandAllocator[2] = { nullptr, nullptr };
 	commandAllocator[0] = Renderer::getInstance()->getCopyCommandAllocator(0);
@@ -15,16 +17,18 @@ void CubeState::copyRecord()
 	ID3D12GraphicsCommandList* commandList[2] = { nullptr, nullptr };
 	commandList[0] = Renderer::getInstance()->getCopyCommandList(0);
 	commandList[1] = Renderer::getInstance()->getCopyCommandList(1);
-	UINT64 fenceValue = 0;
+	ID3D12CommandQueue* commandQueue = Renderer::getInstance()->getCopyCommandQueue();
+	UINT64 fenceValue[2] = { 1,1 };
 	int bbIndex = 0;
 
 	HRESULT hr;
 
 	//Wait for signal
-	fence->SetEventOnCompletion(fenceValue + 1, handle);
+	fence[bbIndex]->SetEventOnCompletion(fenceValue[bbIndex], handle);
 	WaitForSingleObject(handle, INFINITE);
 
 	while (m_copyThread.isActive) {
+		printf("Copy %i\n", bbIndex);
 		//Thread work
 		commandAllocator[bbIndex]->Reset();
 		commandList[bbIndex]->Reset(commandAllocator[bbIndex], nullptr);
@@ -42,20 +46,38 @@ void CubeState::copyRecord()
 			exit(-1);
 		}
 
-		//Thread handling
-		bbIndex = 1 - bbIndex;
-		fenceValue = Renderer::getInstance()->incAndGetCopyValue();
-		fence->Signal(fenceValue); //Done
+		//Execute list
+		ID3D12CommandList* listsToExecute[] = { commandList[bbIndex] };
+		commandQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecute), listsToExecute);
+
+		/*
+		1. Start recording
+		2. Copy finished
+		3. Compute finished
+		4. Start recording
+		5. Copy finished
+		6. Compute finished
+		*/
+
+		//Signal finished
+		fenceValue[bbIndex]++;
+		commandQueue->Signal(fence[bbIndex], fenceValue[bbIndex]);
 
 		//Wait for signal
-		fence->SetEventOnCompletion(fenceValue + 1, handle);
+		fenceValue[bbIndex] += 2; //Skip compute finished
+		bbIndex = 1 - bbIndex; //Swap backBuffer Index
+		fence[bbIndex]->SetEventOnCompletion(fenceValue[bbIndex], handle);
 		WaitForSingleObject(handle, INFINITE);
 	}
 }
 
 void CubeState::computeRecord()
 {
-	ID3D12Fence1* fence = Renderer::getInstance()->getComputeFence();
+	ID3D12Fence1* fence[2] = { nullptr, nullptr };
+	fence[0] = m_threadFence[0].Get();
+	fence[1] = m_threadFence[1].Get();
+	ID3D12Fence1* gameLogicFence = Renderer::getInstance()->getGameLogicFence();
+	UINT64 lastFinishedGameLogicUpdate = 0;
 	HANDLE handle = Renderer::getInstance()->getComputeThreadHandle();
 	ID3D12RootSignature* rootSignature = Renderer::getInstance()->getRootSignature();
 	ID3D12CommandAllocator* commandAllocator[2] = { nullptr, nullptr };
@@ -67,16 +89,18 @@ void CubeState::computeRecord()
 	ID3D12GraphicsCommandList* commandList[2] = { nullptr, nullptr };
 	commandList[0] = Renderer::getInstance()->getComputeCommandList(0);
 	commandList[1] = Renderer::getInstance()->getComputeCommandList(1);
-	UINT64 fenceValue = 0;
+	ID3D12CommandQueue* commandQueue = Renderer::getInstance()->getComputeCommandQueue();
+	UINT64 fenceValue[2] = { 1,1 };
 	int bbIndex = 0;
 
 	HRESULT hr;
 
 	//Wait for signal
-	fence->SetEventOnCompletion(fenceValue + 1, handle);
+	fence[bbIndex]->SetEventOnCompletion(fenceValue[bbIndex], handle);
 	WaitForSingleObject(handle, INFINITE);
 
 	while (m_computeThread.isActive) {
+		printf("Compute %i\n", bbIndex);
 		//Initial work
 		commandAllocator[bbIndex]->Reset();
 		commandList[bbIndex]->Reset(commandAllocator[bbIndex], nullptr);
@@ -98,20 +122,45 @@ void CubeState::computeRecord()
 			exit(-1);
 		}
 
-		//Thread handling
-		bbIndex = 1 - bbIndex;
-		fenceValue = Renderer::getInstance()->incAndGetComputeValue();
-		fence->Signal(fenceValue); //Done
+		//Wait for copy & last compute
+		commandQueue->Wait(fence[bbIndex], fenceValue[bbIndex] + 1);
+		commandQueue->Wait(gameLogicFence, lastFinishedGameLogicUpdate);
+
+		//Execute list
+		ID3D12CommandList* listsToExecute[] = { commandList[bbIndex] };
+		commandQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecute), listsToExecute);
+
+		/*
+		1. Start recording
+		2. Copy finished
+		3. Compute finished
+		4. Start recording
+		5. Copy finished
+		6. Compute finished
+		*/
+
+		//Signal finished
+		fenceValue[bbIndex] += 2; //Skip copy finished
+		commandQueue->Signal(fence[bbIndex], fenceValue[bbIndex]);
+		lastFinishedGameLogicUpdate++;
+		commandQueue->Signal(gameLogicFence, lastFinishedGameLogicUpdate);
 
 		//Wait for signal
-		fence->SetEventOnCompletion(fenceValue + 1, handle);
+		fenceValue[bbIndex]++;
+		bbIndex = 1 - bbIndex; //Swap backBuffer Index
+		fence[bbIndex]->SetEventOnCompletion(fenceValue[bbIndex], handle);
 		WaitForSingleObject(handle, INFINITE);
 	}
 }
 
 void CubeState::directRecord()
 {
-	ID3D12Fence1* fence = Renderer::getInstance()->getDirectFence();
+	ID3D12Fence1* fence[2] = { nullptr, nullptr };
+	fence[0] = m_threadFence[0].Get();
+	fence[1] = m_threadFence[1].Get();
+	ID3D12Fence1* frameFence[2] = { nullptr, nullptr };
+	frameFence[0] = Renderer::getInstance()->getFrameFence(0);
+	frameFence[1] = Renderer::getInstance()->getFrameFence(1);
 	HANDLE handle = Renderer::getInstance()->getDirectThreadHandle();
 	ID3D12CommandAllocator* commandAllocator[2] = { nullptr, nullptr };
 	commandAllocator[0] = Renderer::getInstance()->getDirectCommandAllocator(0);
@@ -132,17 +181,23 @@ void CubeState::directRecord()
 	ID3D12DescriptorHeap* constantBufferHeap[2] = { nullptr, nullptr };
 	constantBufferHeap[0] = Renderer::getInstance()->getConstantBufferHeap(0);
 	constantBufferHeap[1] = Renderer::getInstance()->getConstantBufferHeap(1);
-	UINT64 fenceValue = 0;
+	ID3D12CommandQueue* commandQueue = Renderer::getInstance()->getDirectCommandQueue();
+	UINT64 fenceValue[2] = { 1,1 };
+	UINT64* frameNumber[2] = { nullptr,nullptr };
+	frameNumber[0] = Renderer::getInstance()->getFrameCounter(0);
+	frameNumber[1] = Renderer::getInstance()->getFrameCounter(1);
+	IDXGISwapChain4* swapChain = Renderer::getInstance()->getSwapChain();
 	size_t bbIndex = 0;
 	float clearColour[4] = { 0.17f, 0.23f, 0.38f, 1.0f };
 
 	HRESULT hr;
 
 	//Wait for signal
-	hr = fence->SetEventOnCompletion(fenceValue + 1, handle);
+	hr = fence[bbIndex]->SetEventOnCompletion(fenceValue[bbIndex], handle);
 	WaitForSingleObject(handle, INFINITE);
 
 	while (m_directThread.isActive) {
+		printf("Direct %i\n", bbIndex);
 		//Initial work
 		hr = commandAllocator[bbIndex]->Reset();
 		if (hr != S_OK) {
@@ -184,7 +239,7 @@ void CubeState::directRecord()
 		ID3D12DescriptorHeap* descriptorHeaps[] = { constantBufferHeap[bbIndex] };
 		commandList[bbIndex]->SetDescriptorHeaps(ARRAYSIZE(descriptorHeaps), descriptorHeaps);
 		commandList[bbIndex]->SetGraphicsRootDescriptorTable(0, constantBufferHeap[bbIndex]->GetGPUDescriptorHandleForHeapStart());
-		
+
 		commandList[bbIndex]->SetGraphicsRootUnorderedAccessView(1, m_ComputeGameLogicReadBuffer[bbIndex]->GetGPUVirtualAddress());
 
 		//Thread work
@@ -207,13 +262,36 @@ void CubeState::directRecord()
 			exit(-1);
 		}
 
-		//Thread handling
-		bbIndex = 1 - bbIndex;
-		fenceValue = Renderer::getInstance()->incAndGetDirectValue();
-		fence->Signal(fenceValue); //Done
+		//Wait for compute
+		commandQueue->Wait(fence[bbIndex], fenceValue[bbIndex] + 2);
+
+		//Execute list
+		ID3D12CommandList* listsToExecute[] = { commandList[bbIndex] };
+		commandQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecute), listsToExecute);
+
+		/*
+		1. Start recording
+		2. Copy finished
+		3. Compute finished
+		4. Start recording
+		5. Copy finished
+		6. Compute finished
+		*/
+
+		//Signal finished
+		UINT64 fn = *frameNumber[bbIndex];
+		fn++;
+		*frameNumber[bbIndex] = fn;
+		commandQueue->Signal(frameFence[bbIndex], *frameNumber[bbIndex]);
+
+		//Swap front and back buffers
+		DXGI_PRESENT_PARAMETERS pp = {}; //Are these important?
+		swapChain->Present1(0, 0, &pp);
 
 		//Wait for signal
-		hr = fence->SetEventOnCompletion(fenceValue + 1, handle);
+		fenceValue[bbIndex] += 3; //Skip
+		bbIndex = 1 - bbIndex; //Swap backBuffer Index
+		fence[bbIndex]->SetEventOnCompletion(fenceValue[bbIndex], handle);
 		WaitForSingleObject(handle, INFINITE);
 	}
 }
@@ -357,6 +435,7 @@ void CubeState::initialise()
 {
 	printf("Initialising cubeState...\n"); //For debugging, remove when implementing
 	Renderer* renderer = Renderer::getInstance();
+	HRESULT hr;
 
 	m_camera = std::make_unique<Camera>(true);
 
@@ -376,6 +455,19 @@ void CubeState::initialise()
 	//Rotation Buffer
 	ID3D12Device* device = renderer->getDevice();
 	//device->CreateCommittedResource();
+
+	//initialise fence
+	for (size_t i = 0; i < 2; i++)
+	{
+		hr = renderer->getDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_threadFence[i].GetAddressOf()));
+		if (hr != S_OK) {
+			printf("Error creating thread fence");
+			exit(-1);
+		}
+		std::wstring name = L"Thread fence ";
+		name.append(std::to_wstring(i));
+		m_threadFence[i]->SetName(name.c_str());
+	}
 
 	//Multithread
 	m_copyThread.m_mutex.lock();
@@ -398,7 +490,7 @@ void CubeState::initialise()
 	ComPtr<ID3DBlob> errors = nullptr;
 
 	//	Compile shader
-	HRESULT hr = D3DCompileFromFile(
+	hr = D3DCompileFromFile(
 		rotationShader.c_str(),
 		nullptr,
 		nullptr,
@@ -450,20 +542,11 @@ void CubeState::update()
 
 void CubeState::record()
 {
-	Renderer* renderer = Renderer::getInstance();
-
 	//Set threads to run = true
-	UINT64 copyFenceValue = renderer->incAndGetCopyValue();
-	renderer->getCopyFence()->Signal(copyFenceValue); //Ready or "Run"
-	renderer->getCopyFence()->SetEventOnCompletion(copyFenceValue + 1, renderer->getCopyHandle());
+	m_threadFence[m_backBufferIndex].Get()->Signal(m_fenceValue[m_backBufferIndex]);
 
-	UINT64 computeFenceValue = renderer->incAndGetComputeValue();
-	renderer->getComputeFence()->Signal(computeFenceValue); //Ready or "Run"
-	renderer->getComputeFence()->SetEventOnCompletion(computeFenceValue + 1, renderer->getComputeHandle());
-
-	UINT64 directFenceValue = renderer->incAndGetDirectValue();
-	renderer->getDirectFence()->Signal(directFenceValue); //Ready or "Run"
-	renderer->getDirectFence()->SetEventOnCompletion(directFenceValue + 1, renderer->getDirectHandle());
+	m_fenceValue[m_backBufferIndex] += /*Number of steps taken*/ 3;
+	m_backBufferIndex = 1 - m_backBufferIndex;
 }
 
 void CubeState::executeList()

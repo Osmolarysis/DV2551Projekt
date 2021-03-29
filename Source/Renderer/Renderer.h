@@ -63,6 +63,7 @@ private:
 
 	//Swapchain
 	ComPtr<IDXGISwapChain4> m_swapChain;
+	int m_backBufferIndex = 0;
 
 	//Render Target
 	ComPtr<ID3D12DescriptorHeap> m_renderTargetHeap;
@@ -163,8 +164,10 @@ public:
 	ID3D12GraphicsCommandList* getCopyCommandList();
 	ID3D12GraphicsCommandList* getCopyCommandList(int);
 	ID3D12CommandAllocator* getCopyCommandAllocator(int);
+	ID3D12CommandQueue* getCopyCommandQueue();
 
 	ID3D12Fence1* getComputeFence();
+	ID3D12Fence1* getGameLogicFence();
 	UINT64 incAndGetComputeValue();
 	UINT64 getComputeValue();
 	HANDLE getComputeHandle();
@@ -172,6 +175,7 @@ public:
 	ID3D12GraphicsCommandList* getComputeCommandList();
 	ID3D12GraphicsCommandList* getComputeCommandList(int);
 	ID3D12CommandAllocator* getComputeCommandAllocator(int);
+	ID3D12CommandQueue* getComputeCommandQueue();
 
 	ID3D12Fence1* getDirectFence();
 	UINT64 incAndGetDirectValue();
@@ -181,6 +185,7 @@ public:
 	ID3D12GraphicsCommandList* getDirectCommandList();
 	ID3D12GraphicsCommandList* getDirectCommandList(int bufferIndex);
 	ID3D12CommandAllocator* getDirectCommandAllocator(int);
+	ID3D12CommandQueue* getDirectCommandQueue();
 
 	D3D12_VIEWPORT* getViewPort();
 	D3D12_RECT* getScissorRect();
@@ -190,6 +195,8 @@ public:
 	ID3D12DescriptorHeap* getDepthBufferHeap();
 	size_t getDepthBufferHeapSize();
 	ID3D12DescriptorHeap* getConstantBufferHeap(int);
+	ID3D12Fence1* getFrameFence(int);
+	UINT64* getFrameCounter(int);
 
 	void closeCommandLists();
 

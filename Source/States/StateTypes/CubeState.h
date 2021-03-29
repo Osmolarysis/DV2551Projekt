@@ -22,6 +22,8 @@ private:
 
 	ComPtr<ID3D12PipelineState> m_computeStateObject;
 
+	int m_backBufferIndex = 0;
+
 	struct recordingThread {
 		std::thread* m_thread = nullptr;
 		std::mutex m_mutex;
@@ -30,6 +32,9 @@ private:
 	recordingThread m_copyThread;
 	recordingThread m_computeThread;
 	recordingThread m_directThread;
+
+	ComPtr<ID3D12Fence1> m_threadFence[2];
+	UINT64 m_fenceValue[2] = { 1,1 };
 
 	void copyRecord();
 	void computeRecord();
