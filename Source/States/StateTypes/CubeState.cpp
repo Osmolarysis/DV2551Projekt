@@ -278,6 +278,9 @@ void CubeState::directRecord()
 		6. Compute finished
 		*/
 
+		//Wait for copy and compute to finish
+
+
 		//Signal finished
 		UINT64 fn = *frameNumber[bbIndex];
 		fn++;
