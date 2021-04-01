@@ -705,6 +705,7 @@ bool Renderer::createDebugMode()
 	if (SUCCEEDED(f(IID_PPV_ARGS(m_debugController.GetAddressOf())))) {
 		m_debugController->EnableDebugLayer();
 		m_debugController->SetEnableGPUBasedValidation(true);
+		//m_debugController->SetEnableAutoDebugName(true);
 		return true;
 	}
 	else {
@@ -767,7 +768,11 @@ bool Renderer::createDirectQueue()
 		}
 		std::wstring name = L"Direct list ";
 		name.append(std::to_wstring(i));
-		m_graphicsDirectList[i].Get()->SetName(name.c_str());
+		hr = m_graphicsDirectList[i].Get()->SetName(name.c_str());
+		if (hr != S_OK) {
+			printf("Error naming direct list %u", i);
+			exit(-1);
+		}
 	}
 
 	return true;
@@ -810,7 +815,11 @@ bool Renderer::createCopyQueue()
 		}
 		std::wstring name = L"Copy list ";
 		name.append(std::to_wstring(i));
-		m_graphicsCopyList[i].Get()->SetName(name.c_str());
+		hr = m_graphicsCopyList[i].Get()->SetName(name.c_str());
+		if (hr != S_OK) {
+			printf("Error naming copy list %u", i);
+			exit(-1);
+		}
 	}
 
 	return true;
@@ -851,7 +860,11 @@ bool Renderer::createComputeQueue()
 		}
 		std::wstring name = L"Compute list ";
 		name.append(std::to_wstring(i));
-		m_graphicsComputeList[i].Get()->SetName(name.c_str());
+		hr = m_graphicsComputeList[i].Get()->SetName(name.c_str());
+		if (hr != S_OK) {
+			printf("Error naming compute list %u", i);
+			exit(-1);
+		}
 	}
 
 	return true;
@@ -916,7 +929,11 @@ bool Renderer::createFenceAndEventHandle()
 		m_eventHandle[i] = CreateEvent(0, false, false, 0);
 		std::wstring name = L"Frame fence ";
 		name.append(std::to_wstring(i));
-		m_fence[i].Get()->SetName(name.c_str());
+		hr = m_fence[i].Get()->SetName(name.c_str());
+		if (hr != S_OK) {
+			printf("Error naming frame fence %i", (int)i);
+			exit(-1);
+		}
 	}
 
 
@@ -929,7 +946,11 @@ bool Renderer::createFenceAndEventHandle()
 	// Creation of an event handle to use in GPU synchronization
 	m_copyHandle = CreateEvent(0, false, false, 0);
 	m_copyThreadHandle = CreateEvent(0, false, false, 0);
-	m_copyFence.Get()->SetName(L"Copy recording fence");
+	hr = m_copyFence.Get()->SetName(L"Copy recording fence");
+	if (hr != S_OK) {
+		printf("Error naming copy fence");
+		exit(-1);
+	}
 
 	//Compute queue fence
 	hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_computeFence.GetAddressOf()));
@@ -940,7 +961,11 @@ bool Renderer::createFenceAndEventHandle()
 	// Creation of an event handle to use in GPU synchronization
 	m_computeHandle = CreateEvent(0, false, false, 0);
 	m_computeThreadHandle = CreateEvent(0, false, false, 0);
-	m_computeFence.Get()->SetName(L"Compute recording fence");
+	hr = m_computeFence.Get()->SetName(L"Compute recording fence");
+	if (hr != S_OK) {
+		printf("Error naming compute fence");
+		exit(-1);
+	}
 
 	//Direct queue fence
 	hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_directFence.GetAddressOf()));
@@ -951,16 +976,24 @@ bool Renderer::createFenceAndEventHandle()
 	// Creation of an event handle to use in GPU synchronization
 	m_directHandle = CreateEvent(0, false, false, 0);
 	m_directThreadHandle = CreateEvent(0, false, false, 0);
-	m_directFence.Get()->SetName(L"Direct recording fence");
+	hr = m_directFence.Get()->SetName(L"Direct recording fence");
+	if (hr != S_OK) {
+		printf("Error naming direct fence");
+		exit(-1);
+	}
 
 	//Direct queue fence
 	hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_gameLogicFence.GetAddressOf()));
 	if (hr != S_OK) {
-		printf("Error creating direct fence");
+		printf("Error creating game logic fence");
 		exit(-1);
 	}
 	// Creation of an event handle to use in GPU synchronization
-	m_directFence.Get()->SetName(L"Game logic fence");
+	hr = m_gameLogicFence.Get()->SetName(L"Game logic fence");
+	if (hr != S_OK) {
+		printf("Error naming game logic fence");
+		exit(-1);
+	}
 	m_lastFinishedGameLogicUpdate = 0;
 
 	return true;

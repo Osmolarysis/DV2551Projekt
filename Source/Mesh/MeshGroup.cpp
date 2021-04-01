@@ -154,6 +154,7 @@ bool MeshGroup::makePipelineStateObject()
 		printf("Error creating graphics pipeline state\n");
 		exit(-1);
 	}
+	m_pipelineStateObject.Get()->SetName(L"Standard pipeline state object");
 	return true;
 }
 
