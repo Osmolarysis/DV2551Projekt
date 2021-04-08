@@ -128,10 +128,7 @@ Renderer::~Renderer()
 	}
 
 	//Fence and event handle
-	for (size_t i = 0; i < NUM_SWAP_BUFFERS; i++)
-	{
-		SafeRelease(m_fence[i].GetAddressOf());
-	}
+	SafeRelease(m_fence.GetAddressOf());
 }
 
 bool Renderer::createDepthStencil()
@@ -301,21 +298,15 @@ void Renderer::closeCommandLists()
 	{
 		ID3D12CommandList* copyListsToExecute[] = { m_graphicsCopyList[i].Get() };
 		m_copyQueue->ExecuteCommandLists(ARRAYSIZE(copyListsToExecute), copyListsToExecute);
-		m_copyQueue->Signal(m_fence[i].Get(), 1);
 
-		m_computeQueue->Wait(m_fence[i].Get(), 1);
 		ID3D12CommandList* computeListsToExecute[] = { m_graphicsComputeList[i].Get() };
 		m_computeQueue->ExecuteCommandLists(ARRAYSIZE(computeListsToExecute), computeListsToExecute);
-		m_computeQueue->Signal(m_fence[i].Get(), 2);
 
-		m_directQueue->Wait(m_fence[i].Get(), 2);
 		ID3D12CommandList* directListsToExecute[] = { m_graphicsDirectList[i].Get() };
 		m_directQueue->ExecuteCommandLists(ARRAYSIZE(directListsToExecute), directListsToExecute);
-
-		m_fenceValue[i] = 3;
-		m_frameComplete[i] = 3;
-		m_directQueue->Signal(m_fence[i].Get(), m_fenceValue[i]);
 	}
+
+	waitForGPU();
 }
 
 ID3D12RootSignature* Renderer::getRootSignature()
@@ -349,12 +340,12 @@ void Renderer::beginFrame()
 
 	UINT backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
 
-	UINT64 lastFinishedQueue = m_fence[backBufferIndex].Get()->GetCompletedValue(); //Number of last finished queue
+	UINT64 lastFinishedQueue = m_fence.Get()->GetCompletedValue(); //Number of last finished queue
 
 	//Wait
 	if (m_frameComplete[backBufferIndex] > lastFinishedQueue) {
-		HRESULT hr = m_fence[backBufferIndex].Get()->SetEventOnCompletion(m_frameComplete[backBufferIndex], m_eventHandle[backBufferIndex]);
-		WaitForSingleObject(m_eventHandle[backBufferIndex], INFINITE);
+		HRESULT hr = m_fence.Get()->SetEventOnCompletion(m_frameComplete[backBufferIndex], m_eventHandle);
+		WaitForSingleObject(m_eventHandle, INFINITE);
 	}
 }
 
@@ -370,17 +361,17 @@ void Renderer::executeList()
 	ID3D12CommandList* listsToExecuteCopy[] = { m_graphicsCopyList[backBufferIndex].Get() };
 	m_copyQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecuteCopy), listsToExecuteCopy);
 
-	m_fenceValue[backBufferIndex]++;
-	UINT64 copyQueueFinished = m_fenceValue[backBufferIndex];
+	m_fenceValue++;
+	UINT64 copyQueueFinished = m_fenceValue;
 
-	m_copyQueue->Signal(m_fence[backBufferIndex].Get(), copyQueueFinished);
+	m_copyQueue->Signal(m_fence.Get(), copyQueueFinished);
 
 	//Wait for Compute queue to finish recording
 	WaitForSingleObject(m_computeHandle, INFINITE);
 
 	//Wait for the previous compute to finish and the current copy
 	//m_computeQueue->Wait(m_gameLogicFence.Get(), m_lastFinishedGameLogicUpdate);
-	m_computeQueue->Wait(m_fence[backBufferIndex].Get(), copyQueueFinished); // Wait for copy to finished to start compute
+	m_computeQueue->Wait(m_fence.Get(), copyQueueFinished); // Wait for copy to finished to start compute
 
 	//Execute Compute queue
 	ID3D12CommandList* listsToExecuteCompute[] = { m_graphicsComputeList[backBufferIndex].Get() };
@@ -388,23 +379,23 @@ void Renderer::executeList()
 	/*m_lastFinishedGameLogicUpdate++;
 	m_computeQueue->Signal(m_gameLogicFence.Get(), m_lastFinishedGameLogicUpdate);*/
 
-	m_fenceValue[backBufferIndex]++;
-	UINT64 computeQueueFinished = m_fenceValue[backBufferIndex];
-	m_computeQueue->Signal(m_fence[backBufferIndex].Get(), computeQueueFinished); //Done
+	m_fenceValue++;
+	UINT64 computeQueueFinished = m_fenceValue;
+	m_computeQueue->Signal(m_fence.Get(), computeQueueFinished); //Done
 
 	//Wait for Direct queue to finish recording
 	WaitForSingleObject(m_directHandle, INFINITE);
 
 	//Execute the commands!
 	ID3D12CommandList* listsToExecute[] = { m_graphicsDirectList[backBufferIndex].Get() };
-	m_directQueue->Wait(m_fence[backBufferIndex].Get(), computeQueueFinished);
+	m_directQueue->Wait(m_fence.Get(), computeQueueFinished);
 	m_directQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecute), listsToExecute);
 
-	m_fenceValue[backBufferIndex]++;
-	m_frameComplete[backBufferIndex] = m_fenceValue[backBufferIndex]; //Direct finished
+	m_fenceValue++;
+	m_frameComplete[backBufferIndex] = m_fenceValue; //Direct finished
 
 	//Set finished rendering value
-	m_directQueue.Get()->Signal(m_fence[backBufferIndex].Get(), m_frameComplete[backBufferIndex]);
+	m_directQueue.Get()->Signal(m_fence.Get(), m_frameComplete[backBufferIndex]);
 }
 
 void Renderer::present()
@@ -412,6 +403,8 @@ void Renderer::present()
 	//Swap front and back buffers
 	DXGI_PRESENT_PARAMETERS pp = {}; //Are these important?
 	m_swapChain->Present1(0, 0, &pp);
+
+	//waitForGPU();
 }
 
 void Renderer::SetResourceTransitionBarrier(ID3D12GraphicsCommandList* commandList, ID3D12Resource* resource, D3D12_RESOURCE_STATES StateBefore, D3D12_RESOURCE_STATES StateAfter)
@@ -442,42 +435,39 @@ void Renderer::setWindowTitle(std::wstring newTitle)
 
 void Renderer::waitForGPU()
 {
-	for (size_t i = 0; i < NUM_SWAP_BUFFERS; i++)
+	//Wait for copy queue
+	const UINT64 fenceCopy = m_fenceValue;
+	m_copyQueue->Signal(m_fence.Get(), fenceCopy);
+	m_fenceValue++;
+
+	//Wait until copy queue is done.
+	if (m_fence->GetCompletedValue() < fenceCopy)
 	{
-		//Wait for copy queue
-		const UINT64 fenceCopy = m_fenceValue[i];
-		m_copyQueue->Signal(m_fence[i].Get(), fenceCopy);
-		m_fenceValue[i]++;
+		m_fence->SetEventOnCompletion(fenceCopy, m_eventHandle);
+		WaitForSingleObject(m_eventHandle, INFINITE);
+	}
 
-		//Wait until copy queue is done.
-		if (m_fence[i]->GetCompletedValue() < fenceCopy)
-		{
-			m_fence[i]->SetEventOnCompletion(fenceCopy, m_eventHandle);
-			WaitForSingleObject(m_eventHandle, INFINITE);
-		}
+	//Wait for compute queue
+	const UINT64 fenceCompute = m_fenceValue;
+	m_computeQueue->Signal(m_fence.Get(), fenceCompute);
+	m_fenceValue++;
 
-		//Wait for compute queue
-		const UINT64 fenceCompute = m_fenceValue[i];
-		m_computeQueue->Signal(m_fence[i].Get(), fenceCompute);
-		m_fenceValue[i]++;
+	//Wait until compute queue is done.
+	if (m_fence->GetCompletedValue() < fenceCompute)
+	{
+		m_fence->SetEventOnCompletion(fenceCompute, m_eventHandle);
+		WaitForSingleObject(m_eventHandle, INFINITE);
+	}
 
-		//Wait until compute queue is done.
-		if (m_fence[i]->GetCompletedValue() < fenceCompute)
-		{
-			m_fence[i]->SetEventOnCompletion(fenceCompute, m_eventHandle);
-			WaitForSingleObject(m_eventHandle, INFINITE);
-		}
+	const UINT64 fenceDirect = m_fenceValue;
+	m_directQueue->Signal(m_fence.Get(), fenceDirect);
+	m_fenceValue++;
 
-		const UINT64 fenceDirect = m_fenceValue[i];
-		m_directQueue->Signal(m_fence[i].Get(), fenceDirect);
-		m_fenceValue[i]++;
-
-		//Wait until direct queue is done.
-		if (m_fence[i]->GetCompletedValue() < fenceDirect)
-		{
-			m_fence[i]->SetEventOnCompletion(fenceDirect, m_eventHandle);
-			WaitForSingleObject(m_eventHandle, INFINITE);
-		}
+	//Wait until direct queue is done.
+	if (m_fence->GetCompletedValue() < fenceDirect)
+	{
+		m_fence->SetEventOnCompletion(fenceDirect, m_eventHandle);
+		WaitForSingleObject(m_eventHandle, INFINITE);
 	}
 }
 
@@ -918,23 +908,20 @@ bool Renderer::createFenceAndEventHandle()
 {
 	HRESULT hr;
 	//Rendering fence
-	for (size_t i = 0; i < NUM_SWAP_BUFFERS; i++)
-	{
-		HRESULT hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_fence[i].GetAddressOf()));
-		if (hr != S_OK) {
-			printf("Error creating fence");
-			exit(-1);
-		}
-		m_fenceValue[i] = 0;
-		// Creation of an event handle to use in GPU synchronization
-		m_eventHandle[i] = CreateEvent(0, false, false, 0);
-		std::wstring name = L"Frame fence ";
-		name.append(std::to_wstring(i));
-		hr = m_fence[i].Get()->SetName(name.c_str());
-		if (hr != S_OK) {
-			printf("Error naming frame fence %i", (int)i);
-			exit(-1);
-		}
+
+	hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_fence.GetAddressOf()));
+	if (hr != S_OK) {
+		printf("Error creating fence");
+		exit(-1);
+	}
+	m_fenceValue = 0;
+	// Creation of an event handle to use in GPU synchronization
+	m_eventHandle = CreateEvent(0, false, false, 0);
+	std::wstring name = L"Frame fence";
+	hr = m_fence.Get()->SetName(name.c_str());
+	if (hr != S_OK) {
+		printf("Error naming frame fence");
+		exit(-1);
 	}
 
 

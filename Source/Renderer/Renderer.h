@@ -97,14 +97,10 @@ private:
 	ComPtr<ID3D12GraphicsCommandList> m_graphicsComputeList[NUM_COMMANDLISTS];
 
 	//Fence and event handle
-	ComPtr<ID3D12Fence1> m_fence[NUM_SWAP_BUFFERS]; //Fence for syncing queues
-	UINT64 m_fenceValue[NUM_SWAP_BUFFERS] = { 0, 0 };
-	HANDLE m_eventHandle[NUM_SWAP_BUFFERS] = { nullptr, nullptr };
+	ComPtr<ID3D12Fence1> m_fence; //Fence for syncing queues
+	UINT64 m_fenceValue = 0;
+	HANDLE m_eventHandle = nullptr;
 	UINT64 m_frameComplete[NUM_SWAP_BUFFERS] = { 0, 0 };
-
-	//Game logic fence
-	/*ComPtr<ID3D12Fence1> m_gameLogicFence;
-	UINT64 m_lastFinishedGameLogicUpdate = 0;*/
 
 	//Copy queue fence for recording
 	ComPtr<ID3D12Fence1> m_copyFence;
@@ -127,6 +123,10 @@ private:
 	//viewport and rect
 	D3D12_VIEWPORT m_viewPort;
 	D3D12_RECT m_scissorRect;
+
+	//Game logic fence
+	ComPtr<ID3D12Fence1> m_gameLogicFence;
+	UINT64 m_lastFinishedGameLogicUpdate = 0;
 
 	Renderer(int, int);
 	~Renderer();
