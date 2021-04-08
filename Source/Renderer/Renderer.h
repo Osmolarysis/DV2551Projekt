@@ -103,8 +103,8 @@ private:
 	UINT64 m_frameComplete[NUM_SWAP_BUFFERS] = { 0, 0 };
 
 	//Game logic fence
-	ComPtr<ID3D12Fence1> m_gameLogicFence;
-	UINT64 m_lastFinishedGameLogicUpdate = 0;
+	/*ComPtr<ID3D12Fence1> m_gameLogicFence;
+	UINT64 m_lastFinishedGameLogicUpdate = 0;*/
 
 	//Copy queue fence for recording
 	ComPtr<ID3D12Fence1> m_copyFence;

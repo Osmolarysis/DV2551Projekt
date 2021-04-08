@@ -352,7 +352,6 @@ void Renderer::beginFrame()
 	UINT64 lastFinishedQueue = m_fence[backBufferIndex].Get()->GetCompletedValue(); //Number of last finished queue
 
 	//Wait
-
 	if (m_frameComplete[backBufferIndex] > lastFinishedQueue) {
 		HRESULT hr = m_fence[backBufferIndex].Get()->SetEventOnCompletion(m_frameComplete[backBufferIndex], m_eventHandle[backBufferIndex]);
 		WaitForSingleObject(m_eventHandle[backBufferIndex], INFINITE);
@@ -379,13 +378,15 @@ void Renderer::executeList()
 	//Wait for Compute queue to finish recording
 	WaitForSingleObject(m_computeHandle, INFINITE);
 
+	//Wait for the previous compute to finish and the current copy
+	//m_computeQueue->Wait(m_gameLogicFence.Get(), m_lastFinishedGameLogicUpdate);
+	m_computeQueue->Wait(m_fence[backBufferIndex].Get(), copyQueueFinished); // Wait for copy to finished to start compute
+
 	//Execute Compute queue
-	m_computeQueue->Wait(m_gameLogicFence.Get(), m_lastFinishedGameLogicUpdate);
 	ID3D12CommandList* listsToExecuteCompute[] = { m_graphicsComputeList[backBufferIndex].Get() };
 	m_computeQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecuteCompute), listsToExecuteCompute);
-	m_lastFinishedGameLogicUpdate++;
-	m_computeQueue->Signal(m_gameLogicFence.Get(), m_lastFinishedGameLogicUpdate);
-	m_computeQueue->Wait(m_fence[backBufferIndex].Get(), copyQueueFinished); // Wait for copy to finished to signal finishing compute
+	/*m_lastFinishedGameLogicUpdate++;
+	m_computeQueue->Signal(m_gameLogicFence.Get(), m_lastFinishedGameLogicUpdate);*/
 
 	m_fenceValue[backBufferIndex]++;
 	UINT64 computeQueueFinished = m_fenceValue[backBufferIndex];
@@ -982,19 +983,19 @@ bool Renderer::createFenceAndEventHandle()
 		exit(-1);
 	}
 
-	//Direct queue fence
-	hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_gameLogicFence.GetAddressOf()));
-	if (hr != S_OK) {
-		printf("Error creating game logic fence");
-		exit(-1);
-	}
-	// Creation of an event handle to use in GPU synchronization
-	hr = m_gameLogicFence.Get()->SetName(L"Game logic fence");
-	if (hr != S_OK) {
-		printf("Error naming game logic fence");
-		exit(-1);
-	}
-	m_lastFinishedGameLogicUpdate = 0;
+	////Game logic fence
+	//hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_gameLogicFence.GetAddressOf()));
+	//if (hr != S_OK) {
+	//	printf("Error creating game logic fence");
+	//	exit(-1);
+	//}
+	//// Creation of an event handle to use in GPU synchronization
+	//hr = m_gameLogicFence.Get()->SetName(L"Game logic fence");
+	//if (hr != S_OK) {
+	//	printf("Error naming game logic fence");
+	//	exit(-1);
+	//}
+	//m_lastFinishedGameLogicUpdate = 0;
 
 	return true;
 }
