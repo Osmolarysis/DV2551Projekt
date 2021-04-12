@@ -50,6 +50,7 @@ void CubeState::copyRecord()
 		//Wait for signal
 		fence->SetEventOnCompletion(fenceValue + 1, handle);
 		WaitForSingleObject(handle, INFINITE);
+		
 	}
 }
 
@@ -214,6 +215,11 @@ void CubeState::directRecord()
 
 		//Wait for signal
 		hr = fence->SetEventOnCompletion(fenceValue + 1, handle);
+		if (hr != S_OK) {
+			printf("Error setting event on completion for copy fence in direct thread record function\n");
+			exit(-1);
+		}
+
 		WaitForSingleObject(handle, INFINITE);
 	}
 }
@@ -451,19 +457,44 @@ void CubeState::update()
 void CubeState::record()
 {
 	Renderer* renderer = Renderer::getInstance();
+	HRESULT hr;
 
 	//Set threads to run = true
 	UINT64 copyFenceValue = renderer->incAndGetCopyValue();
-	renderer->getCopyFence()->Signal(copyFenceValue); //Ready or "Run"
-	renderer->getCopyFence()->SetEventOnCompletion(copyFenceValue + 1, renderer->getCopyHandle());
+	hr = renderer->getCopyFence()->Signal(copyFenceValue); //Ready or "Run"
+	if (hr != S_OK) {
+		printf("Error signaling copy fence in record function\n");
+		exit(-1);
+	}
+	hr = renderer->getCopyFence()->SetEventOnCompletion(copyFenceValue + 1, renderer->getCopyHandle());
+	if (hr != S_OK) {
+		printf("Error setting event on completion for copy fence in record function\n");
+		exit(-1);
+	}
 
 	UINT64 computeFenceValue = renderer->incAndGetComputeValue();
 	renderer->getComputeFence()->Signal(computeFenceValue); //Ready or "Run"
-	renderer->getComputeFence()->SetEventOnCompletion(computeFenceValue + 1, renderer->getComputeHandle());
+	if (hr != S_OK) {
+		printf("Error signaling compute fence in record function\n");
+		exit(-1);
+	}
+	hr = renderer->getComputeFence()->SetEventOnCompletion(computeFenceValue + 1, renderer->getComputeHandle());
+	if (hr != S_OK) {
+		printf("Error setting event on completion for compute fence in record function\n");
+		exit(-1);
+	}
 
 	UINT64 directFenceValue = renderer->incAndGetDirectValue();
 	renderer->getDirectFence()->Signal(directFenceValue); //Ready or "Run"
-	renderer->getDirectFence()->SetEventOnCompletion(directFenceValue + 1, renderer->getDirectHandle());
+	if (hr != S_OK) {
+		printf("Error signaling direct fence in record function\n");
+		exit(-1);
+	}
+	hr = renderer->getDirectFence()->SetEventOnCompletion(directFenceValue + 1, renderer->getDirectHandle());
+	if (hr != S_OK) {
+		printf("Error setting event on completion for direct fence in record function\n");
+		exit(-1);
+	}
 }
 
 void CubeState::executeList()

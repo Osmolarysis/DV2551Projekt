@@ -357,6 +357,8 @@ void Renderer::executeList()
 
 	WaitForSingleObject(m_copyHandle, INFINITE);
 
+	m_copyQueue->Wait(m_fence.Get(), m_frameComplete[!backBufferIndex]);
+
 	//Execute Copy queue
 	ID3D12CommandList* listsToExecuteCopy[] = { m_graphicsCopyList[backBufferIndex].Get() };
 	m_copyQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecuteCopy), listsToExecuteCopy);
@@ -404,7 +406,6 @@ void Renderer::present()
 	DXGI_PRESENT_PARAMETERS pp = {}; //Are these important?
 	m_swapChain->Present1(0, 0, &pp);
 
-	//waitForGPU();
 }
 
 void Renderer::SetResourceTransitionBarrier(ID3D12GraphicsCommandList* commandList, ID3D12Resource* resource, D3D12_RESOURCE_STATES StateBefore, D3D12_RESOURCE_STATES StateAfter)
@@ -578,6 +579,7 @@ UINT64 Renderer::getDirectValue()
 UINT64 Renderer::incAndGetDirectValue()
 {
 	m_directFenceValue++;
+
 	return m_directFenceValue;
 }
 
