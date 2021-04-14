@@ -8,33 +8,33 @@ Timer Timer::m_this;
 
 void Timer::saveRecording()
 {
-	time_t curr_time;
-	tm* curr_tm = new tm;
-	char time_string[100];
+	//Get a time string to name file
+	time_t currentTime;
+	tm* timeStruct = new tm;
+	char timeString[100];
+	time(&currentTime);
+	localtime_s(timeStruct, &currentTime);
+	strftime(timeString, 50, "%H%M%S", timeStruct);
 
-	time(&curr_time);
-	localtime_s(curr_tm, &curr_time);
-	strftime(time_string, 50, "%H%M%S", curr_tm);
-
+	//Open file
 	std::ofstream file;
-	std::string fileName = "Recordings/frameTime_";
-	fileName.append(time_string);
+	std::string fileName = "Recordings/frameTimes_";
+	fileName.append(timeString);
 	fileName.append(".csv");
-
 	file.open(fileName);
 
+	//Write all the data
 	if (file.is_open()) {
-		file << "Frametime,\n";
+		file << "FrameTime,\n";
 		for (int i = 0; i < m_nrOfRecordedFrames; i++) {
 			file << m_recordedFrameTimes[i] << ",\n";
 		}
 
 		std::cout << "Recording saved to: " << fileName << "\n";
-
 		file.close();
 	}
 
-	delete curr_tm;
+	delete timeStruct;
 }
 
 Timer* Timer::getInstance()
@@ -78,8 +78,9 @@ void Timer::update()
 	if (m_recording) {
 		m_recordedFrameTimes[m_nrOfRecordedFrames++] = m_elapsedTime;
 
-		if (m_nrOfRecordedFrames > MAX_NR_OF_RECORDED_FRAMES) {
+		if (m_nrOfRecordedFrames >= MAX_NR_OF_RECORDED_FRAMES) {
 			m_recording = false;
+			printf("Recording stopped (max frames reached)\n");
 			saveRecording();
 			m_nrOfRecordedFrames = 0;
 		}
