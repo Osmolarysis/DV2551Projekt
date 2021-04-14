@@ -17,7 +17,7 @@ void Timer::saveRecording()
 	strftime(time_string, 50, "%H%M%S", curr_tm);
 
 	std::ofstream file;
-	std::string fileName = "frameTime_";
+	std::string fileName = "Recordings/frameTime_";
 	fileName.append(time_string);
 	fileName.append(".csv");
 
