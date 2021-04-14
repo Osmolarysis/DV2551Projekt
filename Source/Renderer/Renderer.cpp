@@ -75,6 +75,11 @@ Renderer::Renderer(int width, int height)
 		printf("error creating root signature\n");
 		exit(-1);
 	}
+	//create root signature
+	if (!InitialiseTimestamps()) {
+		printf("error initialising timestamps\n");
+		exit(-1);
+	}
 }
 
 Renderer::~Renderer()
@@ -368,7 +373,9 @@ void Renderer::executeList()
 
 	//Execute Copy queue
 	ID3D12CommandList* listsToExecuteCopy[] = { m_graphicsCopyList[backBufferIndex].Get() };
+	m_copyQueue->GetClockCalibration(m_copyTimeGPUStart[backBufferIndex], m_copyTimeCPUStart[backBufferIndex]);
 	m_copyQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecuteCopy), listsToExecuteCopy);
+	m_copyQueue->GetClockCalibration(m_copyTimeGPUEnd[backBufferIndex], m_copyTimeCPUEnd[backBufferIndex]);
 
 	m_fenceValue[backBufferIndex]++;
 	UINT64 copyQueueFinished = m_fenceValue[backBufferIndex];
@@ -379,14 +386,13 @@ void Renderer::executeList()
 	WaitForSingleObject(m_computeHandle, INFINITE);
 
 	//Wait for the previous compute to finish and the current copy
-	//m_computeQueue->Wait(m_gameLogicFence.Get(), m_lastFinishedGameLogicUpdate);
 	m_computeQueue->Wait(m_fence[backBufferIndex].Get(), copyQueueFinished); // Wait for copy to finished to start compute
 
 	//Execute Compute queue
 	ID3D12CommandList* listsToExecuteCompute[] = { m_graphicsComputeList[backBufferIndex].Get() };
+	m_computeQueue->GetClockCalibration(m_computeTimeGPUStart[backBufferIndex], m_computeTimeCPUStart[backBufferIndex]);
 	m_computeQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecuteCompute), listsToExecuteCompute);
-	/*m_lastFinishedGameLogicUpdate++;
-	m_computeQueue->Signal(m_gameLogicFence.Get(), m_lastFinishedGameLogicUpdate);*/
+	m_computeQueue->GetClockCalibration(m_computeTimeGPUEnd[backBufferIndex], m_computeTimeCPUEnd[backBufferIndex]);
 
 	m_fenceValue[backBufferIndex]++;
 	UINT64 computeQueueFinished = m_fenceValue[backBufferIndex];
@@ -398,7 +404,9 @@ void Renderer::executeList()
 	//Execute the commands!
 	ID3D12CommandList* listsToExecute[] = { m_graphicsDirectList[backBufferIndex].Get() };
 	m_directQueue->Wait(m_fence[backBufferIndex].Get(), computeQueueFinished);
+	m_directQueue->GetClockCalibration(m_directTimeGPUStart[backBufferIndex], m_directTimeCPUStart[backBufferIndex]);
 	m_directQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecute), listsToExecute);
+	m_directQueue->GetClockCalibration(m_directTimeGPUEnd[backBufferIndex], m_directTimeCPUEnd[backBufferIndex]);
 
 	m_fenceValue[backBufferIndex]++;
 	m_frameComplete[backBufferIndex] = m_fenceValue[backBufferIndex]; //Direct finished
@@ -1157,6 +1165,37 @@ bool Renderer::createRootSignature()
 	m_rootSignature.Get()->SetName(L"Root signature");
 
 	SafeRelease(&sBlob);
+
+	return true;
+}
+
+bool Renderer::InitialiseTimestamps()
+{
+	for (size_t i = 0; i < NUM_SWAP_BUFFERS; i++)
+	{
+		m_copyTimeGPUStart[i] = new UINT64(0);
+		m_copyTimeCPUStart[i] = new UINT64(0);
+		m_copyTimeGPUEnd[i] = new UINT64(0);
+		m_copyTimeCPUEnd[i] = new UINT64(0);
+
+		m_computeTimeGPUStart[i] = new UINT64(0);
+		m_computeTimeCPUStart[i] = new UINT64(0);
+		m_computeTimeGPUEnd[i] = new UINT64(0);
+		m_computeTimeCPUEnd[i] = new UINT64(0);
+
+		m_directTimeGPUStart[i] = new UINT64(0);
+		m_directTimeCPUStart[i] = new UINT64(0);
+		m_directTimeGPUEnd[i] = new UINT64(0);
+		m_directTimeCPUEnd[i] = new UINT64(0);
+
+	}
+
+	m_copyTimeFrequency = new UINT64(0);
+	m_copyQueue->GetTimestampFrequency(m_copyTimeFrequency);
+	m_computeTimeFrequency = new UINT64(0);
+	m_computeQueue->GetTimestampFrequency(m_computeTimeFrequency);
+	m_directTimeFrequency = new UINT64(0);
+	m_directQueue->GetTimestampFrequency(m_directTimeFrequency);
 
 	return true;
 }

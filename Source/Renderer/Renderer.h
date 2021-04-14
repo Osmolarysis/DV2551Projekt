@@ -128,6 +128,26 @@ private:
 	D3D12_VIEWPORT m_viewPort;
 	D3D12_RECT m_scissorRect;
 
+	//Timestamp
+
+	UINT64* m_copyTimeGPUStart[2];
+	UINT64* m_copyTimeCPUStart[2];
+	UINT64* m_copyTimeGPUEnd[2];
+	UINT64* m_copyTimeCPUEnd[2];
+	UINT64* m_copyTimeFrequency;
+		  
+	UINT64* m_computeTimeGPUStart[2];
+	UINT64* m_computeTimeCPUStart[2];
+	UINT64* m_computeTimeGPUEnd[2];
+	UINT64* m_computeTimeCPUEnd[2];
+	UINT64* m_computeTimeFrequency;
+		  
+	UINT64* m_directTimeGPUStart[2];
+	UINT64* m_directTimeCPUStart[2];
+	UINT64* m_directTimeGPUEnd[2];
+	UINT64* m_directTimeCPUEnd[2];
+	UINT64* m_directTimeFrequency;
+
 	Renderer(int, int);
 	~Renderer();
 
@@ -146,6 +166,7 @@ private:
 	bool createDepthStencil();
 	bool createViewportAndScissorRect();
 	bool createRootSignature();
+	bool InitialiseTimestamps();
 
 public:
 	//Gets
