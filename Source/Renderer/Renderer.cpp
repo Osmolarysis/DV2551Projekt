@@ -11,10 +11,10 @@ Renderer::Renderer(int width, int height)
 	m_screenHeight = height;
 
 	//Set debug mode
-	if (!createDebugMode()) {
+	/*if (!createDebugMode()) {
 		printf("error setting debug mode\n");
 		exit(-1);
-	}
+	}*/
 
 	//Create window
 	if (!createWindow()) {
@@ -137,6 +137,27 @@ Renderer::~Renderer()
 	{
 		SafeRelease(m_fence[i].GetAddressOf());
 	}
+
+	for (size_t i = 0; i < NUM_SWAP_BUFFERS; i++)
+	{
+		delete m_copyTimeGPUStart[i];
+		delete m_copyTimeCPUStart[i];
+		delete m_copyTimeGPUEnd[i];
+		delete m_copyTimeCPUEnd[i];
+		
+		delete m_computeTimeGPUStart[i];
+		delete m_computeTimeCPUStart[i];
+		delete m_computeTimeGPUEnd[i];
+		delete m_computeTimeCPUEnd[i];
+		
+		delete m_directTimeGPUStart[i];
+		delete m_directTimeCPUStart[i];
+		delete m_directTimeGPUEnd[i];
+		delete m_directTimeCPUEnd[i];
+	}
+		delete m_copyTimeFrequency;
+		delete m_computeTimeFrequency;
+		delete m_directTimeFrequency;
 }
 
 bool Renderer::createDepthStencil()
@@ -361,6 +382,18 @@ void Renderer::beginFrame()
 		HRESULT hr = m_fence[backBufferIndex].Get()->SetEventOnCompletion(m_frameComplete[backBufferIndex], m_eventHandle[backBufferIndex]);
 		WaitForSingleObject(m_eventHandle[backBufferIndex], INFINITE);
 	}
+
+	//Recording data
+	UINT64 copyTimeGPU_nano = *m_copyTimeGPUEnd[backBufferIndex] - *m_copyTimeGPUStart[backBufferIndex];
+	UINT64 copyTimeCPU_nano = *m_copyTimeCPUEnd[backBufferIndex] - *m_copyTimeCPUStart[backBufferIndex];
+
+	UINT64 computeTimeGPU_nano = *m_computeTimeGPUEnd[backBufferIndex] - *m_computeTimeGPUStart[backBufferIndex];
+	UINT64 computeTimeCPU_nano = *m_computeTimeCPUEnd[backBufferIndex] - *m_computeTimeCPUStart[backBufferIndex];
+
+	UINT64 directTimeGPU_nano = *m_directTimeGPUEnd[backBufferIndex] - *m_directTimeGPUStart[backBufferIndex];
+	UINT64 directTimeCPU_nano = *m_directTimeCPUEnd[backBufferIndex] - *m_directTimeCPUStart[backBufferIndex];
+
+	Timer::getInstance()->logGPUtime(copyTimeGPU_nano, computeTimeGPU_nano, directTimeGPU_nano);
 }
 
 void Renderer::executeList()
