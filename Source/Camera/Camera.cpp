@@ -97,7 +97,7 @@ Camera::Camera(bool firstPersonCamera)
 	m_aspectRatio = (float)renderer->getScreenWidth() / (float)renderer->getScreenHeight();
 	m_fov = 60.0f * XM_PI / 180.0f;
 	m_nearPlane = 0.1f;
-	m_farPlane = 200.0f;
+	m_farPlane = 300.0f;
 	m_matrices.m_proj = XMMatrixPerspectiveFovRH(m_fov, m_aspectRatio, m_nearPlane, m_farPlane);
 
 	//Movement vectors
@@ -164,6 +164,22 @@ void Camera::update()
 		movePlayer();
 	}
 
+	if (Input::getInstance()->keyPressed(Keyboard::Keys::Q)) {
+		m_eye = XMVectorSet(-30.0f, 100.0f, -30.0f, 1.0f);
+		m_target = XMVectorSet(-29.0f, 99.0f, -29.0f, 1.0f);
+		m_up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
+		m_viewUpdated = true;
+		/*XMFLOAT4 eye;
+		XMStoreFloat4(&eye, m_eye);
+		std::cout << "Eye: " << eye.x << "," << eye.y << "," << eye.z << "\n";
+		XMFLOAT4 target;
+		XMStoreFloat4(&target, m_target);
+		std::cout << "Target: " << target.x << "," << target.y << "," << target.z << "\n";
+		XMFLOAT4 up;
+		XMStoreFloat4(&up, m_up);
+		std::cout << "Up: " << up.x << "," << up.y << "," << up.z << "\n";*/
+	}
+
 	if (m_viewUpdated) {
 		m_matrices.m_view = XMMatrixLookAtRH(m_eye, m_target, m_up);
 		m_viewUpdated = false;
@@ -172,7 +188,7 @@ void Camera::update()
 		m_matrices.m_proj = XMMatrixPerspectiveFovRH(m_fov, m_aspectRatio, m_nearPlane, m_farPlane);
 		m_projUpdated = false;
 	}
-	m_matrices.dt = (float)Timer::getInstance()->getDt();
 
+	m_matrices.dt = (float)Timer::getInstance()->getDt();
 	m_cameraBuffer->updateData(&m_matrices, Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex(), Renderer::getInstance()->getCopyCommandList());
 }
