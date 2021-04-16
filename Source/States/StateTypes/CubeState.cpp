@@ -1,6 +1,7 @@
 #include "CubeState.h"
 #include "..\..\Renderer\Renderer.h"
 #include "..\..\Utility\Timer.h"
+#include "..\..\Utility\Input.h"
 #include <iostream>
 #include "..\..\DXUtility\DXUtility.h"
 using namespace DirectX;
@@ -69,6 +70,7 @@ void CubeState::computeRecord()
 	commandList[1] = Renderer::getInstance()->getComputeCommandList(1);
 	UINT64 fenceValue = 0;
 	int bbIndex = 0;
+	int nrOfCubes = NUM_INSTANCE_CUBES;
 
 	HRESULT hr;
 
@@ -89,7 +91,13 @@ void CubeState::computeRecord()
 		commandList[bbIndex]->SetComputeRootUnorderedAccessView(2, m_ComputeGameLogicReadBuffer[bbIndex]->GetGPUVirtualAddress());
 
 		//Thread work
-		commandList[bbIndex]->Dispatch(NUM_INSTANCE_CUBES / 1024, 1, 1);
+		if (Input::getInstance()->keyPressed(DirectX::Keyboard::Keys::D1))
+			nrOfCubes = 4096;
+		else if (Input::getInstance()->keyPressed(DirectX::Keyboard::Keys::D2))
+			nrOfCubes = 32768;
+		else if (Input::getInstance()->keyPressed(DirectX::Keyboard::Keys::D3))
+			nrOfCubes = 262144;
+		commandList[bbIndex]->Dispatch(nrOfCubes / 1024, 1, 1);
 
 		//Close list
 		hr = commandList[bbIndex]->Close();
