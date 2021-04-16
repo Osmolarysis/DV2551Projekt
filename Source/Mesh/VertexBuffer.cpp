@@ -1,5 +1,6 @@
 #include "VertexBuffer.h"
 #include "..\DXUtility\DXUtility.h"
+#include "..\Utility\Input.h"
 
 DirectX::XMFLOAT3* VertexBuffer::createInstances(int width, int height, int depth)
 {
@@ -108,6 +109,14 @@ void VertexBuffer::setData(const void* data, size_t dataByteSize, const void* in
 
 void VertexBuffer::bind()
 {
+	if (Input::getInstance()->keyPressed(DirectX::Keyboard::Keys::D1))
+		m_nrOfInstances = 4096;
+	else if (Input::getInstance()->keyPressed(DirectX::Keyboard::Keys::D2))
+		m_nrOfInstances = 32768;
+	else if (Input::getInstance()->keyPressed(DirectX::Keyboard::Keys::D3))
+		m_nrOfInstances = 262144;
+
+
 	//Location tells us which vertexbuffer we're setting
 	Renderer::getInstance()->getDirectCommandList()->IASetVertexBuffers(0, 1, &m_vertexBufferView);
 	
