@@ -11,10 +11,10 @@ Renderer::Renderer(int width, int height)
 	m_screenHeight = height;
 
 	//Set debug mode
-	if (!createDebugMode()) {
+	/*if (!createDebugMode()) {
 		printf("error setting debug mode\n");
 		exit(-1);
-	}
+	}*/
 
 	//Create window
 	if (!createWindow()) {
@@ -23,9 +23,21 @@ Renderer::Renderer(int width, int height)
 	}
 
 	//Create device
+	HRESULT hr = D3D12EnableExperimentalFeatures(0, nullptr, nullptr, nullptr);
+	if (hr != S_OK) {
+		std::cout << "failed enabling experimental features" << std::endl;
+		exit(-1);
+	}
 	if (!createDevice()) {
 		printf("error creating device\n");
 		exit(-1);
+	}
+	if (isDeveloperModeOn()) {
+		hr = m_device->SetStablePowerState(true);
+		if (hr != S_OK) {
+			std::cout << "failed setting stable power state" << std::endl;
+			exit(-1);
+		}
 	}
 
 	//Create command queue and lists
@@ -409,28 +421,28 @@ void Renderer::executeList()
 	ID3D12CommandList* listsToExecuteCopy[] = { m_graphicsCopyList[backBufferIndex].Get() };
 	HRESULT hr = m_copyQueue->GetClockCalibration(m_copyTimeGPUStart[backBufferIndex], m_copyTimeCPUStart[backBufferIndex]);
 	m_copyQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecuteCopy), listsToExecuteCopy);
-	hr = m_copyQueue->GetClockCalibration(m_copyTimeGPUEnd[backBufferIndex], m_copyTimeCPUEnd[backBufferIndex]);
 
 	m_fenceValue[backBufferIndex]++;
 	UINT64 copyQueueFinished = m_fenceValue[backBufferIndex];
 
 	m_copyQueue->Signal(m_fence[backBufferIndex].Get(), copyQueueFinished);
+	hr = m_copyQueue->GetClockCalibration(m_copyTimeGPUEnd[backBufferIndex], m_copyTimeCPUEnd[backBufferIndex]);
 
 	//Wait for Compute queue to finish recording
 	WaitForSingleObject(m_computeHandle, INFINITE);
 
 	//Wait for the previous compute to finish and the current copy
 	m_computeQueue->Wait(m_fence[backBufferIndex].Get(), copyQueueFinished); // Wait for copy to finished to start compute
+	m_computeQueue->GetClockCalibration(m_computeTimeGPUStart[backBufferIndex], m_computeTimeCPUStart[backBufferIndex]);
 
 	//Execute Compute queue
 	ID3D12CommandList* listsToExecuteCompute[] = { m_graphicsComputeList[backBufferIndex].Get() };
-	m_computeQueue->GetClockCalibration(m_computeTimeGPUStart[backBufferIndex], m_computeTimeCPUStart[backBufferIndex]);
 	m_computeQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecuteCompute), listsToExecuteCompute);
-	m_computeQueue->GetClockCalibration(m_computeTimeGPUEnd[backBufferIndex], m_computeTimeCPUEnd[backBufferIndex]);
 
 	m_fenceValue[backBufferIndex]++;
 	UINT64 computeQueueFinished = m_fenceValue[backBufferIndex];
 	m_computeQueue->Signal(m_fence[backBufferIndex].Get(), computeQueueFinished); //Done
+	m_computeQueue->GetClockCalibration(m_computeTimeGPUEnd[backBufferIndex], m_computeTimeCPUEnd[backBufferIndex]);
 
 	//Wait for Direct queue to finish recording
 	WaitForSingleObject(m_directHandle, INFINITE);
@@ -440,13 +452,13 @@ void Renderer::executeList()
 	m_directQueue->Wait(m_fence[backBufferIndex].Get(), computeQueueFinished);
 	m_directQueue->GetClockCalibration(m_directTimeGPUStart[backBufferIndex], m_directTimeCPUStart[backBufferIndex]);
 	m_directQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecute), listsToExecute);
-	m_directQueue->GetClockCalibration(m_directTimeGPUEnd[backBufferIndex], m_directTimeCPUEnd[backBufferIndex]);
 
 	m_fenceValue[backBufferIndex]++;
 	m_frameComplete[backBufferIndex] = m_fenceValue[backBufferIndex]; //Direct finished
 
 	//Set finished rendering value
 	m_directQueue.Get()->Signal(m_fence[backBufferIndex].Get(), m_frameComplete[backBufferIndex]);
+	m_directQueue->GetClockCalibration(m_directTimeGPUEnd[backBufferIndex], m_directTimeCPUEnd[backBufferIndex]);
 }
 
 void Renderer::present()
@@ -752,13 +764,6 @@ bool Renderer::createDevice() // DXR support is assumed... todo
 		return false;
 	}
 
-	//adapter->Release(); //Does this automatically
-	if (isDeveloperModeOn()) {
-		//hr = m_device->SetStablePowerState(true); //R£££££££££££££££££££££££££££££££££
-	}
-	if (hr != S_OK) {
-		return false;
-	}
 	return true;
 }
 
