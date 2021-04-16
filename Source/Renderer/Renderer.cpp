@@ -11,10 +11,10 @@ Renderer::Renderer(int width, int height)
 	m_screenHeight = height;
 
 	//Set debug mode
-	/*if (!createDebugMode()) {
+	if (!createDebugMode()) {
 		printf("error setting debug mode\n");
 		exit(-1);
-	}*/
+	}
 
 	//Create window
 	if (!createWindow()) {
@@ -144,20 +144,20 @@ Renderer::~Renderer()
 		delete m_copyTimeCPUStart[i];
 		delete m_copyTimeGPUEnd[i];
 		delete m_copyTimeCPUEnd[i];
-		
+
 		delete m_computeTimeGPUStart[i];
 		delete m_computeTimeCPUStart[i];
 		delete m_computeTimeGPUEnd[i];
 		delete m_computeTimeCPUEnd[i];
-		
+
 		delete m_directTimeGPUStart[i];
 		delete m_directTimeCPUStart[i];
 		delete m_directTimeGPUEnd[i];
 		delete m_directTimeCPUEnd[i];
 	}
-		delete m_copyTimeFrequency;
-		delete m_computeTimeFrequency;
-		delete m_directTimeFrequency;
+	delete m_copyTimeFrequency;
+	delete m_computeTimeFrequency;
+	delete m_directTimeFrequency;
 }
 
 bool Renderer::createDepthStencil()
@@ -393,6 +393,7 @@ void Renderer::beginFrame()
 	UINT64 directTimeGPU_nano = *m_directTimeGPUEnd[backBufferIndex] - *m_directTimeGPUStart[backBufferIndex];
 	UINT64 directTimeCPU_nano = *m_directTimeCPUEnd[backBufferIndex] - *m_directTimeCPUStart[backBufferIndex];
 
+	//std::cout << copyTimeGPU_nano << "\t" << computeTimeGPU_nano << "\t" << directTimeGPU_nano << std::endl;
 	Timer::getInstance()->logGPUtime(copyTimeGPU_nano, computeTimeGPU_nano, directTimeGPU_nano);
 }
 
@@ -406,9 +407,9 @@ void Renderer::executeList()
 
 	//Execute Copy queue
 	ID3D12CommandList* listsToExecuteCopy[] = { m_graphicsCopyList[backBufferIndex].Get() };
-	m_copyQueue->GetClockCalibration(m_copyTimeGPUStart[backBufferIndex], m_copyTimeCPUStart[backBufferIndex]);
+	HRESULT hr = m_copyQueue->GetClockCalibration(m_copyTimeGPUStart[backBufferIndex], m_copyTimeCPUStart[backBufferIndex]);
 	m_copyQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecuteCopy), listsToExecuteCopy);
-	m_copyQueue->GetClockCalibration(m_copyTimeGPUEnd[backBufferIndex], m_copyTimeCPUEnd[backBufferIndex]);
+	hr = m_copyQueue->GetClockCalibration(m_copyTimeGPUEnd[backBufferIndex], m_copyTimeCPUEnd[backBufferIndex]);
 
 	m_fenceValue[backBufferIndex]++;
 	UINT64 copyQueueFinished = m_fenceValue[backBufferIndex];
@@ -530,6 +531,21 @@ ID3D12DescriptorHeap* Renderer::getCBDescriptorHeap(UINT bufferIndex)
 ID3D12DescriptorHeap* Renderer::getSRVDescriptorHeap(UINT bufferIndex)
 {
 	return m_SRVDescriptorHeaps[bufferIndex].Get();
+}
+
+bool Renderer::isDeveloperModeOn()
+{
+	HKEY hKey;
+	auto err = RegOpenKeyExW(HKEY_LOCAL_MACHINE, LR"(SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock)", 0, KEY_READ, &hKey);
+	if (err != ERROR_SUCCESS)
+		return false;
+	DWORD value{};
+	DWORD dwordSize = sizeof(DWORD);
+	err = RegQueryValueExW(hKey, L"AllowDevelopmentWithoutDevLicense", 0, NULL, reinterpret_cast<LPBYTE>(&value), &dwordSize);
+	RegCloseKey(hKey);
+	if (err != ERROR_SUCCESS)
+		return false;
+	return value != 0;
 }
 
 ID3D12Fence1* Renderer::getCopyFence()
@@ -737,6 +753,12 @@ bool Renderer::createDevice() // DXR support is assumed... todo
 	}
 
 	//adapter->Release(); //Does this automatically
+	if (isDeveloperModeOn()) {
+		//hr = m_device->SetStablePowerState(true); //R£££££££££££££££££££££££££££££££££
+	}
+	if (hr != S_OK) {
+		return false;
+	}
 	return true;
 }
 

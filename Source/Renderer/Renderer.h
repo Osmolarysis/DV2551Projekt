@@ -235,4 +235,6 @@ public:
 	//Descriptor heap functions
 	ID3D12DescriptorHeap* getCBDescriptorHeap(UINT bufferIndex);
 	ID3D12DescriptorHeap* getSRVDescriptorHeap(UINT bufferIndex);
+
+	bool isDeveloperModeOn();
 };

@@ -15,6 +15,7 @@ void Timer::saveRecording()
 	time(&currentTime);
 	localtime_s(timeStruct, &currentTime);
 	strftime(timeString, 50, "%H%M%S", timeStruct);
+	const char seperator = ';';
 
 	//Open file
 	std::ofstream file;
@@ -25,9 +26,9 @@ void Timer::saveRecording()
 
 	//Write all the data
 	if (file.is_open()) {
-		file << "FrameTime,GPUCopyQueue,GPUComputeQueue,GPUDirectQueue\n";
+		file << "Index" << seperator << "FrameTime" << seperator << "GPUCopyQueue" << seperator << "GPUComputeQueue" << seperator << "GPUDirectQueue\n";
 		for (int i = 0; i < m_nrOfRecordedFrames; i++) {
-			file << m_recordedFrameTimes[i] << "," << m_recordedGPUQueuesTimes[i].copyTime << "," << m_recordedGPUQueuesTimes[i].computeTime << "," << m_recordedGPUQueuesTimes[i].directTime << ",\n";
+			file << i + 1 << seperator << m_recordedFrameTimes[i] << seperator << m_recordedGPUQueuesTimes[i].copyTime << seperator << m_recordedGPUQueuesTimes[i].computeTime << seperator << m_recordedGPUQueuesTimes[i].directTime << seperator << "\n";
 		}
 
 		std::cout << "Recording saved to: " << fileName << "\n";
@@ -116,7 +117,8 @@ void Timer::reset()
 void Timer::logGPUtime(UINT64 _copyTime, UINT64 _computeTime, UINT64 _directTime)
 {
 	if (m_recording) {
-		if (m_gpuLoggingCounter >= MAX_NR_OF_RECORDED_FRAMES) {
+		//std::cout << _copyTime << "\t" << _computeTime << "\t" << _directTime << std::endl;
+		if (m_gpuLoggingCounter <= MAX_NR_OF_RECORDED_FRAMES) {
 			m_recordedGPUQueuesTimes[m_gpuLoggingCounter] = GPUQueueTimes(_copyTime, _computeTime, _directTime);
 			m_gpuLoggingCounter++;
 		}
