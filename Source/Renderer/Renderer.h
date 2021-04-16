@@ -37,7 +37,9 @@ const unsigned int NUM_CONSTANT_BUFFERS = 1;
 const unsigned int NUM_TEXTURE_BUFFERS = 1;
 const unsigned int NUM_BUFFERS_IN_DESC_HEAP = NUM_CONSTANT_BUFFERS + NUM_TEXTURE_BUFFERS;
 const unsigned int NUM_COMMANDLISTS = 2;
-const unsigned int NUM_INSTANCE_CUBES = 262144;
+const unsigned int NUM_INSTANCE_CUBES = 262144; //64^3
+//const unsigned int NUM_INSTANCE_CUBES = 32768; //32^3
+//const unsigned int NUM_INSTANCE_CUBES = 4096; //16^3
 
 class Renderer {
 private:
