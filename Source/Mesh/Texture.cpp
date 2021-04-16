@@ -2,7 +2,7 @@
 #include "..\DXUtility\DXUtility.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "..\..\Include\stb_image.h"
-
+#include "..\Utility\Input.h"
 const int pixelSize = 4;
 
 void Texture::loadAllImages()
@@ -128,7 +128,14 @@ void Texture::updateShaderResourceView(int frameIndex)
 
 void Texture::updateAnimation(int frameIndex, float dt)
 {
-	float updateFrequency = 1.f / 30;
+	const float normalUpdateFrequency = 1.f / 30;
+	
+	static float updateFrequency = normalUpdateFrequency;
+	if (Input::getInstance()->keyPressed(DirectX::Keyboard::Keys::F))
+	{
+		updateFrequency = normalUpdateFrequency * !updateFrequency;
+		m_animationTimer = 0;
+	}
 
 	m_animationTimer += dt;
 	if (m_animationTimer > updateFrequency)
