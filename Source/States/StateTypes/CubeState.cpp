@@ -16,6 +16,9 @@ void CubeState::copyRecord()
 	ID3D12GraphicsCommandList* commandList[2] = { nullptr, nullptr };
 	commandList[0] = Renderer::getInstance()->getCopyCommandList(0);
 	commandList[1] = Renderer::getInstance()->getCopyCommandList(1);
+	ID3D12QueryHeap* queryHeap[2] = { nullptr, nullptr };
+	queryHeap[0] = Renderer::getInstance()->getCopyQueryHeap(0);
+	queryHeap[1] = Renderer::getInstance()->getCopyQueryHeap(1);
 	UINT64 fenceValue = 0;
 	int bbIndex = 0;
 
@@ -26,6 +29,9 @@ void CubeState::copyRecord()
 	WaitForSingleObject(handle, INFINITE);
 
 	while (m_copyThread.isActive) {
+		//Start profiling query
+		//commandList[bbIndex]->BeginQuery(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 0);
+
 		//Thread work
 		commandAllocator[bbIndex]->Reset();
 		commandList[bbIndex]->Reset(commandAllocator[bbIndex], nullptr);
@@ -35,6 +41,9 @@ void CubeState::copyRecord()
 
 		//Update gif animation		
 		m_scene[0]->getMesh(0)->getTexture()->updateAnimation(Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex(), float(Timer::getInstance()->getDt())); //R£££ Warning
+
+		//End profiling query
+		//commandList[bbIndex]->EndQuery(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 0);
 
 		//Close list
 		hr = commandList[bbIndex]->Close();
@@ -68,6 +77,9 @@ void CubeState::computeRecord()
 	ID3D12GraphicsCommandList* commandList[2] = { nullptr, nullptr };
 	commandList[0] = Renderer::getInstance()->getComputeCommandList(0);
 	commandList[1] = Renderer::getInstance()->getComputeCommandList(1);
+	ID3D12QueryHeap* queryHeap[2] = { nullptr, nullptr };
+	queryHeap[0] = Renderer::getInstance()->getComputeQueryHeap(0);
+	queryHeap[1] = Renderer::getInstance()->getComputeQueryHeap(1);
 	UINT64 fenceValue = 0;
 	int bbIndex = 0;
 	int nrOfCubes = NUM_INSTANCE_CUBES;
@@ -79,6 +91,9 @@ void CubeState::computeRecord()
 	WaitForSingleObject(handle, INFINITE);
 
 	while (m_computeThread.isActive) {
+		//Start profiling query
+		//commandList[bbIndex]->BeginQuery(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 0);
+
 		//Initial work
 		commandAllocator[bbIndex]->Reset();
 		commandList[bbIndex]->Reset(commandAllocator[bbIndex], nullptr);
@@ -98,6 +113,9 @@ void CubeState::computeRecord()
 		else if (Input::getInstance()->keyPressed(DirectX::Keyboard::Keys::D3))
 			nrOfCubes = 262144;
 		commandList[bbIndex]->Dispatch(nrOfCubes / 1024, 1, 1);
+
+		//End profiling query
+		//commandList[bbIndex]->EndQuery(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 0);
 
 		//Close list
 		hr = commandList[bbIndex]->Close();
@@ -140,6 +158,12 @@ void CubeState::directRecord()
 	ID3D12DescriptorHeap* constantBufferHeap[2] = { nullptr, nullptr };
 	constantBufferHeap[0] = Renderer::getInstance()->getConstantBufferHeap(0);
 	constantBufferHeap[1] = Renderer::getInstance()->getConstantBufferHeap(1);
+	ID3D12QueryHeap* queryHeap[2] = { nullptr, nullptr };
+	queryHeap[0] = Renderer::getInstance()->getDirectQueryHeap(0);
+	queryHeap[1] = Renderer::getInstance()->getDirectQueryHeap(1);
+	ID3D12Resource* queryResult[2] = { nullptr, nullptr };
+	queryResult[0] = Renderer::getInstance()->getDirectQueryResult(0);
+	queryResult[1] = Renderer::getInstance()->getDirectQueryResult(1);
 	UINT64 fenceValue = 0;
 	size_t bbIndex = 0;
 	float clearColour[4] = { 0.17f, 0.23f, 0.38f, 1.0f };
@@ -151,6 +175,7 @@ void CubeState::directRecord()
 	WaitForSingleObject(handle, INFINITE);
 
 	while (m_directThread.isActive) {
+
 		//Initial work
 		hr = commandAllocator[bbIndex]->Reset();
 		if (hr != S_OK) {
@@ -162,6 +187,9 @@ void CubeState::directRecord()
 			printf("Error reseting direct list %i\n", (int)bbIndex);
 			exit(-1);
 		}
+
+		//Start profiling query
+		commandList[bbIndex]->EndQuery(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 0);
 
 		commandList[bbIndex]->RSSetViewports(1, viewPort);
 		commandList[bbIndex]->RSSetScissorRects(1, scissorRect);
@@ -207,6 +235,11 @@ void CubeState::directRecord()
 			D3D12_RESOURCE_STATE_RENDER_TARGET,		//state before
 			D3D12_RESOURCE_STATE_PRESENT	//state after
 		);
+
+		//End profiling query
+		commandList[bbIndex]->EndQuery(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 1);
+
+		commandList[bbIndex]->ResolveQueryData(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 0, 2, queryResult[bbIndex], 0); //Offset 0 or sizeof(query);
 
 		//Close list
 		hr = commandList[bbIndex]->Close();
