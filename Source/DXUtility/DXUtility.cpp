@@ -1,11 +1,13 @@
 #include "DXUtility.h"
 
-ComPtr<ID3D12Resource2> makeBufferHeap(D3D12_HEAP_TYPE type, UINT64 size, LPCWSTR heapName)
+ComPtr<ID3D12Resource2> makeBufferHeap(D3D12_HEAP_TYPE type, UINT64 size, LPCWSTR heapName, D3D12_RESOURCE_STATES state)
 {
+	// upload buffers will want tpo initialize with D3D12_RESOURCE_STATE_GENERIC_READ instead.
+
 	//Do initial stuff
 	auto hp = CD3DX12_HEAP_PROPERTIES(type);
 	auto rd = CD3DX12_RESOURCE_DESC::Buffer(size);
-	auto state = (type == D3D12_HEAP_TYPE_DEFAULT) ? D3D12_RESOURCE_STATE_COMMON : D3D12_RESOURCE_STATE_GENERIC_READ;
+		
 	ComPtr<ID3D12Resource2> resource;
 	// create heap
 	HRESULT hr = Renderer::getInstance()->getDevice()->CreateCommittedResource(
@@ -81,7 +83,7 @@ ComPtr<ID3D12Resource2> CreateDefaultBuffer(ID3D12GraphicsCommandList* cmdList, 
 	size_t requiredSize = GetRequiredIntermediateSize(defaultHeap.Get(), 0, 1);
 	std::wstring heapName = L"Upload heap ";
 	heapName.append(name);
-	uploadBuffer = makeBufferHeap(D3D12_HEAP_TYPE_UPLOAD, requiredSize, heapName.c_str());
+	uploadBuffer = makeBufferHeap(D3D12_HEAP_TYPE_UPLOAD, requiredSize, heapName.c_str(), D3D12_RESOURCE_STATE_GENERIC_READ);
 
 	// describe data
 	D3D12_SUBRESOURCE_DATA vbData = {};
@@ -99,7 +101,7 @@ ComPtr<ID3D12Resource2> CreateDefaultTexture(ID3D12GraphicsCommandList* cmdList,
 	// allocates memory
 	ComPtr<ID3D12Resource2> defaultHeap = makeTextureHeap(D3D12_HEAP_TYPE_DEFAULT, byteSize, name, width, height);
 	size_t requiredSize = GetRequiredIntermediateSize(defaultHeap.Get(), 0, 1);
-	uploadBuffer = makeBufferHeap(D3D12_HEAP_TYPE_UPLOAD, requiredSize, L"uploadHeap");
+	uploadBuffer = makeBufferHeap(D3D12_HEAP_TYPE_UPLOAD, requiredSize, L"uploadHeap", D3D12_RESOURCE_STATE_GENERIC_READ);
 
 	// describe data
 	D3D12_SUBRESOURCE_DATA vbData = {};

@@ -54,8 +54,8 @@ void VertexBuffer::setData(const void* data, size_t dataByteSize, const void* in
 	// old
 	if (useOld)
 	{
-		m_vertexBufferResource = makeBufferHeap(D3D12_HEAP_TYPE_UPLOAD, m_totalSize, L"vb heap");
-		m_indexBufferResource  = makeBufferHeap(D3D12_HEAP_TYPE_UPLOAD, m_totalSizeIndices, L"ib heap");
+		m_vertexBufferResource = makeBufferHeap(D3D12_HEAP_TYPE_UPLOAD, m_totalSize, L"vb heap", D3D12_RESOURCE_STATE_GENERIC_READ);
+		m_indexBufferResource  = makeBufferHeap(D3D12_HEAP_TYPE_UPLOAD, m_totalSizeIndices, L"ib heap", D3D12_RESOURCE_STATE_GENERIC_READ);
 
 		setUploadHeapData(m_vertexBufferResource, data, m_totalSize);
 

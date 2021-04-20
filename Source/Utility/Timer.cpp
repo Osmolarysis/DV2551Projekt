@@ -15,7 +15,7 @@ void Timer::saveRecording()
 	time(&currentTime);
 	localtime_s(timeStruct, &currentTime);
 	strftime(timeString, 50, "%H%M%S", timeStruct);
-	const char seperator = ';';
+	const char seperator = '\t';
 
 	//Open file
 	std::ofstream file;
