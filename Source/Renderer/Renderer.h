@@ -87,16 +87,19 @@ private:
 	ComPtr<ID3D12CommandQueue> m_directQueue;
 	ComPtr<ID3D12CommandAllocator> m_directAllocator[NUM_COMMANDLISTS];
 	ComPtr<ID3D12GraphicsCommandList> m_graphicsDirectList[NUM_COMMANDLISTS];
+	ComPtr<ID3D12QueryHeap> m_directQueryHeap[NUM_COMMANDLISTS];
 
 	//Copy queue/list/allocator
 	ComPtr<ID3D12CommandQueue> m_copyQueue;
 	ComPtr<ID3D12CommandAllocator> m_copyAllocator[NUM_COMMANDLISTS];
 	ComPtr<ID3D12GraphicsCommandList> m_graphicsCopyList[NUM_COMMANDLISTS];
+	ComPtr<ID3D12QueryHeap> m_copyQueryHeap[NUM_COMMANDLISTS];
 
 	//Compute queue/list/allocator
 	ComPtr<ID3D12CommandQueue> m_computeQueue;
 	ComPtr<ID3D12CommandAllocator> m_computeAllocator[NUM_COMMANDLISTS];
 	ComPtr<ID3D12GraphicsCommandList> m_graphicsComputeList[NUM_COMMANDLISTS];
+	ComPtr<ID3D12QueryHeap> m_computeQueryHeap[NUM_COMMANDLISTS];
 
 	//Fence and event handle
 	ComPtr<ID3D12Fence1> m_fence[NUM_SWAP_BUFFERS]; //Fence for syncing queues
@@ -113,18 +116,23 @@ private:
 	UINT64 m_copyFenceValue = 0;
 	HANDLE m_copyHandle = nullptr;
 	HANDLE m_copyThreadHandle = nullptr;
+	ComPtr<ID3D12Resource1> m_copyQueryResult[2];
 
 	//Compute queue fence for recording
 	ComPtr<ID3D12Fence1> m_computeFence;
 	UINT64 m_computeFenceValue = 0;
 	HANDLE m_computeHandle = nullptr;
 	HANDLE m_computeThreadHandle = nullptr;
+	ComPtr<ID3D12Resource1> m_computeQueryResult[2];
+
 
 	//Direct queue fence for recording
 	ComPtr<ID3D12Fence1> m_directFence;
 	UINT64 m_directFenceValue = 0;
 	HANDLE m_directHandle = nullptr;
 	HANDLE m_directThreadHandle = nullptr;
+	ComPtr<ID3D12Resource1> m_directQueryResult[2];
+
 
 	//viewport and rect
 	D3D12_VIEWPORT m_viewPort;
@@ -168,6 +176,7 @@ private:
 	bool createDepthStencil();
 	bool createViewportAndScissorRect();
 	bool createRootSignature();
+	bool createQueryHeaps();
 	bool InitialiseTimestamps();
 
 public:
@@ -186,6 +195,7 @@ public:
 	ID3D12GraphicsCommandList* getCopyCommandList();
 	ID3D12GraphicsCommandList* getCopyCommandList(int);
 	ID3D12CommandAllocator* getCopyCommandAllocator(int);
+	ID3D12QueryHeap* getCopyQueryHeap(int);
 
 	ID3D12Fence1* getComputeFence();
 	UINT64 incAndGetComputeValue();
@@ -195,6 +205,7 @@ public:
 	ID3D12GraphicsCommandList* getComputeCommandList();
 	ID3D12GraphicsCommandList* getComputeCommandList(int);
 	ID3D12CommandAllocator* getComputeCommandAllocator(int);
+	ID3D12QueryHeap* getComputeQueryHeap(int);
 
 	ID3D12Fence1* getDirectFence();
 	UINT64 incAndGetDirectValue();
@@ -204,6 +215,8 @@ public:
 	ID3D12GraphicsCommandList* getDirectCommandList();
 	ID3D12GraphicsCommandList* getDirectCommandList(int bufferIndex);
 	ID3D12CommandAllocator* getDirectCommandAllocator(int);
+	ID3D12QueryHeap* getDirectQueryHeap(int);
+	ID3D12Resource1* getDirectQueryResult(int);
 
 	D3D12_VIEWPORT* getViewPort();
 	D3D12_RECT* getScissorRect();

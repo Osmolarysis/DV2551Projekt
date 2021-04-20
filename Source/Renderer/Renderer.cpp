@@ -11,10 +11,10 @@ Renderer::Renderer(int width, int height)
 	m_screenHeight = height;
 
 	//Set debug mode
-	/*if (!createDebugMode()) {
+	if (!createDebugMode()) {
 		printf("error setting debug mode\n");
 		exit(-1);
-	}*/
+	}
 
 	//Create window
 	if (!createWindow()) {
@@ -85,6 +85,11 @@ Renderer::Renderer(int width, int height)
 	//create root signature
 	if (!createRootSignature()) {
 		printf("error creating root signature\n");
+		exit(-1);
+	}
+	//Create query heaps
+	if (!createQueryHeaps()) {
+		printf("Error creating query heaps\n");
 		exit(-1);
 	}
 	//create root signature
@@ -259,6 +264,11 @@ ID3D12GraphicsCommandList* Renderer::getDirectCommandList(int bufferIndex)
 ID3D12CommandAllocator* Renderer::getDirectCommandAllocator(int index)
 {
 	return m_directAllocator[index].Get();
+}
+
+ID3D12QueryHeap* Renderer::getDirectQueryHeap(int index)
+{
+	return m_directQueryHeap[index].Get();
 }
 
 D3D12_VIEWPORT* Renderer::getViewPort()
@@ -591,6 +601,11 @@ ID3D12CommandAllocator* Renderer::getCopyCommandAllocator(int index)
 	return m_copyAllocator[index].Get();
 }
 
+ID3D12QueryHeap* Renderer::getCopyQueryHeap(int index)
+{
+	return m_copyQueryHeap[index].Get();
+}
+
 UINT64 Renderer::getCopyValue()
 {
 	return m_copyFenceValue;
@@ -642,6 +657,11 @@ ID3D12GraphicsCommandList* Renderer::getComputeCommandList(int index)
 ID3D12CommandAllocator* Renderer::getComputeCommandAllocator(int index)
 {
 	return m_computeAllocator[index].Get();
+}
+
+ID3D12QueryHeap* Renderer::getComputeQueryHeap(int index)
+{
+	return m_computeQueryHeap[index].Get();
 }
 
 ID3D12Fence1* Renderer::getDirectFence()
@@ -763,6 +783,9 @@ bool Renderer::createDevice() // DXR support is assumed... todo
 		// No adapter with level 12.1
 		return false;
 	}
+
+	D3D12_FEATURE_DATA_D3D12_OPTIONS3 featureDataOptions;
+	m_device.Get()->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS3, &featureDataOptions, sizeof(featureDataOptions)); //This is making me sad.
 
 	return true;
 }
@@ -1226,6 +1249,38 @@ bool Renderer::createRootSignature()
 
 	SafeRelease(&sBlob);
 
+	return true;
+}
+
+bool Renderer::createQueryHeaps()
+{
+	HRESULT hr;
+	for (size_t i = 0; i < NUM_COMMANDLISTS; i++)
+	{
+		D3D12_QUERY_HEAP_DESC queryHeapDesc = {};
+		queryHeapDesc.Count = 2;
+		queryHeapDesc.Type = D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
+		hr = m_device->CreateQueryHeap(&queryHeapDesc, IID_PPV_ARGS(m_directQueryHeap[i].GetAddressOf()));
+		if(hr != S_OK)
+		{
+			return false;
+		}
+		hr = m_device->CreateQueryHeap(&queryHeapDesc, IID_PPV_ARGS(m_computeQueryHeap[i].GetAddressOf()));
+		if (hr != S_OK)
+		{
+			return false;
+		}
+		D3D12_QUERY_HEAP_DESC queryHeapDesc_copy = {};
+		queryHeapDesc_copy.Count = 2;
+		queryHeapDesc_copy.Type = D3D12_QUERY_HEAP_TYPE_COPY_QUEUE_TIMESTAMP;
+		hr = m_device->CreateQueryHeap(&queryHeapDesc_copy, IID_PPV_ARGS(m_copyQueryHeap[i].GetAddressOf()));
+		if (hr != S_OK)
+		{
+			return false;
+		}
+
+
+	}
 	return true;
 }
 
