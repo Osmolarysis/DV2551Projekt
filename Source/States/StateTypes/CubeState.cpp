@@ -239,7 +239,19 @@ void CubeState::directRecord()
 		//End profiling query
 		commandList[bbIndex]->EndQuery(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 1);
 
-		commandList[bbIndex]->ResolveQueryData(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 0, 2, queryResult[bbIndex], 0); //Offset 0 or sizeof(query);
+		//Renderer::getInstance()->SetResourceTransitionBarrier(
+		//	commandList[bbIndex],
+		//	queryResult[bbIndex],
+		//	D3D12_RESOURCE_STATE_GENERIC_READ,		//state before
+		//	D3D12_RESOURCE_STATE_COPY_DEST	//state after
+		//);
+		commandList[bbIndex]->ResolveQueryData(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 0, 1, queryResult[bbIndex], 0); //Offset 0 or sizeof(query);
+		//Renderer::getInstance()->SetResourceTransitionBarrier(
+		//	commandList[bbIndex],
+		//	queryResult[bbIndex],
+		//	D3D12_RESOURCE_STATE_COPY_DEST,	//state after
+		//	D3D12_RESOURCE_STATE_GENERIC_READ		//state before
+		//);
 
 		//Close list
 		hr = commandList[bbIndex]->Close();

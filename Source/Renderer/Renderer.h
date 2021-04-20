@@ -88,18 +88,21 @@ private:
 	ComPtr<ID3D12CommandAllocator> m_directAllocator[NUM_COMMANDLISTS];
 	ComPtr<ID3D12GraphicsCommandList> m_graphicsDirectList[NUM_COMMANDLISTS];
 	ComPtr<ID3D12QueryHeap> m_directQueryHeap[NUM_COMMANDLISTS];
+	ComPtr<ID3D12Resource2> m_directQueryResult[2];
 
 	//Copy queue/list/allocator
 	ComPtr<ID3D12CommandQueue> m_copyQueue;
 	ComPtr<ID3D12CommandAllocator> m_copyAllocator[NUM_COMMANDLISTS];
 	ComPtr<ID3D12GraphicsCommandList> m_graphicsCopyList[NUM_COMMANDLISTS];
 	ComPtr<ID3D12QueryHeap> m_copyQueryHeap[NUM_COMMANDLISTS];
+	ComPtr<ID3D12Resource2> m_copyQueryResult[2];
 
 	//Compute queue/list/allocator
 	ComPtr<ID3D12CommandQueue> m_computeQueue;
 	ComPtr<ID3D12CommandAllocator> m_computeAllocator[NUM_COMMANDLISTS];
 	ComPtr<ID3D12GraphicsCommandList> m_graphicsComputeList[NUM_COMMANDLISTS];
 	ComPtr<ID3D12QueryHeap> m_computeQueryHeap[NUM_COMMANDLISTS];
+	ComPtr<ID3D12Resource2> m_computeQueryResult[2];
 
 	//Fence and event handle
 	ComPtr<ID3D12Fence1> m_fence[NUM_SWAP_BUFFERS]; //Fence for syncing queues
@@ -116,30 +119,24 @@ private:
 	UINT64 m_copyFenceValue = 0;
 	HANDLE m_copyHandle = nullptr;
 	HANDLE m_copyThreadHandle = nullptr;
-	ComPtr<ID3D12Resource1> m_copyQueryResult[2];
 
 	//Compute queue fence for recording
 	ComPtr<ID3D12Fence1> m_computeFence;
 	UINT64 m_computeFenceValue = 0;
 	HANDLE m_computeHandle = nullptr;
 	HANDLE m_computeThreadHandle = nullptr;
-	ComPtr<ID3D12Resource1> m_computeQueryResult[2];
-
 
 	//Direct queue fence for recording
 	ComPtr<ID3D12Fence1> m_directFence;
 	UINT64 m_directFenceValue = 0;
 	HANDLE m_directHandle = nullptr;
 	HANDLE m_directThreadHandle = nullptr;
-	ComPtr<ID3D12Resource1> m_directQueryResult[2];
-
 
 	//viewport and rect
 	D3D12_VIEWPORT m_viewPort;
 	D3D12_RECT m_scissorRect;
 
 	//Timestamp
-
 	UINT64* m_copyTimeGPUStart[2];
 	UINT64* m_copyTimeCPUStart[2];
 	UINT64* m_copyTimeGPUEnd[2];

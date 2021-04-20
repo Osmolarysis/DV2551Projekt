@@ -1,6 +1,7 @@
 ﻿#include "Renderer.h"
 #include "..\Utility\Timer.h"
 #include "..\Utility\Input.h"
+#include "..\DXUtility\DXUtility.h"
 
 
 Renderer Renderer::m_this(1280, 720);
@@ -271,6 +272,11 @@ ID3D12QueryHeap* Renderer::getDirectQueryHeap(int index)
 	return m_directQueryHeap[index].Get();
 }
 
+ID3D12Resource1* Renderer::getDirectQueryResult(int index)
+{
+	return m_directQueryResult[index].Get();
+}
+
 D3D12_VIEWPORT* Renderer::getViewPort()
 {
 	return &m_viewPort;
@@ -417,6 +423,9 @@ void Renderer::beginFrame()
 
 	//std::cout << copyTimeGPU_nano << "\t" << computeTimeGPU_nano << "\t" << directTimeGPU_nano << std::endl;
 	Timer::getInstance()->logGPUtime(copyTimeGPU_nano, computeTimeGPU_nano, directTimeGPU_nano);
+
+	//m_directQueryResult[backBufferIndex].Get()->Map<UINT64>();
+
 }
 
 void Renderer::executeList()
@@ -1279,7 +1288,9 @@ bool Renderer::createQueryHeaps()
 			return false;
 		}
 
-
+		std::wstring name = L"Direct query result ";
+		name.append(std::to_wstring(i));
+		m_directQueryResult[i] = makeBufferHeap(D3D12_HEAP_TYPE_DEFAULT, sizeof(UINT64), name.c_str(), D3D12_RESOURCE_STATE_COMMON);
 	}
 	return true;
 }
