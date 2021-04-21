@@ -12,10 +12,10 @@ Renderer::Renderer(int width, int height)
 	m_screenHeight = height;
 
 	//Set debug mode
-	if (!createDebugMode()) {
+	/*if (!createDebugMode()) {
 		printf("error setting debug mode\n");
 		exit(-1);
-	}
+	}*/
 
 	//Create window
 	if (!createWindow()) {

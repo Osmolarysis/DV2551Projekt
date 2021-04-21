@@ -19,6 +19,9 @@ void CubeState::copyRecord()
 	ID3D12QueryHeap* queryHeap[2] = { nullptr, nullptr };
 	queryHeap[0] = Renderer::getInstance()->getCopyQueryHeap(0);
 	queryHeap[1] = Renderer::getInstance()->getCopyQueryHeap(1);
+	ID3D12Resource* queryResult[2] = { nullptr, nullptr };
+	queryResult[0] = Renderer::getInstance()->getDirectQueryResult(0);
+	queryResult[1] = Renderer::getInstance()->getDirectQueryResult(1);
 	UINT64 fenceValue = 0;
 	int bbIndex = 0;
 
@@ -45,7 +48,7 @@ void CubeState::copyRecord()
 
 		//End profiling query
 		commandList[bbIndex]->EndQuery(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 1);
-		//commandList[bbIndex]->ResolveQueryData(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 0, 2, queryResult[bbIndex], 0);
+		commandList[bbIndex]->ResolveQueryData(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 0, 2, queryResult[bbIndex], 0);
 		
 		//Close list
 		hr = commandList[bbIndex]->Close();
