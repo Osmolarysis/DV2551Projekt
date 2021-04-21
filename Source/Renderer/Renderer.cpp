@@ -424,8 +424,14 @@ void Renderer::beginFrame()
 	//std::cout << copyTimeGPU_nano << "\t" << computeTimeGPU_nano << "\t" << directTimeGPU_nano << std::endl;
 	Timer::getInstance()->logGPUtime(copyTimeGPU_nano, computeTimeGPU_nano, directTimeGPU_nano);
 
-	//m_directQueryResult[backBufferIndex].Get()->Map<UINT64>();
+	UINT64 queueTimes[6];
+	getQueueTimes(queueTimes);
 
+	for (size_t i = 0; i < 6; i++)
+	{
+		std::cout << queueTimes[i] << "\t";
+	}
+	std::cout << std::endl;
 }
 
 void Renderer::executeList()
@@ -577,6 +583,20 @@ bool Renderer::isDeveloperModeOn()
 	if (err != ERROR_SUCCESS)
 		return false;
 	return value != 0;
+}
+
+void Renderer::getQueueTimes(UINT64* dest)
+{
+	UINT backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
+
+	void* sourceData;
+	D3D12_RANGE readRange = { 0, 6 * sizeof(UINT64) };
+	D3D12_RANGE writeRange = { 0, 0 };
+
+	m_directQueryResult[backBufferIndex].Get()->Map(0, &readRange, &sourceData);
+	memcpy(dest, sourceData, 6 * sizeof(UINT64));
+
+	m_directQueryResult[backBufferIndex].Get()->Unmap(0, &writeRange);
 }
 
 ID3D12Fence1* Renderer::getCopyFence()
@@ -1267,7 +1287,7 @@ bool Renderer::createQueryHeaps()
 	for (size_t i = 0; i < NUM_COMMANDLISTS; i++)
 	{
 		D3D12_QUERY_HEAP_DESC queryHeapDesc = {};
-		queryHeapDesc.Count = 2;
+		queryHeapDesc.Count = 4;
 		queryHeapDesc.Type = D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
 		hr = m_device->CreateQueryHeap(&queryHeapDesc, IID_PPV_ARGS(m_directQueryHeap[i].GetAddressOf()));
 		if(hr != S_OK)
@@ -1290,7 +1310,7 @@ bool Renderer::createQueryHeaps()
 
 		std::wstring name = L"Direct query result ";
 		name.append(std::to_wstring(i));
-		m_directQueryResult[i] = makeBufferHeap(D3D12_HEAP_TYPE_DEFAULT, sizeof(UINT64), name.c_str(), D3D12_RESOURCE_STATE_COMMON);
+		m_directQueryResult[i] = makeBufferHeap(D3D12_HEAP_TYPE_READBACK, 6 * sizeof(UINT64), name.c_str(), D3D12_RESOURCE_STATE_COPY_DEST);
 	}
 	return true;
 }

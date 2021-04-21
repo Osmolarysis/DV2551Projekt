@@ -88,7 +88,7 @@ private:
 	ComPtr<ID3D12CommandAllocator> m_directAllocator[NUM_COMMANDLISTS];
 	ComPtr<ID3D12GraphicsCommandList> m_graphicsDirectList[NUM_COMMANDLISTS];
 	ComPtr<ID3D12QueryHeap> m_directQueryHeap[NUM_COMMANDLISTS];
-	ComPtr<ID3D12Resource2> m_directQueryResult[2];
+	ComPtr<ID3D12Resource2> m_directQueryResult[NUM_COMMANDLISTS];
 
 	//Copy queue/list/allocator
 	ComPtr<ID3D12CommandQueue> m_copyQueue;
@@ -247,4 +247,7 @@ public:
 	ID3D12DescriptorHeap* getSRVDescriptorHeap(UINT bufferIndex);
 
 	bool isDeveloperModeOn();
+
+	// Profiling
+	void getQueueTimes(UINT64*);
 };

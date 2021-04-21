@@ -29,13 +29,14 @@ void CubeState::copyRecord()
 	WaitForSingleObject(handle, INFINITE);
 
 	while (m_copyThread.isActive) {
-		//Start profiling query
-		//commandList[bbIndex]->BeginQuery(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 0);
 
 		//Thread work
 		commandAllocator[bbIndex]->Reset();
 		commandList[bbIndex]->Reset(commandAllocator[bbIndex], nullptr);
 
+		//Start profiling query
+		commandList[bbIndex]->EndQuery(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 0);
+		
 		//Update camera
 		m_camera->update();
 
@@ -43,8 +44,9 @@ void CubeState::copyRecord()
 		m_scene[0]->getMesh(0)->getTexture()->updateAnimation(Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex(), float(Timer::getInstance()->getDt())); //R£££ Warning
 
 		//End profiling query
-		//commandList[bbIndex]->EndQuery(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 0);
-
+		commandList[bbIndex]->EndQuery(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 1);
+		//commandList[bbIndex]->ResolveQueryData(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 0, 2, queryResult[bbIndex], 0);
+		
 		//Close list
 		hr = commandList[bbIndex]->Close();
 		if (hr != S_OK) {
@@ -78,8 +80,8 @@ void CubeState::computeRecord()
 	commandList[0] = Renderer::getInstance()->getComputeCommandList(0);
 	commandList[1] = Renderer::getInstance()->getComputeCommandList(1);
 	ID3D12QueryHeap* queryHeap[2] = { nullptr, nullptr };
-	queryHeap[0] = Renderer::getInstance()->getComputeQueryHeap(0);
-	queryHeap[1] = Renderer::getInstance()->getComputeQueryHeap(1);
+	queryHeap[0] = Renderer::getInstance()->getDirectQueryHeap(0);
+	queryHeap[1] = Renderer::getInstance()->getDirectQueryHeap(1);
 	UINT64 fenceValue = 0;
 	int bbIndex = 0;
 	int nrOfCubes = NUM_INSTANCE_CUBES;
@@ -92,11 +94,12 @@ void CubeState::computeRecord()
 
 	while (m_computeThread.isActive) {
 		//Start profiling query
-		//commandList[bbIndex]->BeginQuery(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 0);
 
 		//Initial work
 		commandAllocator[bbIndex]->Reset();
 		commandList[bbIndex]->Reset(commandAllocator[bbIndex], nullptr);
+
+		commandList[bbIndex]->EndQuery(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 0);
 
 		commandList[bbIndex]->SetComputeRootSignature(rootSignature);
 		commandList[bbIndex]->SetPipelineState(m_computeStateObject.Get());
@@ -115,7 +118,7 @@ void CubeState::computeRecord()
 		commandList[bbIndex]->Dispatch(nrOfCubes / 1024, 1, 1);
 
 		//End profiling query
-		//commandList[bbIndex]->EndQuery(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 0);
+		commandList[bbIndex]->EndQuery(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 1);
 
 		//Close list
 		hr = commandList[bbIndex]->Close();
@@ -189,7 +192,7 @@ void CubeState::directRecord()
 		}
 
 		//Start profiling query
-		commandList[bbIndex]->EndQuery(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 0);
+		commandList[bbIndex]->EndQuery(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 2);
 
 		commandList[bbIndex]->RSSetViewports(1, viewPort);
 		commandList[bbIndex]->RSSetScissorRects(1, scissorRect);
@@ -237,21 +240,9 @@ void CubeState::directRecord()
 		);
 
 		//End profiling query
-		commandList[bbIndex]->EndQuery(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 1);
+		commandList[bbIndex]->EndQuery(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 3);
 
-		//Renderer::getInstance()->SetResourceTransitionBarrier(
-		//	commandList[bbIndex],
-		//	queryResult[bbIndex],
-		//	D3D12_RESOURCE_STATE_GENERIC_READ,		//state before
-		//	D3D12_RESOURCE_STATE_COPY_DEST	//state after
-		//);
-		commandList[bbIndex]->ResolveQueryData(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 0, 1, queryResult[bbIndex], 0); //Offset 0 or sizeof(query);
-		//Renderer::getInstance()->SetResourceTransitionBarrier(
-		//	commandList[bbIndex],
-		//	queryResult[bbIndex],
-		//	D3D12_RESOURCE_STATE_COPY_DEST,	//state after
-		//	D3D12_RESOURCE_STATE_GENERIC_READ		//state before
-		//);
+		commandList[bbIndex]->ResolveQueryData(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 0, 4, queryResult[bbIndex], 2*sizeof(UINT64));
 
 		//Close list
 		hr = commandList[bbIndex]->Close();
