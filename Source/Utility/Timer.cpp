@@ -117,7 +117,6 @@ void Timer::reset()
 void Timer::logGPUtime(UINT64 _copyTime, UINT64 _computeTime, UINT64 _directTime)
 {
 	if (m_recording) {
-		//std::cout << _copyTime << "\t" << _computeTime << "\t" << _directTime << std::endl;
 		if (m_gpuLoggingCounter <= MAX_NR_OF_RECORDED_FRAMES) {
 			m_recordedGPUQueuesTimes[m_gpuLoggingCounter] = GPUQueueTimes(_copyTime, _computeTime, _directTime);
 			m_gpuLoggingCounter++;

@@ -421,17 +421,9 @@ void Renderer::beginFrame()
 	UINT64 directTimeGPU_nano = *m_directTimeGPUEnd[backBufferIndex] - *m_directTimeGPUStart[backBufferIndex];
 	UINT64 directTimeCPU_nano = *m_directTimeCPUEnd[backBufferIndex] - *m_directTimeCPUStart[backBufferIndex];
 
-	//std::cout << copyTimeGPU_nano << "\t" << computeTimeGPU_nano << "\t" << directTimeGPU_nano << std::endl;
-	Timer::getInstance()->logGPUtime(copyTimeGPU_nano, computeTimeGPU_nano, directTimeGPU_nano);
-
 	UINT64 queueTimes[6];
 	getQueueTimes(queueTimes);
-
-	for (size_t i = 0; i < 6; i++)
-	{
-		std::cout << queueTimes[i] << "\t";
-	}
-	std::cout << std::endl;
+	Timer::getInstance()->logGPUtime(queueTimes[1] - queueTimes[0], queueTimes[3] - queueTimes[2], queueTimes[5] - queueTimes[4]);
 }
 
 void Renderer::executeList()
@@ -1290,7 +1282,7 @@ bool Renderer::createQueryHeaps()
 		queryHeapDesc.Count = 4;
 		queryHeapDesc.Type = D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
 		hr = m_device->CreateQueryHeap(&queryHeapDesc, IID_PPV_ARGS(m_directQueryHeap[i].GetAddressOf()));
-		if(hr != S_OK)
+		if (hr != S_OK)
 		{
 			return false;
 		}
