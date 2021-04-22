@@ -15,10 +15,8 @@ private:
 	double m_maxDt = 0.0;
 	std::chrono::steady_clock::time_point m_time;
 
-	double m_recordedFrameTimes[MAX_NR_OF_RECORDED_FRAMES];
 	int m_nrOfRecordedFrames = 0;
 	bool m_recording = false;
-
 
 	struct CPUProfiling {
 		double frameTime;

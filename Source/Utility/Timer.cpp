@@ -108,7 +108,7 @@ void Timer::update()
 	}
 
 	if (m_recording) {
-		m_recordedFrameTimes[m_nrOfRecordedFrames++] = m_elapsedTime;
+		m_CPUprofiling[m_nrOfRecordedFrames++].frameTime = delta.count();
 
 		if (m_nrOfRecordedFrames >= MAX_NR_OF_RECORDED_FRAMES) {
 			m_recording = false;
@@ -129,10 +129,6 @@ double Timer::getAverageFPS(int updateInterval)
 	if (m_frameTimeSum > updateInterval) {
 		double averageDt = m_frameTimeSum / m_frameCount;
 		m_averageFPS = 1000.0 / averageDt;
-
-		//std::cout << "Max DT: " << m_maxDt << ", Average DT: " << averageDt/1000.0 << "\n";
-
-		m_maxDt = 0.0;
 		m_frameTimeSum = 0.0;
 		m_frameCount = 0.0;
 	}
