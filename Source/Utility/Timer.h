@@ -2,7 +2,7 @@
 #include <chrono>
 #include <d3d12.h>
 
-const unsigned int MAX_NR_OF_RECORDED_FRAMES = 10000;
+const unsigned int MAX_NR_OF_RECORDED_FRAMES = 1000;
 
 class Timer {
 private:

@@ -43,8 +43,8 @@ void Timer::saveRecording()
 			seperator << "GPUCopyQueue" << 
 			seperator << "GPUComputeQueue" << 
 			seperator << "GPUDirectQueue\n";
-		for (int i = 0; i < m_nrOfRecordedFrames; i++) {
-			file << i + 1 << 
+		for (int i = 1; i < m_nrOfRecordedFrames; i++) {
+			file << i << 
 				seperator << m_CPUprofiling[i].frameTime <<
 				seperator << m_CPUprofiling[i].updateTime <<
 				seperator << m_CPUprofiling[i].beginFrame <<
@@ -147,9 +147,8 @@ void Timer::reset()
 void Timer::logGPUtime(UINT64 _copyTime, UINT64 _computeTime, UINT64 _directTime)
 {
 	if (m_recording) {
-		if (m_gpuLoggingCounter <= MAX_NR_OF_RECORDED_FRAMES) {
-			m_recordedGPUQueuesTimes[m_gpuLoggingCounter] = GPUQueueTimes(_copyTime, _computeTime, _directTime);
-			m_gpuLoggingCounter++;
+		if (m_nrOfRecordedFrames < MAX_NR_OF_RECORDED_FRAMES) {
+			m_recordedGPUQueuesTimes[m_nrOfRecordedFrames] = GPUQueueTimes(_copyTime, _computeTime, _directTime);
 		}
 	}
 }
