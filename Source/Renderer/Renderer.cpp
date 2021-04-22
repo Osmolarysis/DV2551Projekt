@@ -380,10 +380,13 @@ void Renderer::beginFrame()
 	UINT64 lastFinishedQueue = m_fence[backBufferIndex].Get()->GetCompletedValue(); //Number of last finished queue
 
 	//Wait
+	std::chrono::steady_clock::time_point beforeWait = Timer::getInstance()->timestamp();
 	if (m_frameComplete[backBufferIndex] > lastFinishedQueue) {
 		HRESULT hr = m_fence[backBufferIndex].Get()->SetEventOnCompletion(m_frameComplete[backBufferIndex], m_eventHandle[backBufferIndex]);
 		WaitForSingleObject(m_eventHandle[backBufferIndex], INFINITE);
 	}
+	std::chrono::steady_clock::time_point afterWait = Timer::getInstance()->timestamp();
+	Timer::getInstance()->logCPUtime(Timer::WAITFORPREVIOUSFRAME, beforeWait, afterWait);
 
 	//Recording data
 	UINT64 queueTimes[6];
@@ -393,11 +396,14 @@ void Renderer::beginFrame()
 
 void Renderer::executeList()
 {
+	Timer* timer = Timer::getInstance();
 	UINT backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
 
 	//Wait for Copy queue to finish recording
-
+	std::chrono::steady_clock::time_point beforeWaitCopy = timer->timestamp();
 	WaitForSingleObject(m_copyHandle, INFINITE);
+	std::chrono::steady_clock::time_point afterWaitCopy = timer->timestamp();
+	timer->logCPUtime(Timer::WAITFORCOPYRECORD, beforeWaitCopy, afterWaitCopy);
 
 	//Execute Copy queue
 	ID3D12CommandList* listsToExecuteCopy[] = { m_graphicsCopyList[backBufferIndex].Get() };
@@ -409,7 +415,10 @@ void Renderer::executeList()
 	m_copyQueue->Signal(m_fence[backBufferIndex].Get(), copyQueueFinished);
 
 	//Wait for Compute queue to finish recording
+	std::chrono::steady_clock::time_point beforeWaitCompute = timer->timestamp();
 	WaitForSingleObject(m_computeHandle, INFINITE);
+	std::chrono::steady_clock::time_point afterWaitCompute = timer->timestamp();
+	timer->logCPUtime(Timer::WAITFORCOMPUTERECORD, beforeWaitCompute, afterWaitCompute);
 
 	//Wait for the previous compute to finish and the current copy
 	m_computeQueue->Wait(m_fence[backBufferIndex].Get(), copyQueueFinished); // Wait for copy to finished to start compute
@@ -423,7 +432,10 @@ void Renderer::executeList()
 	m_computeQueue->Signal(m_fence[backBufferIndex].Get(), computeQueueFinished); //Done
 
 	//Wait for Direct queue to finish recording
+	std::chrono::steady_clock::time_point beforeWaitDirect = timer->timestamp();
 	WaitForSingleObject(m_directHandle, INFINITE);
+	std::chrono::steady_clock::time_point afterWaitDirect = timer->timestamp();
+	timer->logCPUtime(Timer::WAITFORDIRECTRECORD, beforeWaitDirect, afterWaitDirect);
 
 	//Execute the commands!
 	ID3D12CommandList* listsToExecute[] = { m_graphicsDirectList[backBufferIndex].Get() };

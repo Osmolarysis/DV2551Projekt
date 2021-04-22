@@ -35,6 +35,8 @@ private:
 		double waitForCopyRecording;
 		double waitForComputeRecording;
 		double waitForDirectRecording;
+
+		double present;
 	};
 	CPUProfiling m_CPUprofiling[MAX_NR_OF_RECORDED_FRAMES];
 
@@ -70,7 +72,8 @@ public:
 		EXECUTELIST,
 		WAITFORCOPYRECORD,
 		WAITFORCOMPUTERECORD,
-		WAITFORDIRECTRECORD
+		WAITFORDIRECTRECORD,
+		PRESENT
 	};
 	static Timer* getInstance();
 	void update();

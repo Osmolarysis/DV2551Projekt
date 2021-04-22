@@ -39,6 +39,7 @@ void Timer::saveRecording()
 			seperator << "WaitForCopyRecord" << 
 			seperator << "WaitForComputeRecord" << 
 			seperator << "WaitForDirectRecord" << 
+			seperator << "Present" << 
 			seperator << "GPUCopyQueue" << 
 			seperator << "GPUComputeQueue" << 
 			seperator << "GPUDirectQueue\n";
@@ -56,6 +57,7 @@ void Timer::saveRecording()
 				seperator << m_CPUprofiling[i].waitForCopyRecording <<
 				seperator << m_CPUprofiling[i].waitForComputeRecording <<
 				seperator << m_CPUprofiling[i].waitForDirectRecording <<
+				seperator << m_CPUprofiling[i].present <<
 				seperator << m_recordedGPUQueuesTimes[i].copyTime << 
 				seperator << m_recordedGPUQueuesTimes[i].computeTime << 
 				seperator << m_recordedGPUQueuesTimes[i].directTime << 
@@ -202,6 +204,9 @@ void Timer::logCPUtime(profilingVariable type, std::chrono::steady_clock::time_p
 			break;
 		case Timer::WAITFORDIRECTRECORD:
 			m_CPUprofiling[m_nrOfRecordedFrames].waitForDirectRecording = time;
+			break;
+		case Timer::PRESENT:
+			m_CPUprofiling[m_nrOfRecordedFrames].present = time;
 			break;
 		default:
 			break;

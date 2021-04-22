@@ -25,6 +25,7 @@ void CubeState::copyRecord()
 	UINT64 fenceValue = 0;
 	int bbIndex = 0;
 
+	Timer* timer = Timer::getInstance();
 	HRESULT hr;
 
 	//Wait for signal
@@ -32,7 +33,7 @@ void CubeState::copyRecord()
 	WaitForSingleObject(handle, INFINITE);
 
 	while (m_copyThread.isActive) {
-
+		std::chrono::steady_clock::time_point loopStart = timer->timestamp();
 		//Thread work
 		commandAllocator[bbIndex]->Reset();
 		commandList[bbIndex]->Reset(commandAllocator[bbIndex], nullptr);
@@ -62,6 +63,9 @@ void CubeState::copyRecord()
 		fenceValue = Renderer::getInstance()->incAndGetCopyValue();
 		fence->Signal(fenceValue); //Done
 
+		std::chrono::steady_clock::time_point loopEnd = timer->timestamp();
+		timer->logCPUtime(timer->COPYRECORD, loopStart, loopEnd);
+
 		//Wait for signal
 		fence->SetEventOnCompletion(fenceValue + 1, handle);
 		WaitForSingleObject(handle, INFINITE);
@@ -89,6 +93,7 @@ void CubeState::computeRecord()
 	int bbIndex = 0;
 	int nrOfCubes = NUM_INSTANCE_CUBES;
 
+	Timer* timer = Timer::getInstance();
 	HRESULT hr;
 
 	//Wait for signal
@@ -97,6 +102,7 @@ void CubeState::computeRecord()
 
 	while (m_computeThread.isActive) {
 		//Start profiling query
+		std::chrono::steady_clock::time_point loopStart = timer->timestamp();
 
 		//Initial work
 		commandAllocator[bbIndex]->Reset();
@@ -134,6 +140,9 @@ void CubeState::computeRecord()
 		bbIndex = 1 - bbIndex;
 		fenceValue = Renderer::getInstance()->incAndGetComputeValue();
 		fence->Signal(fenceValue); //Done
+
+		std::chrono::steady_clock::time_point loopEnd = timer->timestamp();
+		timer->logCPUtime(timer->COMPUTERECORD, loopStart, loopEnd);
 
 		//Wait for signal
 		fence->SetEventOnCompletion(fenceValue + 1, handle);
@@ -174,6 +183,7 @@ void CubeState::directRecord()
 	size_t bbIndex = 0;
 	float clearColour[4] = { 0.17f, 0.23f, 0.38f, 1.0f };
 
+	Timer* timer = Timer::getInstance();
 	HRESULT hr;
 
 	//Wait for signal
@@ -181,7 +191,7 @@ void CubeState::directRecord()
 	WaitForSingleObject(handle, INFINITE);
 
 	while (m_directThread.isActive) {
-
+		std::chrono::steady_clock::time_point loopStart = timer->timestamp();
 
 		//Initial work
 		hr = commandAllocator[bbIndex]->Reset();
@@ -259,6 +269,9 @@ void CubeState::directRecord()
 		bbIndex = 1 - bbIndex;
 		fenceValue = Renderer::getInstance()->incAndGetDirectValue();
 		fence->Signal(fenceValue); //Done
+
+		std::chrono::steady_clock::time_point loopEnd = timer->timestamp();
+		timer->logCPUtime(timer->DIRECTRECORD, loopStart, loopEnd);
 
 		//Wait for signal
 		hr = fence->SetEventOnCompletion(fenceValue + 1, handle);
