@@ -19,6 +19,25 @@ private:
 	int m_nrOfRecordedFrames = 0;
 	bool m_recording = false;
 
+
+	struct CPUProfiling {
+		double frameTime;
+
+		double updateTime;
+		double beginFrame;
+		double waitForPreviousFrame;
+		double cpuRecording;
+		double copyRecording;
+		double computeRecording;
+		double directRecording;
+
+		double executeLists;
+		double waitForCopyRecording;
+		double waitForComputeRecording;
+		double waitForDirectRecording;
+	};
+	CPUProfiling m_CPUprofiling[MAX_NR_OF_RECORDED_FRAMES];
+
 	struct GPUQueueTimes {
 		UINT64 copyTime;
 		UINT64 computeTime;
@@ -39,10 +58,26 @@ private:
 
 	void saveRecording();
 public:
+	enum profilingVariable {
+		FRAMETIME,
+		UPDATETIME,
+		BEGINFRAME,
+		WAITFORPREVIOUSFRAME,
+		CPURECORD,
+		COPYRECORD,
+		COMPUTERECORD,
+		DIRECTRECORD,
+		EXECUTELIST,
+		WAITFORCOPYRECORD,
+		WAITFORCOMPUTERECORD,
+		WAITFORDIRECTRECORD
+	};
 	static Timer* getInstance();
 	void update();
 	double getDt();
-	double getAverageFPS(int updateInterval); 
+	double getAverageFPS(int updateInterval);
+	std::chrono::steady_clock::time_point timestamp();
 	void reset();
 	void logGPUtime(UINT64 copyTime, UINT64 computeTime, UINT64 directTime);
+	void logCPUtime(profilingVariable, std::chrono::steady_clock::time_point, std::chrono::steady_clock::time_point);
 };

@@ -93,11 +93,6 @@ Renderer::Renderer(int width, int height)
 		printf("Error creating query heaps\n");
 		exit(-1);
 	}
-	//create root signature
-	if (!InitialiseTimestamps()) {
-		printf("error initialising timestamps\n");
-		exit(-1);
-	}
 }
 
 Renderer::~Renderer()
@@ -155,27 +150,6 @@ Renderer::~Renderer()
 	{
 		SafeRelease(m_fence[i].GetAddressOf());
 	}
-
-	for (size_t i = 0; i < NUM_SWAP_BUFFERS; i++)
-	{
-		delete m_copyTimeGPUStart[i];
-		delete m_copyTimeCPUStart[i];
-		delete m_copyTimeGPUEnd[i];
-		delete m_copyTimeCPUEnd[i];
-
-		delete m_computeTimeGPUStart[i];
-		delete m_computeTimeCPUStart[i];
-		delete m_computeTimeGPUEnd[i];
-		delete m_computeTimeCPUEnd[i];
-
-		delete m_directTimeGPUStart[i];
-		delete m_directTimeCPUStart[i];
-		delete m_directTimeGPUEnd[i];
-		delete m_directTimeCPUEnd[i];
-	}
-	delete m_copyTimeFrequency;
-	delete m_computeTimeFrequency;
-	delete m_directTimeFrequency;
 }
 
 bool Renderer::createDepthStencil()
@@ -412,15 +386,6 @@ void Renderer::beginFrame()
 	}
 
 	//Recording data
-	UINT64 copyTimeGPU_nano = *m_copyTimeGPUEnd[backBufferIndex] - *m_copyTimeGPUStart[backBufferIndex];
-	UINT64 copyTimeCPU_nano = *m_copyTimeCPUEnd[backBufferIndex] - *m_copyTimeCPUStart[backBufferIndex];
-
-	UINT64 computeTimeGPU_nano = *m_computeTimeGPUEnd[backBufferIndex] - *m_computeTimeGPUStart[backBufferIndex];
-	UINT64 computeTimeCPU_nano = *m_computeTimeCPUEnd[backBufferIndex] - *m_computeTimeCPUStart[backBufferIndex];
-
-	UINT64 directTimeGPU_nano = *m_directTimeGPUEnd[backBufferIndex] - *m_directTimeGPUStart[backBufferIndex];
-	UINT64 directTimeCPU_nano = *m_directTimeCPUEnd[backBufferIndex] - *m_directTimeCPUStart[backBufferIndex];
-
 	UINT64 queueTimes[6];
 	getQueueTimes(queueTimes);
 	Timer::getInstance()->logGPUtime(queueTimes[1] - queueTimes[0], queueTimes[3] - queueTimes[2], queueTimes[5] - queueTimes[4]);
@@ -436,21 +401,18 @@ void Renderer::executeList()
 
 	//Execute Copy queue
 	ID3D12CommandList* listsToExecuteCopy[] = { m_graphicsCopyList[backBufferIndex].Get() };
-	HRESULT hr = m_copyQueue->GetClockCalibration(m_copyTimeGPUStart[backBufferIndex], m_copyTimeCPUStart[backBufferIndex]);
 	m_copyQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecuteCopy), listsToExecuteCopy);
 
 	m_fenceValue[backBufferIndex]++;
 	UINT64 copyQueueFinished = m_fenceValue[backBufferIndex];
 
 	m_copyQueue->Signal(m_fence[backBufferIndex].Get(), copyQueueFinished);
-	hr = m_copyQueue->GetClockCalibration(m_copyTimeGPUEnd[backBufferIndex], m_copyTimeCPUEnd[backBufferIndex]);
 
 	//Wait for Compute queue to finish recording
 	WaitForSingleObject(m_computeHandle, INFINITE);
 
 	//Wait for the previous compute to finish and the current copy
 	m_computeQueue->Wait(m_fence[backBufferIndex].Get(), copyQueueFinished); // Wait for copy to finished to start compute
-	m_computeQueue->GetClockCalibration(m_computeTimeGPUStart[backBufferIndex], m_computeTimeCPUStart[backBufferIndex]);
 
 	//Execute Compute queue
 	ID3D12CommandList* listsToExecuteCompute[] = { m_graphicsComputeList[backBufferIndex].Get() };
@@ -459,7 +421,6 @@ void Renderer::executeList()
 	m_fenceValue[backBufferIndex]++;
 	UINT64 computeQueueFinished = m_fenceValue[backBufferIndex];
 	m_computeQueue->Signal(m_fence[backBufferIndex].Get(), computeQueueFinished); //Done
-	m_computeQueue->GetClockCalibration(m_computeTimeGPUEnd[backBufferIndex], m_computeTimeCPUEnd[backBufferIndex]);
 
 	//Wait for Direct queue to finish recording
 	WaitForSingleObject(m_directHandle, INFINITE);
@@ -467,7 +428,6 @@ void Renderer::executeList()
 	//Execute the commands!
 	ID3D12CommandList* listsToExecute[] = { m_graphicsDirectList[backBufferIndex].Get() };
 	m_directQueue->Wait(m_fence[backBufferIndex].Get(), computeQueueFinished);
-	m_directQueue->GetClockCalibration(m_directTimeGPUStart[backBufferIndex], m_directTimeCPUStart[backBufferIndex]);
 	m_directQueue->ExecuteCommandLists(ARRAYSIZE(listsToExecute), listsToExecute);
 
 	m_fenceValue[backBufferIndex]++;
@@ -475,7 +435,6 @@ void Renderer::executeList()
 
 	//Set finished rendering value
 	m_directQueue.Get()->Signal(m_fence[backBufferIndex].Get(), m_frameComplete[backBufferIndex]);
-	m_directQueue->GetClockCalibration(m_directTimeGPUEnd[backBufferIndex], m_directTimeCPUEnd[backBufferIndex]);
 }
 
 void Renderer::present()
@@ -1304,36 +1263,5 @@ bool Renderer::createQueryHeaps()
 		name.append(std::to_wstring(i));
 		m_directQueryResult[i] = makeBufferHeap(D3D12_HEAP_TYPE_READBACK, 6 * sizeof(UINT64), name.c_str(), D3D12_RESOURCE_STATE_COPY_DEST);
 	}
-	return true;
-}
-
-bool Renderer::InitialiseTimestamps()
-{
-	for (size_t i = 0; i < NUM_SWAP_BUFFERS; i++)
-	{
-		m_copyTimeGPUStart[i] = new UINT64(0);
-		m_copyTimeCPUStart[i] = new UINT64(0);
-		m_copyTimeGPUEnd[i] = new UINT64(0);
-		m_copyTimeCPUEnd[i] = new UINT64(0);
-
-		m_computeTimeGPUStart[i] = new UINT64(0);
-		m_computeTimeCPUStart[i] = new UINT64(0);
-		m_computeTimeGPUEnd[i] = new UINT64(0);
-		m_computeTimeCPUEnd[i] = new UINT64(0);
-
-		m_directTimeGPUStart[i] = new UINT64(0);
-		m_directTimeCPUStart[i] = new UINT64(0);
-		m_directTimeGPUEnd[i] = new UINT64(0);
-		m_directTimeCPUEnd[i] = new UINT64(0);
-
-	}
-
-	m_copyTimeFrequency = new UINT64(0);
-	m_copyQueue->GetTimestampFrequency(m_copyTimeFrequency);
-	m_computeTimeFrequency = new UINT64(0);
-	m_computeQueue->GetTimestampFrequency(m_computeTimeFrequency);
-	m_directTimeFrequency = new UINT64(0);
-	m_directQueue->GetTimestampFrequency(m_directTimeFrequency);
-
 	return true;
 }

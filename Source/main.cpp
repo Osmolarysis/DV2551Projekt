@@ -32,12 +32,14 @@ int CALLBACK main(_In_ HINSTANCE appInstance, _In_opt_ HINSTANCE preInstance, _I
 	// Closes and executes commandlists
 	Renderer::getInstance()->closeCommandLists();
 
-	while (mainLoop) { //TODO: exit while loop in a good way - statestacks if we feelin fancy
+	while (mainLoop) {
 		//Update
+		std::chrono::steady_clock::time_point preUpdate = timer->timestamp();
 		timer->update();
 		input->update();
 		stateStack->update();
-
+		std::chrono::steady_clock::time_point postUpdate = timer->timestamp();
+		timer->logCPUtime(Timer::UPDATETIME, preUpdate, postUpdate);
 		//Begin frame
 		renderer->beginFrame();
 

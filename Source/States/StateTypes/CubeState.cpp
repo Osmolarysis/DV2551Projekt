@@ -182,6 +182,7 @@ void CubeState::directRecord()
 
 	while (m_directThread.isActive) {
 
+
 		//Initial work
 		hr = commandAllocator[bbIndex]->Reset();
 		if (hr != S_OK) {

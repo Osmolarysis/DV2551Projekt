@@ -26,9 +26,40 @@ void Timer::saveRecording()
 
 	//Write all the data
 	if (file.is_open()) {
-		file << "Index" << seperator << "FrameTime" << seperator << "GPUCopyQueue" << seperator << "GPUComputeQueue" << seperator << "GPUDirectQueue\n";
+		file << "Index" <<
+			seperator << "FrameTime" << 
+			seperator << "UpdateTime" << 
+			seperator << "BeginFrame()" << 
+			seperator << "WaitForPreviousFrame" << 
+			seperator << "CPURecord" << 
+			seperator << "CopyRecord" << 
+			seperator << "ComputeRecord" << 
+			seperator << "DirectRecord" << 
+			seperator << "ExecuteList" << 
+			seperator << "WaitForCopyRecord" << 
+			seperator << "WaitForComputeRecord" << 
+			seperator << "WaitForDirectRecord" << 
+			seperator << "GPUCopyQueue" << 
+			seperator << "GPUComputeQueue" << 
+			seperator << "GPUDirectQueue\n";
 		for (int i = 0; i < m_nrOfRecordedFrames; i++) {
-			file << i + 1 << seperator << m_recordedFrameTimes[i] << seperator << m_recordedGPUQueuesTimes[i].copyTime << seperator << m_recordedGPUQueuesTimes[i].computeTime << seperator << m_recordedGPUQueuesTimes[i].directTime << seperator << "\n";
+			file << i + 1 << 
+				seperator << m_CPUprofiling[i].frameTime <<
+				seperator << m_CPUprofiling[i].updateTime <<
+				seperator << m_CPUprofiling[i].beginFrame <<
+				seperator << m_CPUprofiling[i].waitForPreviousFrame <<
+				seperator << m_CPUprofiling[i].cpuRecording <<
+				seperator << m_CPUprofiling[i].copyRecording <<
+				seperator << m_CPUprofiling[i].computeRecording <<
+				seperator << m_CPUprofiling[i].directRecording <<
+				seperator << m_CPUprofiling[i].executeLists <<
+				seperator << m_CPUprofiling[i].waitForCopyRecording <<
+				seperator << m_CPUprofiling[i].waitForComputeRecording <<
+				seperator << m_CPUprofiling[i].waitForDirectRecording <<
+				seperator << m_recordedGPUQueuesTimes[i].copyTime << 
+				seperator << m_recordedGPUQueuesTimes[i].computeTime << 
+				seperator << m_recordedGPUQueuesTimes[i].directTime << 
+				seperator << "\n";
 		}
 
 		std::cout << "Recording saved to: " << fileName << "\n";
@@ -109,6 +140,11 @@ double Timer::getAverageFPS(int updateInterval)
 	return m_averageFPS;
 }
 
+std::chrono::steady_clock::time_point Timer::timestamp()
+{
+	return std::chrono::steady_clock::now();
+}
+
 void Timer::reset()
 {
 	m_time = std::chrono::steady_clock::now();
@@ -120,6 +156,55 @@ void Timer::logGPUtime(UINT64 _copyTime, UINT64 _computeTime, UINT64 _directTime
 		if (m_gpuLoggingCounter <= MAX_NR_OF_RECORDED_FRAMES) {
 			m_recordedGPUQueuesTimes[m_gpuLoggingCounter] = GPUQueueTimes(_copyTime, _computeTime, _directTime);
 			m_gpuLoggingCounter++;
+		}
+	}
+}
+
+void Timer::logCPUtime(profilingVariable type, std::chrono::steady_clock::time_point before, std::chrono::steady_clock::time_point after)
+{
+	if (m_recording) {
+		std::chrono::duration<double, std::milli> delta = after - before;
+		double time = delta.count();
+		switch (type)
+		{
+		case Timer::FRAMETIME:
+			m_CPUprofiling[m_nrOfRecordedFrames].frameTime = time;
+				break;
+		case Timer::UPDATETIME:
+			m_CPUprofiling[m_nrOfRecordedFrames].updateTime = time;
+			break;
+		case Timer::BEGINFRAME:
+			m_CPUprofiling[m_nrOfRecordedFrames].beginFrame = time;
+			break;
+		case Timer::WAITFORPREVIOUSFRAME:
+			m_CPUprofiling[m_nrOfRecordedFrames].waitForPreviousFrame = time;
+			break;
+		case Timer::CPURECORD:
+			m_CPUprofiling[m_nrOfRecordedFrames].cpuRecording = time;
+			break;
+		case Timer::COPYRECORD:
+			m_CPUprofiling[m_nrOfRecordedFrames].copyRecording = time;
+			break;
+		case Timer::COMPUTERECORD:
+			m_CPUprofiling[m_nrOfRecordedFrames].computeRecording = time;
+			break;
+		case Timer::DIRECTRECORD:
+			m_CPUprofiling[m_nrOfRecordedFrames].directRecording = time;
+			break;
+		case Timer::EXECUTELIST:
+			m_CPUprofiling[m_nrOfRecordedFrames].executeLists = time;
+			break;
+		case Timer::WAITFORCOPYRECORD:
+			m_CPUprofiling[m_nrOfRecordedFrames].waitForCopyRecording = time;
+			break;
+		case Timer::WAITFORCOMPUTERECORD:
+			m_CPUprofiling[m_nrOfRecordedFrames].waitForComputeRecording = time;
+			break;
+		case Timer::WAITFORDIRECTRECORD:
+			m_CPUprofiling[m_nrOfRecordedFrames].waitForDirectRecording = time;
+			break;
+		default:
+			break;
 		}
 	}
 }
