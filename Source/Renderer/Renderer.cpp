@@ -291,6 +291,11 @@ ID3D12DescriptorHeap* Renderer::getConstantBufferHeap(int index)
 	return m_cbDescriptorHeaps[index].Get();
 }
 
+bool Renderer::getSingleThreaded()
+{
+	return m_singleThread;
+}
+
 void Renderer::closeCommandLists()
 {
 	HRESULT hr;
@@ -377,9 +382,11 @@ void Renderer::beginFrame()
 
 	UINT backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
 
-	//Toggle wait for GPU
+	//Toggle wait for GPU and single threaded recording
 	if (Input::getInstance()->keyPressed(DirectX::Keyboard::Keys::G))
 		m_waitForGPU = !m_waitForGPU;
+	if (Input::getInstance()->keyPressed(DirectX::Keyboard::Keys::T))
+		m_singleThread = !m_singleThread;
 	if (m_waitForGPU)
 		backBufferIndex = !backBufferIndex;
 
@@ -407,7 +414,8 @@ void Renderer::executeList()
 
 	//Wait for Copy queue to finish recording
 	std::chrono::steady_clock::time_point beforeWaitCopy = timer->timestamp();
-	WaitForSingleObject(m_copyHandle, INFINITE);
+	if (!m_singleThread)
+		WaitForSingleObject(m_copyHandle, INFINITE);
 	std::chrono::steady_clock::time_point afterWaitCopy = timer->timestamp();
 	timer->logCPUtime(Timer::WAITFORCOPYRECORD, beforeWaitCopy, afterWaitCopy);
 
@@ -422,7 +430,8 @@ void Renderer::executeList()
 
 	//Wait for Compute queue to finish recording
 	std::chrono::steady_clock::time_point beforeWaitCompute = timer->timestamp();
-	WaitForSingleObject(m_computeHandle, INFINITE);
+	if (!m_singleThread)
+		WaitForSingleObject(m_computeHandle, INFINITE);
 	std::chrono::steady_clock::time_point afterWaitCompute = timer->timestamp();
 	timer->logCPUtime(Timer::WAITFORCOMPUTERECORD, beforeWaitCompute, afterWaitCompute);
 
@@ -439,7 +448,8 @@ void Renderer::executeList()
 
 	//Wait for Direct queue to finish recording
 	std::chrono::steady_clock::time_point beforeWaitDirect = timer->timestamp();
-	WaitForSingleObject(m_directHandle, INFINITE);
+	if (!m_singleThread)
+		WaitForSingleObject(m_directHandle, INFINITE);
 	std::chrono::steady_clock::time_point afterWaitDirect = timer->timestamp();
 	timer->logCPUtime(Timer::WAITFORDIRECTRECORD, beforeWaitDirect, afterWaitDirect);
 

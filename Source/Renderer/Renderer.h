@@ -50,6 +50,7 @@ private:
 	//Debug
 	ComPtr<ID3D12Debug3> m_debugController;
 	bool m_waitForGPU = false;
+	bool m_singleThread = false;
 
 	//Window
 	HWND m_handle;
@@ -204,6 +205,8 @@ public:
 	ID3D12DescriptorHeap* getDepthBufferHeap();
 	size_t getDepthBufferHeapSize();
 	ID3D12DescriptorHeap* getConstantBufferHeap(int);
+
+	bool getSingleThreaded();
 
 	void closeCommandLists();
 

@@ -508,19 +508,26 @@ void CubeState::update()
 void CubeState::record()
 {
 	Renderer* renderer = Renderer::getInstance();
+	bool singleThreaded = renderer->getSingleThreaded();
 
 	//Set threads to run = true
 	UINT64 copyFenceValue = renderer->incAndGetCopyValue();
 	renderer->getCopyFence()->Signal(copyFenceValue); //Ready or "Run"
 	renderer->getCopyFence()->SetEventOnCompletion(copyFenceValue + 1, renderer->getCopyHandle());
+	if (singleThreaded)
+		WaitForSingleObject(renderer->getCopyHandle(), INFINITE);
 
 	UINT64 computeFenceValue = renderer->incAndGetComputeValue();
 	renderer->getComputeFence()->Signal(computeFenceValue); //Ready or "Run"
 	renderer->getComputeFence()->SetEventOnCompletion(computeFenceValue + 1, renderer->getComputeHandle());
+	if (singleThreaded)
+		WaitForSingleObject(renderer->getComputeHandle(), INFINITE);
 
 	UINT64 directFenceValue = renderer->incAndGetDirectValue();
 	renderer->getDirectFence()->Signal(directFenceValue); //Ready or "Run"
 	renderer->getDirectFence()->SetEventOnCompletion(directFenceValue + 1, renderer->getDirectHandle());
+	if (singleThreaded)
+		WaitForSingleObject(renderer->getDirectHandle(), INFINITE);
 }
 
 void CubeState::executeList()
