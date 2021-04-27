@@ -401,7 +401,6 @@ void Renderer::executeList()
 
 	//Wait for Copy queue to finish recording
 	std::chrono::steady_clock::time_point beforeWaitCopy = timer->timestamp();
-	WaitForSingleObject(m_copyHandle, INFINITE);
 	std::chrono::steady_clock::time_point afterWaitCopy = timer->timestamp();
 	timer->logCPUtime(Timer::WAITFORCOPYRECORD, beforeWaitCopy, afterWaitCopy);
 
@@ -416,7 +415,6 @@ void Renderer::executeList()
 
 	//Wait for Compute queue to finish recording
 	std::chrono::steady_clock::time_point beforeWaitCompute = timer->timestamp();
-	WaitForSingleObject(m_computeHandle, INFINITE);
 	std::chrono::steady_clock::time_point afterWaitCompute = timer->timestamp();
 	timer->logCPUtime(Timer::WAITFORCOMPUTERECORD, beforeWaitCompute, afterWaitCompute);
 
@@ -433,7 +431,6 @@ void Renderer::executeList()
 
 	//Wait for Direct queue to finish recording
 	std::chrono::steady_clock::time_point beforeWaitDirect = timer->timestamp();
-	WaitForSingleObject(m_directHandle, INFINITE);
 	std::chrono::steady_clock::time_point afterWaitDirect = timer->timestamp();
 	timer->logCPUtime(Timer::WAITFORDIRECTRECORD, beforeWaitDirect, afterWaitDirect);
 

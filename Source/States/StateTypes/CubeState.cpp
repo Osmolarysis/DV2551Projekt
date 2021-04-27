@@ -513,14 +513,17 @@ void CubeState::record()
 	UINT64 copyFenceValue = renderer->incAndGetCopyValue();
 	renderer->getCopyFence()->Signal(copyFenceValue); //Ready or "Run"
 	renderer->getCopyFence()->SetEventOnCompletion(copyFenceValue + 1, renderer->getCopyHandle());
+	WaitForSingleObject(renderer->getCopyHandle(), INFINITE);
 
 	UINT64 computeFenceValue = renderer->incAndGetComputeValue();
 	renderer->getComputeFence()->Signal(computeFenceValue); //Ready or "Run"
 	renderer->getComputeFence()->SetEventOnCompletion(computeFenceValue + 1, renderer->getComputeHandle());
+	WaitForSingleObject(renderer->getComputeHandle(), INFINITE);
 
 	UINT64 directFenceValue = renderer->incAndGetDirectValue();
 	renderer->getDirectFence()->Signal(directFenceValue); //Ready or "Run"
 	renderer->getDirectFence()->SetEventOnCompletion(directFenceValue + 1, renderer->getDirectHandle());
+	WaitForSingleObject(renderer->getDirectHandle(), INFINITE);
 }
 
 void CubeState::executeList()
