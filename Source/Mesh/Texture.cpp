@@ -130,7 +130,7 @@ void Texture::updateAnimation(int frameIndex, float dt)
 {
 	const float normalUpdateFrequency = 1.f / 30;
 	
-	static float updateFrequency = normalUpdateFrequency;
+	static float updateFrequency = 0.f;
 	if (Input::getInstance()->keyPressed(DirectX::Keyboard::Keys::F))
 	{
 		updateFrequency = normalUpdateFrequency * !updateFrequency;
