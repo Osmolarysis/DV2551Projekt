@@ -49,6 +49,7 @@ private:
 
 	//Debug
 	ComPtr<ID3D12Debug3> m_debugController;
+	bool m_waitForGPU = false;
 
 	//Window
 	HWND m_handle;

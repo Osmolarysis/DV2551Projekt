@@ -377,6 +377,12 @@ void Renderer::beginFrame()
 
 	UINT backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
 
+	//Toggle wait for GPU
+	if (Input::getInstance()->keyPressed(DirectX::Keyboard::Keys::G))
+		m_waitForGPU = !m_waitForGPU;
+	if (m_waitForGPU)
+		backBufferIndex = !backBufferIndex;
+
 	UINT64 lastFinishedQueue = m_fence[backBufferIndex].Get()->GetCompletedValue(); //Number of last finished queue
 
 	//Wait
