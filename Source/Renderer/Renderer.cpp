@@ -383,10 +383,22 @@ void Renderer::beginFrame()
 	UINT backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
 
 	//Toggle wait for GPU and single threaded recording
-	if (Input::getInstance()->keyPressed(DirectX::Keyboard::Keys::G))
+	if (Input::getInstance()->keyPressed(DirectX::Keyboard::Keys::G)) {
 		m_waitForGPU = !m_waitForGPU;
-	if (Input::getInstance()->keyPressed(DirectX::Keyboard::Keys::T))
+		std::cout << "Double buffering toggle: ";
+		if (m_waitForGPU)
+			std::cout << "ON" << std::endl;
+		else if (!m_waitForGPU)
+			std::cout << "OFF" << std::endl;
+	}
+	if (Input::getInstance()->keyPressed(DirectX::Keyboard::Keys::T)) {
 		m_singleThread = !m_singleThread;
+		std::cout << "Single threaded recording toggle: ";
+		if (m_singleThread)
+			std::cout << "ON" << std::endl;
+		else if (!m_singleThread)
+			std::cout << "OFF" << std::endl;
+	}
 	if (m_waitForGPU)
 		backBufferIndex = !backBufferIndex;
 
