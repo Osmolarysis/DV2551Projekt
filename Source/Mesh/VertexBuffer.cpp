@@ -18,9 +18,16 @@ DirectX::XMFLOAT3* VertexBuffer::createInstances(int width, int height, int dept
 			for (int z = 0; z < depth; z++)
 			{
 				index = x + width * (y + depth * z);
+
+				//Doesn't scatter instances evenly around 0 but will be used since benchmarking already started
 				posX = x * averageDistanceBetweenCubes - width + 1 + (rand() % 1000 - 500.0f) / 500.0f;
 				posY = y * averageDistanceBetweenCubes - height + 1 + (rand() % 1000 - 500.0f) / 500.0f;
 				posZ = z * averageDistanceBetweenCubes - depth + 1 + (rand() % 1000 - 500.0f) / 500.0f;
+
+				//A better way to do it
+				/*posX = x * averageDistanceBetweenCubes - width * averageDistanceBetweenCubes / 2 + (rand() % 1000 - 500.0f) / 500.0f;
+				posY = y * averageDistanceBetweenCubes - height * averageDistanceBetweenCubes / 2 + (rand() % 1000 - 500.0f) / 500.0f;
+				posZ = z * averageDistanceBetweenCubes - depth * averageDistanceBetweenCubes / 2 + (rand() % 1000 - 500.0f) / 500.0f;*/
 				instancePositions[index] = DirectX::XMFLOAT3(posX, posY, posZ);
 			}
 		}
