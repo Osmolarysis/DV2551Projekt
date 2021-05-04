@@ -8,6 +8,14 @@ Timer Timer::m_this;
 
 void Timer::saveRecording()
 {
+	//Start at 0
+	UINT64 offset = m_exactGPUTimes[0][1];
+	for (int i = 1; i < m_nrOfRecordedFrames; i++) {
+		for (int j = 0; j < 6; j++) {
+			m_exactGPUTimes[j][i] -= offset;
+		}
+	}
+
 	//Get a time string to name file
 	time_t currentTime;
 	tm* timeStruct = new tm;
@@ -27,22 +35,28 @@ void Timer::saveRecording()
 	//Write all the data
 	if (file.is_open()) {
 		file << "Index" <<
-			seperator << "FrameTime" << 
-			seperator << "UpdateTime" << 
-			seperator << "BeginFrame()" << 
-			seperator << "WaitForPreviousFrame" << 
-			seperator << "CPURecord" << 
-			seperator << "CopyRecord" << 
-			seperator << "ComputeRecord" << 
-			seperator << "DirectRecord" << 
-			seperator << "ExecuteList" << 
-			seperator << "WaitForCopyRecord" << 
-			seperator << "WaitForComputeRecord" << 
-			seperator << "WaitForDirectRecord" << 
-			seperator << "Present" << 
-			seperator << "GPUCopyQueue" << 
-			seperator << "GPUComputeQueue" << 
-			seperator << "GPUDirectQueue\n";
+			seperator << "FrameTime" <<
+			seperator << "UpdateTime" <<
+			seperator << "BeginFrame()" <<
+			seperator << "WaitForPreviousFrame" <<
+			seperator << "CPURecord" <<
+			seperator << "CopyRecord" <<
+			seperator << "ComputeRecord" <<
+			seperator << "DirectRecord" <<
+			seperator << "ExecuteList" <<
+			seperator << "WaitForCopyRecord" <<
+			seperator << "WaitForComputeRecord" <<
+			seperator << "WaitForDirectRecord" <<
+			seperator << "Present" <<
+			seperator << "GPUCopyQueue" <<
+			seperator << "GPUComputeQueue" <<
+			seperator << "GPUDirectQueue" <<
+			seperator << "CopyStart" <<
+			seperator << "CopyEnd" <<
+			seperator << "ComputeStart" <<
+			seperator << "ComputeEnd" <<
+			seperator << "DirectStart" <<
+			seperator << "DirectEnd\n";
 		for (int i = 1; i < m_nrOfRecordedFrames; i++) {
 			file << i << 
 				seperator << m_CPUprofiling[i].frameTime <<
@@ -60,7 +74,13 @@ void Timer::saveRecording()
 				seperator << m_CPUprofiling[i].present <<
 				seperator << m_recordedGPUQueuesTimes[i].copyTime << 
 				seperator << m_recordedGPUQueuesTimes[i].computeTime << 
-				seperator << m_recordedGPUQueuesTimes[i].directTime << 
+				seperator << m_recordedGPUQueuesTimes[i].directTime <<
+				seperator << m_exactGPUTimes[0][i] <<
+				seperator << m_exactGPUTimes[1][i] <<
+				seperator << m_exactGPUTimes[2][i] <<
+				seperator << m_exactGPUTimes[3][i] <<
+				seperator << m_exactGPUTimes[4][i] <<
+				seperator << m_exactGPUTimes[5][i] <<
 				seperator << "\n";
 		}
 
@@ -149,6 +169,15 @@ void Timer::logGPUtime(UINT64 _copyTime, UINT64 _computeTime, UINT64 _directTime
 	if (m_recording) {
 		if (m_nrOfRecordedFrames < MAX_NR_OF_RECORDED_FRAMES) {
 			m_recordedGPUQueuesTimes[m_nrOfRecordedFrames] = GPUQueueTimes(_copyTime, _computeTime, _directTime);
+		}
+	}
+}
+
+void Timer::logExactGPUtimes(UINT64 times[])
+{
+	if (m_recording) {
+		for (int i = 0; i < 6; i++) {
+			m_exactGPUTimes[i][m_nrOfRecordedFrames] = times[i];
 		}
 	}
 }

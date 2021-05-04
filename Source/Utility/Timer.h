@@ -55,6 +55,8 @@ private:
 	GPUQueueTimes m_recordedGPUQueuesTimes[MAX_NR_OF_RECORDED_FRAMES];
 	unsigned int m_gpuLoggingCounter = 0;
 
+	UINT64 m_exactGPUTimes[6][MAX_NR_OF_RECORDED_FRAMES];
+
 	void saveRecording();
 public:
 	enum profilingVariable {
@@ -79,5 +81,6 @@ public:
 	std::chrono::steady_clock::time_point timestamp();
 	void reset();
 	void logGPUtime(UINT64 copyTime, UINT64 computeTime, UINT64 directTime);
+	void logExactGPUtimes(UINT64 times[]);
 	void logCPUtime(profilingVariable, std::chrono::steady_clock::time_point, std::chrono::steady_clock::time_point);
 };

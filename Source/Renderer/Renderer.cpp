@@ -417,6 +417,7 @@ void Renderer::beginFrame()
 	UINT64 queueTimes[6];
 	getQueueTimes(queueTimes);
 	Timer::getInstance()->logGPUtime(queueTimes[1] - queueTimes[0], queueTimes[3] - queueTimes[2], queueTimes[5] - queueTimes[4]);
+	Timer::getInstance()->logExactGPUtimes(queueTimes);
 }
 
 void Renderer::executeList()
