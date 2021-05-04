@@ -41,15 +41,18 @@ private:
 		UINT64 copyTime;
 		UINT64 computeTime;
 		UINT64 directTime;
-		GPUQueueTimes(UINT64 _copyTime, UINT64 _computeTime, UINT64 _directTime) {
+		UINT64 frameTime;
+		GPUQueueTimes(UINT64 _copyTime, UINT64 _computeTime, UINT64 _directTime, UINT64 _frameTime) {
 			copyTime = _copyTime;
 			computeTime = _computeTime;
 			directTime = _directTime;
+			frameTime = _frameTime;
 		}
 		GPUQueueTimes() {
 			copyTime = 0;
 			computeTime = 0;
 			directTime = 0;
+			frameTime = 0;
 		}
 	};
 	GPUQueueTimes m_recordedGPUQueuesTimes[MAX_NR_OF_RECORDED_FRAMES];
@@ -78,6 +81,6 @@ public:
 	double getAverageFPS(int updateInterval);
 	std::chrono::steady_clock::time_point timestamp();
 	void reset();
-	void logGPUtime(UINT64 copyTime, UINT64 computeTime, UINT64 directTime);
+	void logGPUtime(UINT64 copyTime, UINT64 computeTime, UINT64 directTime, UINT64 frameTime);
 	void logCPUtime(profilingVariable, std::chrono::steady_clock::time_point, std::chrono::steady_clock::time_point);
 };

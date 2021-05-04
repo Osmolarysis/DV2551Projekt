@@ -45,7 +45,7 @@ void CubeState::copyRecord()
 		m_camera->update();
 
 		//Update gif animation		
-		m_scene[0]->getMesh(0)->getTexture()->updateAnimation(Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex(), float(Timer::getInstance()->getDt())); //R£££ Warning
+		m_scene[0]->getMesh(0)->getTexture()->updateAnimation(Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex(), float(Timer::getInstance()->getDt()));
 
 		//End profiling query
 		commandList[bbIndex]->EndQuery(queryHeap[bbIndex], D3D12_QUERY_TYPE_TIMESTAMP, 1);

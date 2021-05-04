@@ -385,19 +385,17 @@ void Renderer::beginFrame()
 	//Toggle wait for GPU and single threaded recording
 	if (Input::getInstance()->keyPressed(DirectX::Keyboard::Keys::G)) {
 		m_waitForGPU = !m_waitForGPU;
-		std::cout << "Double buffering toggle: ";
 		if (m_waitForGPU)
-			std::cout << "ON" << std::endl;
+			std::cout << "Single buffering" << std::endl;
 		else if (!m_waitForGPU)
-			std::cout << "OFF" << std::endl;
+			std::cout << "Double buffering" << std::endl;
 	}
 	if (Input::getInstance()->keyPressed(DirectX::Keyboard::Keys::T)) {
 		m_singleThread = !m_singleThread;
-		std::cout << "Single threaded recording toggle: ";
 		if (m_singleThread)
-			std::cout << "ON" << std::endl;
+			std::cout << "Recording command lists on one thread" << std::endl;
 		else if (!m_singleThread)
-			std::cout << "OFF" << std::endl;
+			std::cout << "Recording command lists on multiple threads" << std::endl;
 	}
 	if (m_waitForGPU)
 		backBufferIndex = !backBufferIndex;
@@ -416,7 +414,7 @@ void Renderer::beginFrame()
 	//Recording data
 	UINT64 queueTimes[6];
 	getQueueTimes(queueTimes);
-	Timer::getInstance()->logGPUtime(queueTimes[1] - queueTimes[0], queueTimes[3] - queueTimes[2], queueTimes[5] - queueTimes[4]);
+	Timer::getInstance()->logGPUtime(queueTimes[1] - queueTimes[0], queueTimes[3] - queueTimes[2], queueTimes[5] - queueTimes[4], queueTimes[5] - queueTimes[0]);
 }
 
 void Renderer::executeList()

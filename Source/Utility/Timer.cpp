@@ -42,7 +42,8 @@ void Timer::saveRecording()
 			seperator << "Present" << 
 			seperator << "GPUCopyQueue" << 
 			seperator << "GPUComputeQueue" << 
-			seperator << "GPUDirectQueue\n";
+			seperator << "GPUDirectQueue" <<
+			seperator << "GPUFrameTime\n";
 		for (int i = 1; i < m_nrOfRecordedFrames; i++) {
 			file << i << 
 				seperator << m_CPUprofiling[i].frameTime <<
@@ -61,6 +62,7 @@ void Timer::saveRecording()
 				seperator << m_recordedGPUQueuesTimes[i].copyTime << 
 				seperator << m_recordedGPUQueuesTimes[i].computeTime << 
 				seperator << m_recordedGPUQueuesTimes[i].directTime << 
+				seperator << m_recordedGPUQueuesTimes[i].frameTime << 
 				seperator << "\n";
 		}
 
@@ -144,11 +146,11 @@ void Timer::reset()
 	m_time = std::chrono::steady_clock::now();
 }
 
-void Timer::logGPUtime(UINT64 _copyTime, UINT64 _computeTime, UINT64 _directTime)
+void Timer::logGPUtime(UINT64 _copyTime, UINT64 _computeTime, UINT64 _directTime, UINT64 _frameTime)
 {
 	if (m_recording) {
 		if (m_nrOfRecordedFrames < MAX_NR_OF_RECORDED_FRAMES) {
-			m_recordedGPUQueuesTimes[m_nrOfRecordedFrames] = GPUQueueTimes(_copyTime, _computeTime, _directTime);
+			m_recordedGPUQueuesTimes[m_nrOfRecordedFrames] = GPUQueueTimes(_copyTime, _computeTime, _directTime, _frameTime);
 		}
 	}
 }
