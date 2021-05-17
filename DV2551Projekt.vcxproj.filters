@@ -37,6 +37,9 @@
     <Filter Include="Source Files\Shaders">
       <UniqueIdentifier>{4fe47ed5-27d4-4590-a746-889ceed5aa20}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\DXUtility">
+      <UniqueIdentifier>{ae4a24b2-c61e-4cf1-b5e2-70c2b38499aa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Renderer\Renderer.cpp">
@@ -72,6 +75,15 @@
     <ClCompile Include="Source\Utility\Timer.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Utility\Input.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DXUtility\DXUtility.cpp">
+      <Filter>Source Files\DXUtility</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Mesh\Texture.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Renderer\Renderer.h">
@@ -89,9 +101,6 @@
     <ClInclude Include="Source\ConstantBuffer\ConstantBuffer.h">
       <Filter>Source Files\ConstantBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Mesh\VertexBuffer.h">
-      <Filter>Source Files\Mesh</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Mesh\MeshGroup.h">
       <Filter>Source Files\Mesh</Filter>
     </ClInclude>
@@ -104,6 +113,18 @@
     <ClInclude Include="Source\Camera\Camera.h">
       <Filter>Source Files\Camera</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Utility\Input.h">
+      <Filter>Source Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\DXUtility\DXUtility.h">
+      <Filter>Source Files\DXUtility</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Mesh\Texture.h">
+      <Filter>Source Files\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Mesh\VertexBuffer.h">
+      <Filter>Source Files\Mesh</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Source\Shaders\VertexShader.hlsl">
@@ -112,5 +133,11 @@
     <FxCompile Include="Source\Shaders\PixelShader.hlsl">
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Source\Shaders\CS_CubeRotator.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

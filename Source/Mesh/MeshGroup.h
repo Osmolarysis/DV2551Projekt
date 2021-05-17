@@ -7,8 +7,7 @@
 class MeshGroup
 {
 private:
-	std::vector<std::shared_ptr<Mesh>> m_meshes;					
-	std::unique_ptr<ConstantBuffer> m_cbuffer;
+	std::vector<std::shared_ptr<Mesh>> m_meshes;
 	ComPtr<ID3D12PipelineState> m_pipelineStateObject;
 
 	// May be moved to some sort of material? probably not

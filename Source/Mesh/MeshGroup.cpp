@@ -5,7 +5,6 @@ MeshGroup::MeshGroup(LPCWSTR shaderFiles[], UINT cbufferSize, UINT cbufferLocati
 	std::string errorStr;
 	m_vsBlob = compileShader(shaderFiles[0], errorStr, ShaderType::VS);
 	m_psBlob = compileShader(shaderFiles[1], errorStr, ShaderType::PS);
-	m_cbuffer = std::make_unique<ConstantBuffer>(ConstantBuffer(cbufferSize, cbufferLocation));
 	makePipelineStateObject();
 }
 
@@ -30,14 +29,14 @@ void MeshGroup::addMesh(std::shared_ptr<VertexBuffer> vb)
 void MeshGroup::drawAll()
 {
 	// bind pipeline state object
-	Renderer::getInstance()->getGraphicsCommandList()->SetPipelineState(m_pipelineStateObject.Get());
+	Renderer::getInstance()->getDirectCommandList()->SetPipelineState(m_pipelineStateObject.Get());
 
 	// Theoreticly constantfuffer seems to bind automaticlly? (a least with 1 obj, probably)
 
 	// draw all meshes
+	int iFrame = Renderer::getInstance()->getSwapChain()->GetCurrentBackBufferIndex();
 	for (auto& mesh : m_meshes)
 	{
-		m_cbuffer->setData((void*)mesh->getMatrix());
 		mesh->draw();
 	}
 }
@@ -92,9 +91,11 @@ bool MeshGroup::makePipelineStateObject()
 	// Make renderstate for real this time
 	D3D12_INPUT_ELEMENT_DESC inputElementDesc[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT,	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "COLOR"	, 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "UV"	, 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "INSTANCEPOS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 }
 	};
-	// TODO: add normal and uv
 
 	D3D12_INPUT_LAYOUT_DESC inputLayoutDesc;
 	inputLayoutDesc.pInputElementDescs = inputElementDesc;
@@ -153,6 +154,7 @@ bool MeshGroup::makePipelineStateObject()
 		printf("Error creating graphics pipeline state\n");
 		exit(-1);
 	}
+	m_pipelineStateObject.Get()->SetName(L"Standard pipeline state object");
 	return true;
 }
 

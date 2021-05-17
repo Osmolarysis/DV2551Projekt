@@ -6,6 +6,13 @@ Mesh::Mesh()
 	calculateMatrix();
 }
 
+Mesh::Mesh(std::shared_ptr<VertexBuffer> vb, std::string FileNames, std::string fileEnding, int nrOfImages)
+	: m_texture(FileNames, fileEnding, nrOfImages)
+{
+	addIAVertexBufferBinding(vb);	
+	calculateMatrix();
+}
+
 Mesh::~Mesh()
 {
 
@@ -36,6 +43,11 @@ const XMMATRIX* Mesh::getMatrix()
 		calculateMatrix();
 	return &m_matrix;
 }
+
+Texture* Mesh::getTexture()
+{
+	return &m_texture;
+};
 
 void Mesh::setPosition(XMFLOAT3 pos)
 {

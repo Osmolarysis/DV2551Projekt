@@ -2,6 +2,7 @@
 #include "Renderer/Renderer.h"
 #include "States\StateStack.h"
 #include "Utility\Timer.h"
+#include "Utility\Input.h"
 
 int CALLBACK main(_In_ HINSTANCE appInstance, _In_opt_ HINSTANCE preInstance, _In_ LPSTR cmdLine,
 	_In_ int cmdCount)
@@ -14,6 +15,10 @@ int CALLBACK main(_In_ HINSTANCE appInstance, _In_opt_ HINSTANCE preInstance, _I
 	//Renderer
 	Renderer* renderer = Renderer::getInstance();
 
+	//Input
+	Input::initialise(renderer->getWindowHandle());
+	Input* input = Input::getInstance();
+
 	//StateStack
 	StateStack* stateStack = StateStack::getInstance();
 	stateStack->push(State::StateType::cubeState);
@@ -23,23 +28,39 @@ int CALLBACK main(_In_ HINSTANCE appInstance, _In_opt_ HINSTANCE preInstance, _I
 	bool mainLoop = true;
 
 	timer->reset();
-	while (mainLoop) { //TODO: exit while loop in a good way - statestacks if we feelin fancy
+
+	// Closes and executes commandlists
+	Renderer::getInstance()->closeCommandLists();
+
+	while (mainLoop) {
 		//Update
+		std::chrono::steady_clock::time_point preUpdate = timer->timestamp();
+
 		timer->update();
+		input->update();
 		stateStack->update();
+		std::chrono::steady_clock::time_point postUpdate = timer->timestamp();
+		timer->logCPUtime(Timer::UPDATETIME, preUpdate, postUpdate);
 
 		//Begin frame
 		renderer->beginFrame();
+		std::chrono::steady_clock::time_point postBeginFrame = timer->timestamp();
+		timer->logCPUtime(Timer::BEGINFRAME, postUpdate, postBeginFrame);
 
-		//Record (TODO: multithread)
+		//Record
 		stateStack->record();
+		std::chrono::steady_clock::time_point postRecord = timer->timestamp();
+		timer->logCPUtime(Timer::CPURECORD, postBeginFrame, postRecord);
 
 		//Execute list(s)
-		//stateStack->executeList();
 		renderer->executeList();
+		std::chrono::steady_clock::time_point postExecuteList = timer->timestamp();
+		timer->logCPUtime(Timer::EXECUTELIST, postRecord, postExecuteList);
 
 		//Present
 		renderer->present();
+		std::chrono::steady_clock::time_point postPresent = timer->timestamp();
+		timer->logCPUtime(Timer::PRESENT, postExecuteList, postPresent);
 
 		//Message handling
 		while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {

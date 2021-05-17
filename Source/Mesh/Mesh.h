@@ -1,6 +1,7 @@
 #pragma once
 #include <unordered_map>
 #include "VertexBuffer.h"
+#include "Texture.h"
 using namespace DirectX;
 
 struct Transform {
@@ -20,6 +21,9 @@ private:
 	XMMATRIX m_matrix;
 	bool m_matrixUpdated = false;
 
+	// Texture related
+	Texture m_texture;
+
 	std::shared_ptr<VertexBuffer> m_vertexBuffer;
 	// helper functions
 	void bindIAVertexBuffer();
@@ -28,6 +32,7 @@ private:
 	void calculateMatrix();
 public:
 	Mesh();
+	Mesh(std::shared_ptr<VertexBuffer> vb, std::string FileNames, std::string fileEnding = ".png", int nrOfImages = 1);
 	~Mesh();
 
 	// array of buffers with locations (binding points in shaders)
@@ -36,6 +41,7 @@ public:
 	void draw();
 	const Transform* getTransform();
 	const XMMATRIX* getMatrix();
+	Texture* getTexture();
 	void setPosition(XMFLOAT3 pos);
 	void setRotation(XMFLOAT3 rot);
 	void move(float length, int axis = 0);
